@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game_manager", "game_manager\game_manager.vcxproj", "{7EC0A89A-A996-49B6-A685-28D66A13CC49}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gate", "gate\gate.vcxproj", "{126A24AE-BD07-470C-A0EC-0DB97607CED6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "db_manager", "db_manager\db_manager.vcxproj", "{B81714C4-35D8-4A36-A5E6-F7074A0155DA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game", "game\game.vcxproj", "{6B0C4E81-E815-45AA-A09D-2299462F5786}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "share", "share\share.vcxproj", "{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Debug|Win32.Build.0 = Debug|Win32
+		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Release|Win32.ActiveCfg = Release|Win32
+		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Release|Win32.Build.0 = Release|Win32
+		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Debug|Win32.Build.0 = Debug|Win32
+		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Release|Win32.ActiveCfg = Release|Win32
+		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Release|Win32.Build.0 = Release|Win32
+		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Debug|Win32.Build.0 = Debug|Win32
+		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Release|Win32.ActiveCfg = Release|Win32
+		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Release|Win32.Build.0 = Release|Win32
+		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Debug|Win32.Build.0 = Debug|Win32
+		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Release|Win32.ActiveCfg = Release|Win32
+		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Release|Win32.Build.0 = Release|Win32
+		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.Debug|Win32.Build.0 = Debug|Win32
+		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.Release|Win32.ActiveCfg = Release|Win32
+		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
