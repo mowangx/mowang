@@ -8,27 +8,37 @@ template <class T>
 class Singleton
 {
 public:
-	T* getInstance()
+	static T& getInstance()
 	{
 		if (NULL != m_instance) {
-			return m_instance;
+			return *m_instance;
 		}
 
 		m_mutex.lock();
-		if (NULL != m_instance) {
+		// maybe other thread has create the instance
+		if (NULL == m_instance) {
 			m_instance = new T();
 		}
-		m_mutex.unlock()
-		return m_instance
+		m_mutex.unlock();
+		return *m_instance;
 	}
 
+protected:
+	Singleton()	{}
+
 private:
-	Singleton(const Singleton&) = 0;
-	Singleton operator = (const Singlton&) = 0;
+	Singleton(const Singleton&) {}
+	Singleton operator = (const Singleton&) {}
 
 private:
 	static T* m_instance;
-	std::mutex m_mutex;
+	static std::mutex m_mutex;
 };
+
+template <class T>
+T* Singleton<T>::m_instance = NULL;
+
+template <class T>
+std::mutex Singleton<T>::m_mutex;
 
 #endif
