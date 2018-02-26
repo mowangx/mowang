@@ -60,6 +60,7 @@
       <StringPooling>true</StringPooling>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>./src/libevent/;./src/libevent/WIN32-Code/;./src/tinyxpath/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -104,6 +105,7 @@
     <ClInclude Include="src\stdcore.h" />
     <ClInclude Include="src\time_manager.h" />
     <ClInclude Include="src\types_def.h" />
+    <ClInclude Include="src\xml_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\debug.cpp" />

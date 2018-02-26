@@ -4,6 +4,8 @@
 #include "socket_manager.h"
 #include "socket.h"
 
+#include "tbl_test.h"
+
 CGameServer::CGameServer()
 {
 	m_socketMgr = NULL;
@@ -32,6 +34,12 @@ bool CGameServer::init()
 		return false;
 	}
 	log_info("init socket manager success");
+
+	if (!DTblTestMgr.load("../config/server_test.xml")) {
+		log_error("load config failed");
+		return false;
+	}
+	log_info("load config success");
 
 	return true;
 }

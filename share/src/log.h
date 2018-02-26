@@ -41,13 +41,13 @@ private:
 	std::deque<std::string> m_logs;
 };
 
-#define DLogMgr	Singleton<CLog>::getInstance()
+#define DLogMgr							Singleton<CLog>::getInstance()
 
 #define log_core(type, fmt, ...)        DLogMgr.display(type, __FILE__, __FUNCTION__, __LINE__, std::this_thread::get_id(), fmt, ##__VA_ARGS__)
-#define log_debug(fmt, ...) log_core(CLog::LOG_DEBUG, fmt, ##__VA_ARGS__)
-#define log_info(fmt, ...) log_core(CLog::LOG_INFO, fmt, ##__VA_ARGS__)
-#define log_warning(fmt, ...) log_core(CLog::LOG_WARNING, fmt, ##__VA_ARGS__)
-#define log_error(fmt, ...) log_core(CLog::LOG_ERROR, fmt, ##__VA_ARGS__)
+#define log_debug(fmt, ...)				log_core(CLog::LOG_DEBUG, fmt, ##__VA_ARGS__)
+#define log_info(fmt, ...)				log_core(CLog::LOG_INFO, fmt, ##__VA_ARGS__)
+#define log_warning(fmt, ...)			log_core(CLog::LOG_WARNING, fmt, ##__VA_ARGS__)
+#define log_error(fmt, ...)				log_core(CLog::LOG_ERROR, fmt, ##__VA_ARGS__)
 
 
 #endif

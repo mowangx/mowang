@@ -40,6 +40,11 @@ public:
 	TUniqueIndex_t getUniqueIndex();
 	void setUniqueIndex(TUniqueIndex_t index);
 
+	// 读写事件
+	TSocketEvent_t& getReadEvent();
+	TSocketEvent_t& getWriteEvent();
+	TSocketEventArg& getEventArg();
+
 public:
 	// try connect to remote host
 	bool connect(const char* host, sint32 port, sint32 diff);
@@ -156,6 +161,11 @@ protected:
 
 	// 统计信息
 	std::string strProfile;
+
+	// 事件
+	TSocketEvent_t _readEvent;
+	TSocketEvent_t _writeEvent;
+	TSocketEventArg _eventArg;
 
 	// 唯一索引
 	TUniqueIndex_t _index;

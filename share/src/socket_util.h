@@ -13,6 +13,8 @@
 #endif
 
 #include "types_def.h"
+#include "event2/event.h"
+#include "event.h"
 
 
 #define _ESIZE 256
@@ -35,6 +37,8 @@ typedef unsigned long       TIP_t;
 typedef struct sockaddr     SOCKADDR;
 typedef struct sockaddr_in  SOCKADDR_IN;
 typedef struct timeval		TTimeVal_t;      // Ê±¼ä
+typedef struct event        TSocketEvent_t;
+typedef struct event_base   SocketEventBase_t;
 
 
 static const sint32 SOCKET_ERROR_WOULDBLOCK = -100;                     // ×èÈû
@@ -89,5 +93,24 @@ static const uint32 SOCKADDR_IN_LEN = sizeof(SOCKADDR_IN);              // µØÖ·³
 
 // ×î´óµÄSocketÏß³Ì¸öÊý
 #define MAX_SOCK_THREAD_NUM 20
+
+class CSocket;
+class CSocketManager;
+
+struct TSocketEventArg
+{
+	CSocket*			s;
+	CSocketManager*     mgr;
+	TSocketEventArg()
+	{
+		cleanUp();
+	}
+
+	void cleanUp()
+	{
+		s = NULL;
+		mgr = NULL;
+	}
+};
 
 #endif

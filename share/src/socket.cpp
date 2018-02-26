@@ -388,6 +388,21 @@ TThreadID_t CSocket::getThreadID()
 	return _threadID;
 }
 
+TSocketEvent_t& CSocket::getReadEvent()
+{
+	return _readEvent;
+}
+
+TSocketEvent_t& CSocket::getWriteEvent()
+{
+	return _writeEvent;
+}
+
+TSocketEventArg& CSocket::getEventArg()
+{
+	return _eventArg;
+}
+
 bool CSocket::isNeedWrite()
 {
 	return _outputStream.size() > 0;

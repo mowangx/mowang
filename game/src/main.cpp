@@ -35,12 +35,22 @@ void net_run()
 
 int main(int argc, char* argv[])
 {
-	DLogMgr.init("game");
-	gxSetDumpHandler("game");
+	if (argc < 2) {
+		std::cout << "argv is less than 2" << std::endl;
+		return false;
+	}
+	
+	std::string module_name = "game";
+	DLogMgr.init(module_name + argv[1]);
+	gxSetDumpHandler(module_name);
+
 	std::thread log_thread(log_run);
 	std::thread net_thread(net_run);
+	
 	work_run();
+
 	log_thread.join();
 	net_thread.join();
+	
 	return 0;
 }

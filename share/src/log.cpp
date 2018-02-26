@@ -53,8 +53,7 @@ void CLog::display(ELogType type, const char* filename, const char* funcname, si
 	va_list args;
 	va_start(args, format);
 	int _res = vsnprintf(content, 2047, format, args);
-	if (_res == -1 || _res == 2047)
-	{
+	if (_res == -1 || _res == 2047) {
 		content[2047] = '\0';
 	}
 	va_end(args);
@@ -63,10 +62,12 @@ void CLog::display(ELogType type, const char* filename, const char* funcname, si
 	char cstime[25];
 	tm tmp_tm;
 	tm* tms = CTimeManager::LocalTime((time_t*)&date, &tmp_tm);
-	if (tms)
+	if (NULL != tms) {
 		strftime(cstime, 25, "%Y/%m/%d %H:%M:%S", tms);
-	else
+	}
+	else {
 		sprintf(cstime, "bad date %d", (uint32)date);
+	}
 
 	char buf[2048];
 	memset(buf, 0, 2048);
@@ -133,7 +134,7 @@ void CLog::check_rename_file()
 	std::string cur_filename = m_filename + ".log";
 	for (int i = 0; i < 999; ++i) {
 		char filename[256];
-		sprintf(filename, "%s%d.log", m_filename.c_str(), i);
+		sprintf(filename, "%s_%d.log", m_filename.c_str(), i);
 #ifdef OS_WINDOWS
 		if (_access(filename, 00) == 0 && _access(filename, 06) == -1){
 			continue;
