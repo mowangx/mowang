@@ -18,17 +18,36 @@ public:
 
 public:
 	bool	init();
-	bool	start_listen(TPort_t port);
-
 	void	update(uint32 diff);
+
+	bool	start_listen(TPort_t port);
+	bool	start_connect(const char* host, TPort_t port);
+
+	uint32	socket_num() const;
 
 private:
 	bool	onAccept(CSocket* listener);
-	static void OnAccept(TSocketIndex_t fd, short evt, void* arg);
+
+	void	onWrite(CSocket* socket);
+	void	onRead(CSocket* socket);
+
+	void	handleNewSocket();
+	void	handleUnPacket();
+	void	handleSocketUnPacket(CSocket* socket);
+	void	handleWriteMsg(TUniqueIndex_t index, char* msg, uint32 len);
+	void	handleCloseSocket(CSocket* socket, bool writeFlag);
+
+	void	addSocket(CSocket* socket);
+	void	delSocket(CSocket* socket);
 
 	TUniqueIndex_t genUniqueIndex();
 
 	void	cleanUp();
+
+private:
+	static void OnAccept(TSocketIndex_t fd, short evt, void* arg);
+	static void OnWriteEvent(TSocketIndex_t fd, short evt, void* arg);
+	static void OnReadEvent(TSocketIndex_t fd, short evt, void* arg);
 
 private:
 	TUniqueIndex_t m_socketSequenceIndex;

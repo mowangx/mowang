@@ -4,8 +4,6 @@
 
 #include "types_def.h"
 
-class CSocketManager;
-
 class CGameServer
 {
 public:
@@ -17,7 +15,6 @@ public:
 	void run();
 
 private:
-	CSocketManager* m_socketMgr;
 };
 
 #endif

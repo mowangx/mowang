@@ -125,7 +125,7 @@ bool CSocket::connect(const char* host, sint32 port, sint32 diff)
 CSocket* CSocket::accept(sint32 inputStreamLen /*= DEFAULT_SOCKET_INPUT_BUFFER_SIZE*/, sint32 outputStreamLen /*= DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE*/,
 	sint32 maxInputStreamLen /*= DISCONNECT_SOCKET_INPUT_SIZE*/, sint32 maxOutputStreamLen /*= DISCONNECT_SOCKET_OUTPUT_SIZE*/)
 {
-	CSocket* socket = new CSocket(NULL, inputStreamLen, outputStreamLen, maxInputStreamLen, maxOutputStreamLen);
+	CSocket* socket = new CSocket(inputStreamLen, outputStreamLen, maxInputStreamLen, maxOutputStreamLen);
 	uint32 addrlen = sizeof(SOCKADDR_IN);
 	SOCKADDR_IN addr;
 	//        socket->close();
@@ -370,7 +370,7 @@ bool CSocket::onRead()
 
 bool CSocket::onWrite()
 {
-	return  _outputStream.flush() > SOCKET_ERROR;
+	return _outputStream.flush() > SOCKET_ERROR;
 }
 
 TUniqueIndex_t CSocket::getUniqueIndex()
