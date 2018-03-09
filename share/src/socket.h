@@ -5,6 +5,7 @@
 #include "socket_util.h"
 #include "socket_input_stream.h"
 #include "socket_output_stream.h"
+#include "socket_handler.h"
 
 class CSocket
 {
@@ -132,6 +133,9 @@ public:
 	TSocketIndex_t   getSocketIndex() const;
 	void        setSocketIndex(TSocketIndex_t id);
 
+	CSocketHandler* getSocketHandler();
+	void setSocketHandler(CSocketHandler* handler);
+
 	// 获取缓冲区长度
 	sint32 getInputLen();
 	sint32 getOutputLen();
@@ -185,6 +189,8 @@ protected:
 	// 等待关闭时间(s)
 	uint32 _waitCloseSecs;
 	uint32 _waitCloseStartTime;
+
+	CSocketHandler* m_socketHandler;
 };
 
 #endif

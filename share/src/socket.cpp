@@ -254,6 +254,16 @@ void CSocket::setSocketIndex(TSocketIndex_t id)
 	_socket = id;
 }
 
+CSocketHandler* CSocket::getSocketHandler()
+{
+	return m_socketHandler;
+}
+
+void CSocket::setSocketHandler(CSocketHandler* handler)
+{
+	m_socketHandler = handler;
+}
+
 bool CSocket::isSockError()const
 {
 	sint32 error;

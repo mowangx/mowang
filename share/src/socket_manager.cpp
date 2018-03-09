@@ -1,13 +1,20 @@
 
 #include "socket_manager.h"
+
+#include "auto_lock.h"
+#include "log.h"
 #include "socket.h"
 #include "socket_api.h"
-#include "log.h"
 
 CSocketManager::CSocketManager()
 {
 	m_socketSequenceIndex = 0;
 	m_eventbase = NULL;
+	m_sockets.clear();
+	m_readPackets.clear();
+	m_finishReadPackets.clear();
+	m_writePackets.clear();
+	m_finishWritePackets.clear();
 }
 
 CSocketManager::~CSocketManager()
@@ -40,6 +47,10 @@ void CSocketManager::update(uint32 diff)
 	handleNewSocket();
 
 	handleUnPacket();
+
+	handleReleasePacket();
+
+	handleWriteMsg();
 }
 
 bool CSocketManager::start_listen(TPort_t port)
@@ -116,6 +127,32 @@ bool CSocketManager::start_connect(const char* host, TPort_t port)
 uint32 CSocketManager::socket_num() const
 {
 	return m_sockets.size();
+}
+
+void CSocketManager::read_packets(std::vector<TPacketInfo_t*>& packets)
+{
+	CLock lock(&m_mutex);
+	packets.insert(packets.end(), m_readPackets.begin(), m_readPackets.end());
+	m_readPackets.clear();
+}
+
+void CSocketManager::finish_read_packets(std::vector<TPacketInfo_t*>& packets)
+{
+	CLock lock(&m_mutex);
+	m_finishReadPackets.insert(m_finishReadPackets.begin(), packets.begin(), packets.end());
+}
+
+void CSocketManager::write_packets(std::vector<TPacketInfo_t*>& packets)
+{
+	CLock lock(&m_mutex);
+	m_writePackets.insert(m_writePackets.end(), packets.begin(), packets.end());
+}
+
+void CSocketManager::finish_write_packets(std::vector<TPacketInfo_t*>& packets)
+{
+	CLock lock(&m_mutex);
+	packets.insert(packets.end(), m_finishWritePackets.begin(), m_finishWritePackets.end());
+	m_finishWritePackets.clear();
 }
 
 bool CSocketManager::onAccept(CSocket* listener)
@@ -199,25 +236,43 @@ void CSocketManager::handleUnPacket()
 
 void CSocketManager::handleSocketUnPacket(CSocket* socket)
 {
-	char buffer[120];
-	int len = socket->read(buffer, 119);
-	buffer[len] = '\0';
-	if (len > 0) {
-		log_info("socket index = %"I64_FMT"u, recv msg: %s", socket->getUniqueIndex(), buffer);
+	int len = socket->getInputLen();
+	if (len > MAX_PACKET_READ_SIZE) {
+		len = MAX_PACKET_READ_SIZE;
+	}
+	CSocketHandler* socket_handler = socket->getSocketHandler();
+	int cur_len = socket->read(socket_handler->buffer(len), len);
+	if (cur_len != len) {
+		log_error("socket index = '%"I64_FMT"u', read len is not equal cache len, read len = %d, cache len = %d", socket->getUniqueIndex(), cur_len, len);
+	}
+	CBasePacket* packet = socket_handler->unpacket();
+	while (NULL != packet) {
+		char* packet_pool = m_memPool.allocate(packet->get_packet_len());
+		memcpy(packet_pool, packet, packet->get_packet_len());
+		TPacketInfo_t* packet_info = m_packetInfoPool.allocate();
+		packet_info->index = socket->getUniqueIndex();
+		packet_info->packet = (CBasePacket*)packet_pool;
+		{
+			CLock lock(&m_mutex);
+			m_readPackets.push_back(packet_info);
+		}
+		packet = socket_handler->unpacket();
 	}
 }
 
-void CSocketManager::handleWriteMsg(TUniqueIndex_t index, char* msg, uint32 len)
+void CSocketManager::handleWriteMsg()
 {
-	auto itr = m_sockets.find(index);
-	if (itr == m_sockets.end()) {
-		log_error("can't find socket index, index = '%"I64_FMT"u'", index);
-		return;
+	std::vector<TPacketInfo_t*> packets;
+	{
+		CLock lock(&m_mutex);
+		packets.insert(packets.begin(), m_writePackets.begin(), m_writePackets.end());
+		m_writePackets.clear();
 	}
-	CSocket* socket = itr->second;
-	socket->write(msg, len);
-	TSocketEvent_t& writeEvent = socket->getWriteEvent();
-	event_add(&writeEvent, NULL);
+	for (auto packet_info : packets) {
+		sendPacket(packet_info->index, (char*)packet_info->packet, packet_info->packet->get_packet_len());
+		CLock lock(&m_mutex);
+		m_finishWritePackets.push_back(packet_info);
+	}
 }
 
 void CSocketManager::handleCloseSocket(CSocket* socket, bool writeFlag)
@@ -233,6 +288,20 @@ void CSocketManager::handleCloseSocket(CSocket* socket, bool writeFlag)
 	}
 
 	delSocket(socket);
+}
+
+void CSocketManager::handleReleasePacket()
+{
+	std::vector<TPacketInfo_t*> packets;
+	{
+		CLock lock(&m_mutex);
+		packets.insert(packets.begin(), m_finishReadPackets.begin(), m_finishReadPackets.end());
+		m_finishReadPackets.clear();
+	}
+	for (auto packet_info : packets) {
+		m_memPool.deallocate((char*)packet_info->packet);
+		m_packetInfoPool.deallocate(packet_info);
+	}
 }
 
 void CSocketManager::addSocket(CSocket* socket)
@@ -261,6 +330,11 @@ void CSocketManager::addSocket(CSocket* socket)
 		log_error("The socket index is repeat! index = '%"I64_FMT"u'", index);
 		return;
 	}
+
+	CSocketHandler* socket_handler = m_socketHandlerPool.allocate();
+	socket_handler->setBuffer(m_packetBufferPool.allocate());
+	socket->setSocketHandler(socket_handler);
+
 	m_sockets[index] = socket;
 }
 
@@ -276,9 +350,27 @@ void CSocketManager::delSocket(CSocket* socket)
 
 	// ¹Ø±ÕÁ´½Ó
 	socket->close();
+
+	CSocketHandler* socket_handler = socket->getSocketHandler();
+	m_packetBufferPool.deallocate(socket_handler->buffer());
+	m_socketHandlerPool.deallocate(socket_handler);
+
 	m_sockets.erase(socket->getUniqueIndex());
 
 	DSafeDelete(socket);
+}
+
+void CSocketManager::sendPacket(TUniqueIndex_t index, char* msg, uint32 len)
+{
+	auto itr = m_sockets.find(index);
+	if (itr == m_sockets.end()) {
+		log_error("can't find socket index, index = '%"I64_FMT"u'", index);
+		return;
+	}
+	CSocket* socket = itr->second;
+	socket->write(msg, len);
+	TSocketEvent_t& writeEvent = socket->getWriteEvent();
+	event_add(&writeEvent, NULL);
 }
 
 TUniqueIndex_t CSocketManager::genUniqueIndex()

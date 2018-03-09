@@ -71,7 +71,7 @@ void CLog::display(ELogType type, const char* filename, const char* funcname, si
 
 	char buf[2048];
 	memset(buf, 0, 2048);
-	sprintf(buf, "%s %s ThreadID: [%d] %s:%d %s() ", cstime, LogTypeString[type], ((_Thrd_t*)&thread_info)->_Id, parse_filename(filename).c_str(), line, funcname);
+	sprintf(buf, "%s %s ThreadID: [%u] %s:%d %s() ", cstime, LogTypeString[type], *((_Thrd_id_t*)&thread_info), parse_filename(filename).c_str(), line, funcname);
 	std::string str = buf;
 	str += content;
 	str += "\n";

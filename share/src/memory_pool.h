@@ -10,15 +10,15 @@ struct TMemoryNode
 	char data[data_size];
 	TMemoryNode* next;
 	TMemoryNode() {
-		cleanUp();
+		clean_up();
 	}
 
-	void cleanUp() {
+	void clean_up() {
 		next = NULL;
 	}
 };
 
-template <size_t node_num, size_t data_size>
+template <size_t data_size, size_t node_num>
 class CMemoryAllocator
 {
 protected:
@@ -27,10 +27,10 @@ protected:
 		_TMyNode nodes[node_num];
 		TMyPool* next;
 		TMyPool() {
-			cleanUp();
+			clean_up();
 		}
 
-		void cleanUp() {
+		void clean_up() {
 			next = NULL;
 		}
 	};
@@ -167,11 +167,11 @@ public:
 
 private:
 	CMemoryAllocator<128, 128>		m_node_128;
-	CMemoryAllocator<64, 128*2>		m_node_128x2;
-	CMemoryAllocator<32, 128*4>		m_node_128x4;
-	CMemoryAllocator<16, 128*8>		m_node_128x8;
-	CMemoryAllocator<16, 128*16>	m_node_128x16;
-	CMemoryAllocator<16, 128*32>	m_node_128x32;
+	CMemoryAllocator<128 * 2, 64>	m_node_128x2;
+	CMemoryAllocator<128 * 4, 32>	m_node_128x4;
+	CMemoryAllocator<128 * 8, 16>	m_node_128x8;
+	CMemoryAllocator<128 * 16, 16>	m_node_128x16;
+	CMemoryAllocator<128 * 32, 16>	m_node_128x32;
 };
 
 template <class T, size_t max_count>
@@ -198,7 +198,7 @@ public:
 		m_nodes.deallocate((char*)p);
 	}
 private:
-	CMemoryAllocator<max_count, sizeof(T)> m_nodes;
+	CMemoryAllocator<sizeof(T), max_count> m_nodes;
 };
 
 #endif
