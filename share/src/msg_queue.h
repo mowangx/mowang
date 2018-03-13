@@ -66,7 +66,7 @@ public:
 			nCount++;
 			lst.push_back(_queue.front());
 			_queue.pop_front();
-			_queSize = _queue.size();
+			_queSize = (sint32)_queue.size();
 		}
 	}
 
@@ -74,7 +74,7 @@ public:
 	{
 		CLock lock(&_mutex);
 		_queue.push_back(msg);
-		_queSize = _queue.size();
+		_queSize = (sint32)_queue.size();
 	}
 
 	void pushFront(const T& msg)

@@ -126,7 +126,7 @@ bool CSocketManager::start_connect(const char* host, TPort_t port)
 
 uint32 CSocketManager::socket_num() const
 {
-	return m_sockets.size();
+	return (uint32)m_sockets.size();
 }
 
 void CSocketManager::read_packets(std::vector<TPacketInfo_t*>& packets)

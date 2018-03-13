@@ -98,29 +98,37 @@ public:
 		uint8 flag = 0xFF;
 		int buffer_size = n + sizeof(flag);
 
-		if (buffer_size <= 128) {
-			p = m_node_128.allocate();
+		if (buffer_size <= 32) {
+			p = m_node_32.allocate();
 			flag = 1;
+		}
+		else if (buffer_size <= 64) {
+			p = m_node_64.allocate();
+			flag = 2;
+		}
+		else if (buffer_size <= 128) {
+			p = m_node_128.allocate();
+			flag = 3;
 		}
 		else if (buffer_size <= 128 * 2) {
 			p = m_node_128x2.allocate();
-			flag = 2;
+			flag = 4;
 		}
 		else if (buffer_size <= 128 * 4) {
 			p = m_node_128x4.allocate();
-			flag = 4;
+			flag = 5;
 		}
 		else if (buffer_size <= 128 * 8) {
 			p = m_node_128x8.allocate();
-			flag = 8;
+			flag = 6;
 		}
 		else if (buffer_size <= 128 * 16) {
 			p = m_node_128x16.allocate();
-			flag = 16;
+			flag = 7;
 		}
 		else if (buffer_size <= 128 * 32) {
 			p = m_node_128x32.allocate();
-			flag = 32;
+			flag = 8;
 		}
 		else {
 			p = new char[buffer_size];
@@ -140,21 +148,27 @@ public:
 		p -= sizeof(uint8);
 		uint8 flag = *(uint8*)p;
 		if (flag == 1) {
-			m_node_128.deallocate(p);
+			m_node_32.deallocate(p);
 		}
 		else if (flag == 2) {
-			m_node_128x2.deallocate(p);
+			m_node_64.deallocate(p);
+		}
+		else if (flag == 3) {
+			m_node_128.deallocate(p);
 		}
 		else if (flag == 4) {
+			m_node_128x2.deallocate(p);
+		}
+		else if (flag == 5) {
 			m_node_128x4.deallocate(p);
 		}
-		else if (flag == 8) {
+		else if (flag == 6) {
 			m_node_128x8.deallocate(p);
 		}
-		else if (flag == 16) {
+		else if (flag == 7) {
 			m_node_128x16.deallocate(p);
 		}
-		else if (flag == 32) {
+		else if (flag == 8) {
 			m_node_128x32.deallocate(p);
 		}
 		else {
@@ -166,6 +180,8 @@ public:
 	}
 
 private:
+	CMemoryAllocator<32, 512>		m_node_32;
+	CMemoryAllocator<64, 256>		m_node_64;
 	CMemoryAllocator<128, 128>		m_node_128;
 	CMemoryAllocator<128 * 2, 64>	m_node_128x2;
 	CMemoryAllocator<128 * 4, 32>	m_node_128x4;
