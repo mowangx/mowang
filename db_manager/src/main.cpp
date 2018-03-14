@@ -1,4 +1,4 @@
-
+﻿
 #include "stdio.h"
 #include <iostream>
 #include <thread>
@@ -8,10 +8,16 @@
 #include "debug.h"
 #include "socket_manager.h"
 
+#include "db_server.h"
 
 void work_run()
 {
-	
+	CDbServer db_server;
+	if (!db_server.init()) {
+		return;
+	}
+
+	db_server.run();
 }
 
 void log_run()
@@ -24,25 +30,19 @@ void log_run()
 
 void net_run()
 {
-	CSocketManager* net = new CSocketManager();
-	if (NULL == net) {
-		return;
-	}
-
-	if (!net->init()) {
+	if (!DNetMgr.init()) {
 		return;
 	}
 	log_info("init socket manager success");
 
 	while (true) {
-		net->update(0);
-		if (net->socket_num() < 999) {
-			if (!net->start_connect("127.0.0.1", 10000)) {
+		DNetMgr.update(0);
+		if (DNetMgr.socket_num() < 1000) {
+			if (!DNetMgr.start_connect("127.0.0.1", 10000)) {
 				log_info("connect failed");
 				break;
 			}
 		}
-		
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 }

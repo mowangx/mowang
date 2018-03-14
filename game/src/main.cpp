@@ -8,6 +8,7 @@
 #include "debug.h"
 #include "game_server.h"
 #include "socket_manager.h"
+#include "time_manager.h"
 
 void work_run()
 {
@@ -30,23 +31,18 @@ void log_run()
 
 void net_run()
 {
-	CSocketManager* net = new CSocketManager();
-	if (NULL == net) {
+	if (!DNetMgr.init()) {
 		return ;
 	}
 
-	if (!net->init()) {
-		return ;
-	}
-
-	if (!net->start_listen(10000)) {
+	if (!DNetMgr.start_listen(10000)) {
 		return ;
 	}
 
 	log_info("init socket manager success");
 
 	while (true) {
-		net->update(0);
+		DNetMgr.update(0);
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 }
