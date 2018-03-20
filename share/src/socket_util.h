@@ -95,22 +95,36 @@ static const uint32 SOCKADDR_IN_LEN = sizeof(SOCKADDR_IN);              // µÿ÷∑≥
 #define MAX_SOCK_THREAD_NUM 20
 
 class CSocket;
+class CSocketWrapper;
 class CSocketManager;
 
-struct TSocketEventArg
+typedef struct SocketWrapperEventArg
 {
-	CSocket*			s;
-	CSocketManager*     mgr;
-	TSocketEventArg()
-	{
-		cleanUp();
+	CSocketWrapper* s;
+	CSocketManager* mgr;
+	SocketWrapperEventArg() {
+		clean_up();
 	}
 
-	void cleanUp()
-	{
+	void clean_up() {
 		s = NULL;
 		mgr = NULL;
 	}
-};
+}TSocketWrapperEventArg_t;
+
+typedef struct SocketEventArg
+{
+	CSocket* s;
+	CSocketManager* mgr;
+	SocketEventArg() {
+		clean_up();
+	}
+
+	void clean_up() {
+		s = NULL;
+		mgr = NULL;
+	}
+
+}TSocketEventArg_t;
 
 #endif

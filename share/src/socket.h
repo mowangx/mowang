@@ -7,6 +7,8 @@
 #include "socket_output_stream.h"
 #include "socket_handler.h"
 
+class CGameHandler;
+
 class CSocket
 {
 public:
@@ -44,7 +46,7 @@ public:
 	// 读写事件
 	TSocketEvent_t& getReadEvent();
 	TSocketEvent_t& getWriteEvent();
-	TSocketEventArg& getEventArg();
+	TSocketEventArg_t& getEventArg();
 
 public:
 	// try connect to remote host
@@ -136,6 +138,9 @@ public:
 	CSocketHandler* getSocketHandler();
 	void setSocketHandler(CSocketHandler* handler);
 
+	CGameHandler* getPacketHandler();
+	void setPacketHandler(CGameHandler* handler);
+
 	// 获取缓冲区长度
 	sint32 getInputLen();
 	sint32 getOutputLen();
@@ -169,7 +174,7 @@ protected:
 	// 事件
 	TSocketEvent_t _readEvent;
 	TSocketEvent_t _writeEvent;
-	TSocketEventArg _eventArg;
+	TSocketEventArg_t _eventArg;
 
 	// 唯一索引
 	TUniqueIndex_t _index;
@@ -191,6 +196,7 @@ protected:
 	uint32 _waitCloseStartTime;
 
 	CSocketHandler* m_socketHandler;
+	CGameHandler* m_packetHandler;
 };
 
 #endif

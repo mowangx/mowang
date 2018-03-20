@@ -264,6 +264,16 @@ void CSocket::setSocketHandler(CSocketHandler* handler)
 	m_socketHandler = handler;
 }
 
+CGameHandler* CSocket::getPacketHandler()
+{
+	return m_packetHandler;
+}
+
+void CSocket::setPacketHandler(CGameHandler* handler)
+{
+	m_packetHandler = handler;
+}
+
 bool CSocket::isSockError()const
 {
 	sint32 error;
@@ -408,7 +418,7 @@ TSocketEvent_t& CSocket::getWriteEvent()
 	return _writeEvent;
 }
 
-TSocketEventArg& CSocket::getEventArg()
+TSocketEventArg_t& CSocket::getEventArg()
 {
 	return _eventArg;
 }

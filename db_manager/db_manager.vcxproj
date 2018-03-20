@@ -106,13 +106,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;OS_WIN32;LIB_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../share/src/;../share/src/libevent/;../share/src/libevent/WIN32-Code/;../share/src/tinyxpath/;../share/src/mysql/;../share/src/mysql/cppconn/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../share/src/;../share/src/libevent/;../share/src/libevent/WIN32-Code/;../share/src/tinyxpath/;../share/src/mysql/;../share/src/mysql/cppconn/;E:\favourite\mongodb\mongo-cxx-driver\src;E:\favourite\mongodb\mongo-cxx-driver-lib\src;E:\include\libmongoc-1.0;E:\include\libbson-1.0;E:\favourite\boost_1_65_1;E:\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;legacy_stdio_definitions.lib;libevent.lib;tinyxpathd.lib;share.lib;mysqlcppconn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;legacy_stdio_definitions.lib;libevent.lib;tinyxpathd.lib;share.lib;mysqlcppconn.lib;bsoncxx.lib;mongocxx.lib;bson-1.0.lib;mongoc-1.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -151,12 +151,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\db_server.cpp" />
+    <ClCompile Include="src\game_server_handler.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\mysql_conn.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\db_conn.h" />
     <ClInclude Include="src\db_server.h" />
+    <ClInclude Include="src\game_server_handler.h" />
     <ClInclude Include="src\mysql_conn.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

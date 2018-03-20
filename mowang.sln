@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game_manager", "game_manager\game_manager.vcxproj", "{7EC0A89A-A996-49B6-A685-28D66A13CC49}"
 EndProject
@@ -27,7 +27,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Debug|Win32.ActiveCfg = Debug|Win32
 		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Debug|Win32.Build.0 = Debug|Win32
-		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Debug|x64.ActiveCfg = Debug|Win32
+		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Debug|x64.ActiveCfg = Debug|x64
+		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Debug|x64.Build.0 = Debug|x64
 		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.LinuxDebug|Win32.ActiveCfg = Debug|Win32
 		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.LinuxDebug|Win32.Build.0 = Debug|Win32
 		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.LinuxDebug|x64.ActiveCfg = Debug|Win32
@@ -39,7 +40,8 @@ Global
 		{7EC0A89A-A996-49B6-A685-28D66A13CC49}.Release|x64.ActiveCfg = Release|Win32
 		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Debug|Win32.ActiveCfg = Debug|Win32
 		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Debug|Win32.Build.0 = Debug|Win32
-		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Debug|x64.ActiveCfg = Debug|Win32
+		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Debug|x64.ActiveCfg = Debug|x64
+		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Debug|x64.Build.0 = Debug|x64
 		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.LinuxDebug|Win32.ActiveCfg = Debug|Win32
 		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.LinuxDebug|Win32.Build.0 = Debug|Win32
 		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.LinuxDebug|x64.ActiveCfg = Debug|Win32
@@ -51,7 +53,8 @@ Global
 		{126A24AE-BD07-470C-A0EC-0DB97607CED6}.Release|x64.ActiveCfg = Release|Win32
 		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Debug|Win32.ActiveCfg = Debug|Win32
 		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Debug|Win32.Build.0 = Debug|Win32
-		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Debug|x64.ActiveCfg = Debug|Win32
+		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Debug|x64.ActiveCfg = Debug|x64
+		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Debug|x64.Build.0 = Debug|x64
 		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.LinuxDebug|Win32.ActiveCfg = Debug|Win32
 		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.LinuxDebug|Win32.Build.0 = Debug|Win32
 		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.LinuxDebug|x64.ActiveCfg = Debug|Win32
@@ -63,7 +66,8 @@ Global
 		{B81714C4-35D8-4A36-A5E6-F7074A0155DA}.Release|x64.ActiveCfg = Release|Win32
 		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Debug|Win32.ActiveCfg = Debug|Win32
 		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Debug|Win32.Build.0 = Debug|Win32
-		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Debug|x64.ActiveCfg = Debug|Win32
+		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Debug|x64.ActiveCfg = Debug|x64
+		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Debug|x64.Build.0 = Debug|x64
 		{6B0C4E81-E815-45AA-A09D-2299462F5786}.LinuxDebug|Win32.ActiveCfg = Debug|Win32
 		{6B0C4E81-E815-45AA-A09D-2299462F5786}.LinuxDebug|Win32.Build.0 = Debug|Win32
 		{6B0C4E81-E815-45AA-A09D-2299462F5786}.LinuxDebug|x64.ActiveCfg = Debug|Win32
@@ -75,7 +79,8 @@ Global
 		{6B0C4E81-E815-45AA-A09D-2299462F5786}.Release|x64.ActiveCfg = Release|Win32
 		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.Debug|Win32.ActiveCfg = Debug|Win32
 		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.Debug|Win32.Build.0 = Debug|Win32
-		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.Debug|x64.ActiveCfg = Debug|Win32
+		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.Debug|x64.ActiveCfg = Debug|x64
+		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.Debug|x64.Build.0 = Debug|x64
 		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.LinuxDebug|Win32.ActiveCfg = Debug|Win32
 		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.LinuxDebug|Win32.Build.0 = Debug|Win32
 		{E265F20A-A4C0-40EC-BA3E-F894DE0C9A4A}.LinuxDebug|x64.ActiveCfg = Debug|Win32
@@ -88,5 +93,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {51909862-451D-4505-9880-05C1D50B3014}
 	EndGlobalSection
 EndGlobal

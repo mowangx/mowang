@@ -53,77 +53,6 @@ void CSocketManager::update(uint32 diff)
 	handleWriteMsg();
 }
 
-bool CSocketManager::start_listen(TPort_t port)
-{
-	CSocket* socket = new CSocket("any", port);
-	if (NULL == socket) {
-		return false;
-	}
-
-	if (!socket->create()) {
-		return false;
-	}
-
-	if (!socket->setReuseAddr()) {
-		return false;
-	}
-
-	if (!socket->bind()) {
-		return false;
-	}
-
-	if (!socket->listen(5)) {
-		return false;
-	}
-
-	socket->setReuseAddr(true);
-	socket->setLinger(0);
-	socket->setNonBlocking(true);
-
-	TSocketEvent_t& listen_event = socket->getReadEvent();
-	TSocketEventArg& event_arg = socket->getEventArg();
-	event_arg.s = socket;
-	event_arg.mgr = this;
-	if (0 != event_assign(&listen_event, m_eventbase, socket->getSocketIndex(), EV_READ | EV_PERSIST,
-		CSocketManager::OnAccept, &event_arg)) {
-		log_warning("can't event assign!");
-		return false;
-	}
-
-	if (0 != event_add(&listen_event, NULL)) {
-		log_warning("can't event add!errno=%s", strerror(errno));
-		return false;
-	}
-
-	return true;
-}
-
-bool CSocketManager::start_connect(const char* host, TPort_t port)
-{
-	CSocket* socket = new CSocket();
-	if (NULL == socket) {
-		return false;
-	}
-
-	if (!socket->create()) {
-		return false;
-	}
-
-	if (!socket->connect(host, port, 0)) {
-		return false;
-	}
-
-	socket->setNonBlocking(true);
-
-	TUniqueIndex_t index = genUniqueIndex();
-	socket->setUniqueIndex(index);
-	log_info("connect socket success! index = '%"I64_FMT"u', host = %s, port = %u", index, host, port);
-
-	addSocket(socket);
-
-	return true;
-}
-
 uint32 CSocketManager::socket_num() const
 {
 	return (uint32)m_sockets.size();
@@ -155,7 +84,14 @@ void CSocketManager::finish_write_packets(std::vector<TPacketInfo_t*>& packets)
 	m_finishWritePackets.clear();
 }
 
-bool CSocketManager::onAccept(CSocket* listener)
+void CSocketManager::test_get_sockets(std::vector<CSocket*>& sockets)
+{
+	for (auto itr : m_sockets) {
+		sockets.push_back(itr.second);
+	}
+}
+
+bool CSocketManager::onAccept(CSocketWrapper* listener)
 {
 	CSocket* socket = listener->accept();
 	if (NULL == socket) {
@@ -166,6 +102,10 @@ bool CSocketManager::onAccept(CSocket* listener)
 	TUniqueIndex_t index = genUniqueIndex();
 	socket->setUniqueIndex(index);
 	log_info("Accept socket! index = '%"I64_FMT"u'", index);
+
+	socket->setPacketHandler(listener->create_handler());
+	socket->getPacketHandler()->set_socket(socket);
+	socket->getPacketHandler()->set_index(index);
 
 	m_newSocketQueue.push(socket);
 
@@ -250,7 +190,7 @@ void CSocketManager::handleSocketUnPacket(CSocket* socket)
 		char* packet_pool = m_memPool.allocate(packet->get_packet_len());
 		memcpy(packet_pool, packet, packet->get_packet_len());
 		TPacketInfo_t* packet_info = m_packetInfoPool.allocate();
-		packet_info->index = socket->getUniqueIndex();
+		packet_info->socket = socket;
 		packet_info->packet = (CBasePacket*)packet_pool;
 		{
 			CLock lock(&m_mutex);
@@ -269,7 +209,12 @@ void CSocketManager::handleWriteMsg()
 		m_writePackets.clear();
 	}
 	for (auto packet_info : packets) {
-		sendPacket(packet_info->index, (char*)packet_info->packet, packet_info->packet->get_packet_len());
+		if (m_sockets.find(packet_info->index) != m_sockets.end()) {
+			sendPacket(packet_info->socket, (char*)packet_info->packet, packet_info->packet->get_packet_len());
+		}
+		else {
+			log_info("send packet failed for can't find socket index! socket index = '%"I64_FMT"u'", packet_info->index);
+		}
 		CLock lock(&m_mutex);
 		m_finishWritePackets.push_back(packet_info);
 	}
@@ -308,7 +253,7 @@ void CSocketManager::addSocket(CSocket* socket)
 {
 	TSocketEvent_t& readEvent = socket->getReadEvent();
 	TSocketEvent_t& writeEvent = socket->getWriteEvent();
-	TSocketEventArg& eventArg = socket->getEventArg();
+	TSocketEventArg_t& eventArg = socket->getEventArg();
 	eventArg.mgr = this;
 	eventArg.s = socket;
 
@@ -357,17 +302,13 @@ void CSocketManager::delSocket(CSocket* socket)
 
 	m_sockets.erase(socket->getUniqueIndex());
 
+	delete socket->getPacketHandler();
+
 	DSafeDelete(socket);
 }
 
-void CSocketManager::sendPacket(TUniqueIndex_t index, char* msg, uint32 len)
+void CSocketManager::sendPacket(CSocket* socket, char* msg, uint32 len)
 {
-	auto itr = m_sockets.find(index);
-	if (itr == m_sockets.end()) {
-		log_error("can't find socket index, index = '%"I64_FMT"u'", index);
-		return;
-	}
-	CSocket* socket = itr->second;
 	socket->write(msg, len);
 	TSocketEvent_t& writeEvent = socket->getWriteEvent();
 	event_add(&writeEvent, NULL);
@@ -387,7 +328,7 @@ void CSocketManager::cleanUp()
 
 void CSocketManager::OnAccept(TSocketIndex_t fd, short evt, void* arg)
 {
-	TSocketEventArg* event_arg = (TSocketEventArg*)arg;
+	TSocketWrapperEventArg_t* event_arg = (TSocketWrapperEventArg_t*)arg;
 	if (NULL == event_arg || NULL == event_arg->s || NULL == event_arg->mgr) {
 		log_error("Cast socket arg failed");
 		return;
@@ -401,7 +342,7 @@ void CSocketManager::OnAccept(TSocketIndex_t fd, short evt, void* arg)
 
 void CSocketManager::OnWriteEvent(TSocketIndex_t fd, short evt, void* arg)
 {
-	TSocketEventArg* eventArg = (TSocketEventArg*)arg;
+	TSocketEventArg_t* eventArg = (TSocketEventArg_t*)arg;
 
 	if (evt & EV_WRITE) {
 		eventArg->mgr->onWrite(eventArg->s);
@@ -412,7 +353,7 @@ void CSocketManager::OnWriteEvent(TSocketIndex_t fd, short evt, void* arg)
 
 void CSocketManager::OnReadEvent(TSocketIndex_t fd, short evt, void* arg)
 {
-	TSocketEventArg* eventArg = (TSocketEventArg*)arg;
+	TSocketEventArg_t* eventArg = (TSocketEventArg_t*)arg;
 
 	if (!eventArg->s->isActive()) {
 		return;

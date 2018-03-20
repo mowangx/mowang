@@ -25,7 +25,7 @@ char* CSocketHandler::buffer(int len)
 	int old_write_index = m_write_index;
 	m_write_index += len;
 	if (m_write_index > m_read_index && m_write_index < m_max_index) {
-		log_info("socket handler! write error! read index = %d, write index = %d, max index = %d, len = %d", m_read_index, m_write_index, m_max_index, len);
+		log_error("socket handler! write error! read index = %d, write index = %d, max index = %d, len = %d", m_read_index, m_write_index, m_max_index, len);
 		return m_buffer;
 	}
 	if (m_max_index < m_write_index) {
@@ -58,14 +58,14 @@ CBasePacket* CSocketHandler::unpacket()
 	}
 	CBasePacket* packet = (CBasePacket*)(m_buffer + m_read_index);
 	if (packet->get_packet_len() != 11 && packet->get_packet_len() != 27) {
-		log_info("socket handler! read error! read index = %d, write index = %d, max index = %d, len = %d", m_read_index, m_write_index, m_max_index, packet->get_packet_len());
+		log_error("socket handler! read error! read index = %d, write index = %d, max index = %d, len = %d", m_read_index, m_write_index, m_max_index, packet->get_packet_len());
 		return NULL;
 	}
 	if (len < packet->get_packet_len()) {
 		return NULL;
 	}
 	if (packet->m_id != 8888888 && packet->m_id != 12345678) {
-		log_info("socket handler! read error! read index = %d, write index = %d, max index = %d, len = %d", m_read_index, m_write_index, m_max_index, packet->get_packet_len());
+		log_error("socket handler! read error! read index = %d, write index = %d, max index = %d, len = %d", m_read_index, m_write_index, m_max_index, packet->get_packet_len());
 		return NULL;
 	}
 	m_read_index += packet->get_packet_len();

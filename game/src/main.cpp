@@ -9,16 +9,17 @@
 #include "game_server.h"
 #include "socket_manager.h"
 #include "time_manager.h"
+#include "db_manager_handler.h"
+
 
 void work_run()
 {
-	CGameServer gameserver;
-	if (!gameserver.init()) {
+	if (!DGameSerger.init()) {
 		log_error("Init game server failed");
 		return;
 	}
 	log_info("Init game server success");
-	gameserver.run();
+	DGameSerger.run();
 }
 
 void log_run()
@@ -35,7 +36,7 @@ void net_run()
 		return ;
 	}
 
-	if (!DNetMgr.start_listen(10000)) {
+	if (!DNetMgr.start_listen<CDbManagerHandler>(10000)) {
 		return ;
 	}
 

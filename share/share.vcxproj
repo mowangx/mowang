@@ -179,6 +179,7 @@
     <ClInclude Include="src\log.h" />
     <ClInclude Include="src\memory_pool.h" />
     <ClInclude Include="src\msg_queue.h" />
+    <ClInclude Include="src\packet_handler.h" />
     <ClInclude Include="src\singleton.h" />
     <ClInclude Include="src\socket.h" />
     <ClInclude Include="src\socket_api.h" />
@@ -188,6 +189,7 @@
     <ClInclude Include="src\socket_manager.h" />
     <ClInclude Include="src\socket_output_stream.h" />
     <ClInclude Include="src\socket_util.h" />
+    <ClInclude Include="src\socket_wrapper.h" />
     <ClInclude Include="src\stdcore.h" />
     <ClInclude Include="src\time_manager.h" />
     <ClInclude Include="src\types_def.h" />

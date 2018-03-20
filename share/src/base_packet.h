@@ -4,6 +4,8 @@
 
 #include "base_util.h"
 
+class CSocket;
+
 #pragma pack(push, 1)
 
 class CBasePacket
@@ -64,6 +66,7 @@ public:
 typedef struct PacketInfo
 {
 	CBasePacket* packet;
+	CSocket* socket;
 	TUniqueIndex_t index;
 	PacketInfo() {
 		clean_up();
@@ -71,6 +74,7 @@ typedef struct PacketInfo
 
 	void clean_up() {
 		packet = NULL;
+		socket = NULL;
 		index = 0;
 	}
 

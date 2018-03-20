@@ -12,8 +12,8 @@
 #include "memory_pool.h"
 #include "socket_handler.h"
 #include "base_packet.h"
-
-class CSocket;
+#include "socket_wrapper.h"
+#include "packet_handler.h"
 
 class CSocketManager : public Singleton<CSocketManager>
 {
@@ -25,7 +25,10 @@ public:
 	bool	init();
 	void	update(uint32 diff);
 
+	template <class T>
 	bool	start_listen(TPort_t port);
+
+	template <class T>
 	bool	start_connect(const char* host, TPort_t port);
 
 	uint32	socket_num() const;
@@ -36,8 +39,10 @@ public:
 	void	write_packets(std::vector<TPacketInfo_t*>& packets);
 	void	finish_write_packets(std::vector<TPacketInfo_t*>& packets);
 
+	void	test_get_sockets(std::vector<CSocket*>& sockets);
+
 private:
-	bool	onAccept(CSocket* listener);
+	bool	onAccept(CSocketWrapper* listener);
 
 	void	onWrite(CSocket* socket);
 	void	onRead(CSocket* socket);
@@ -52,7 +57,7 @@ private:
 	void	addSocket(CSocket* socket);
 	void	delSocket(CSocket* socket);
 
-	void	sendPacket(TUniqueIndex_t index, char* msg, uint32 len);
+	void	sendPacket(CSocket* socket, char* msg, uint32 len);
 
 	TUniqueIndex_t genUniqueIndex();
 
@@ -78,6 +83,84 @@ private:
 	std::vector<TPacketInfo_t*> m_writePackets;
 	std::vector<TPacketInfo_t*> m_finishWritePackets;
 };
+
+template <class T>
+bool CSocketManager::start_listen(TPort_t port)
+{
+	CSocketWrapper * socket = new CSocketListener<T>("any", port);
+	if (NULL == socket) {
+		return false;
+	}
+
+	if (!socket->create()) {
+		return false;
+	}
+
+	if (!socket->setReuseAddr()) {
+		return false;
+	}
+
+	if (!socket->bind()) {
+		return false;
+	}
+
+	if (!socket->listen(5)) {
+		return false;
+	}
+
+	socket->setReuseAddr(true);
+	socket->setLinger(0);
+	socket->setNonBlocking(true);
+
+	TSocketEvent_t& listen_event = socket->getReadEvent();
+	TSocketWrapperEventArg_t& event_arg = socket->get_wrapper_event_arg();
+	event_arg.s = socket;
+	event_arg.mgr = this;
+	if (0 != event_assign(&listen_event, m_eventbase, socket->getSocketIndex(), EV_READ | EV_PERSIST,
+		CSocketManager::OnAccept, &event_arg)) {
+		log_warning("can't event assign!");
+		return false;
+	}
+
+	if (0 != event_add(&listen_event, NULL)) {
+		log_warning("can't event add!errno=%s", strerror(errno));
+		return false;
+	}
+
+	return true;
+}
+
+
+template <class T>
+bool CSocketManager::start_connect(const char* host, TPort_t port)
+{
+	CSocketWrapper* socket = new CSocketConnector<T>();
+	if (NULL == socket) {
+		return false;
+	}
+
+	if (!socket->create()) {
+		return false;
+	}
+
+	if (!socket->connect(host, port, 0)) {
+		return false;
+	}
+
+	socket->setNonBlocking(true);
+
+	TUniqueIndex_t index = genUniqueIndex();
+	socket->setUniqueIndex(index);
+	log_info("connect socket success! index = '%"I64_FMT"u', host = %s, port = %u", index, host, port);
+
+	socket->setPacketHandler(socket->create_handler());
+	socket->getPacketHandler()->set_socket(socket);
+	socket->getPacketHandler()->set_index(index);
+
+	addSocket(socket);
+
+	return true;
+}
 
 #define DNetMgr		CSocketManager::getInstance()
 

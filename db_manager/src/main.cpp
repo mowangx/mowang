@@ -4,20 +4,63 @@
 #include <thread>
 #include <chrono>
 
+
+#include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/json.hpp>
+#include <mongocxx/client.hpp>
+#include <mongocxx/instance.hpp>
+#include <mongocxx/stdx.hpp>
+#include <mongocxx/uri.hpp>
+#include <mongocxx/exception/bulk_write_exception.hpp>
+
 #include "log.h"
 #include "debug.h"
 #include "socket_manager.h"
 
 #include "db_server.h"
+#include "game_server_handler.h"
+
+
 
 void work_run()
 {
-	CDbServer db_server;
-	if (!db_server.init()) {
+	//mongocxx::instance instance{}; // This should be done only once.
+	//mongocxx::uri uri("mongodb://127.0.0.1:27017");
+	//mongocxx::client client(uri);
+	//mongocxx::database db = client["test"];
+	//mongocxx::collection coll = db["role"];
+	//auto builder = bsoncxx::builder::stream::document{};
+	//bsoncxx::document::value doc_value = builder
+	//	<< "name" << "MongoDB"
+	//	<< "type" << "database"
+	//	<< "count" << 1
+	//	<< "versions" << bsoncxx::builder::stream::open_array
+	//	<< "v3.2" << "v3.0" << "v2.6"
+	//	<< bsoncxx::builder::stream::close_array
+	//	<< "info" << bsoncxx::builder::stream::open_document
+	//	<< "x" << 203
+	//	<< "y" << 102
+	//	<< bsoncxx::builder::stream::close_document
+	//	<< bsoncxx::builder::stream::finalize;
+	//bsoncxx::document::view view = doc_value.view();
+	//bsoncxx::document::element element = view["name"];
+	//if (element.type() != bsoncxx::type::k_utf8) {
+	//	// Error
+	//}
+	//std::string name = element.get_utf8().value.to_string();
+	//try {
+	//	bsoncxx::stdx::optional<mongocxx::result::insert_one> result =
+	//		coll.insert_one(view);
+	//}
+	//catch (mongocxx::bulk_write_exception& e) {
+	//	std::cout << e.code() << e.what() << std::endl;
+	//}
+
+	if (!DDbServer.init()) {
 		return;
 	}
 
-	db_server.run();
+	DDbServer.run();
 }
 
 void log_run()
@@ -38,7 +81,7 @@ void net_run()
 	while (true) {
 		DNetMgr.update(0);
 		if (DNetMgr.socket_num() < 1000) {
-			if (!DNetMgr.start_connect("127.0.0.1", 10000)) {
+			if (!DNetMgr.start_connect<CGameServerHandler>("127.0.0.1", 10000)) {
 				log_info("connect failed");
 				break;
 			}
