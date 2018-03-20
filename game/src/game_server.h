@@ -9,7 +9,7 @@
 #include "memory_pool.h"
 #include "base_packet.h"
 
-class CGameServer : public Singleton<CGameServer>
+class CGameServer : public CSingleton<CGameServer>
 {
 public:
 	CGameServer();
@@ -30,6 +30,6 @@ private:
 	std::vector<TPacketInfo_t*> m_write_packets;
 };
 
-#define DGameSerger Singleton<CGameServer>::getInstance()
+#define DGameSerger CSingleton<CGameServer>::getInstance()
 
 #endif

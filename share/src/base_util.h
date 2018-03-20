@@ -8,8 +8,8 @@
 typedef uint32 TThreadID_t;             // 线程
 static const TThreadID_t INVALID_THREAD_ID = 0;
 
-typedef uint64 TUniqueIndex_t;          // 唯一标识
-const TUniqueIndex_t INVALID_UNIQUE_INDEX = INVALID_UINT64_NUM;
+typedef uint64 TSocketIndex_t;          // 唯一标识
+const TSocketIndex_t INVALID_UNIQUE_INDEX = INVALID_UINT64_NUM;
 
 static const uint32 LOG_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
 

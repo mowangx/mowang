@@ -24,11 +24,11 @@ public:
 		return m_socket;
 	}
 
-	void set_index(TUniqueIndex_t index) {
+	void set_index(TSocketIndex_t index) {
 		m_index = index;
 	}
 
-	TUniqueIndex_t get_index() const {
+	TSocketIndex_t get_index() const {
 		return m_index;
 	}
 
@@ -42,7 +42,7 @@ public:
 
 private:
 	CSocket* m_socket;
-	TUniqueIndex_t m_index;
+	TSocketIndex_t m_index;
 };
 
 typedef bool (CGameHandler::*TPacketHandler)(CBasePacket* packet);

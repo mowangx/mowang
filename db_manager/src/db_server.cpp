@@ -53,14 +53,14 @@ void CDbServer::run()
 				login_ret.m_len = sizeof(CLoginRequest);
 				login_ret.m_check = 987654321;
 				login_ret.m_user = 89;
-				s->getPacketHandler()->handle(&login_ret);
-				s->getPacketHandler()->handle(&login_ret);
-				s->getPacketHandler()->handle(&login_ret);
-				s->getPacketHandler()->handle(&login_ret);
-				s->getPacketHandler()->handle(&login_ret);
-				s->getPacketHandler()->handle(&login_ret);
-				s->getPacketHandler()->handle(&login_ret);
-				s->getPacketHandler()->handle(&login_ret);
+				s->get_packet_handler()->handle(&login_ret);
+				s->get_packet_handler()->handle(&login_ret);
+				s->get_packet_handler()->handle(&login_ret);
+				s->get_packet_handler()->handle(&login_ret);
+				s->get_packet_handler()->handle(&login_ret);
+				s->get_packet_handler()->handle(&login_ret);
+				s->get_packet_handler()->handle(&login_ret);
+				s->get_packet_handler()->handle(&login_ret);
 			}
 		}
 
@@ -72,7 +72,7 @@ void CDbServer::run()
 		DNetMgr.read_packets(packets);
 		read_packet_num = packets.size();
 		for (auto packet_info : packets) {
-			packet_info->socket->getPacketHandler()->handle(packet_info->packet);
+			packet_info->socket->get_packet_handler()->handle(packet_info->packet);
 		}
 		DNetMgr.finish_read_packets(packets);
 		packets.clear();

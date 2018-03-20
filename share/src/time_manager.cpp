@@ -4,8 +4,8 @@
 
 CTimeManager::CTimeManager()
 {
-	_currentTime = 0;
-	_startTime = 0;
+	m_current_time = 0;
+	m_start_time = 0;
 	init();
 }
 
@@ -16,22 +16,22 @@ CTimeManager::~CTimeManager()
 void CTimeManager::init()
 {
 #if defined(OS_WINDOWS)
-	_startTime = SystemCall::GetTickCount();
-	_currentTime = SystemCall::GetTickCount();
+	m_start_time = SystemCall::GetTickCount();
+	m_current_time = SystemCall::GetTickCount();
 #elif defined(OS_UNIX)
 	_startTime = 0;
 	_currentTime = 0;
 	SystemCall::gettimeofday(&_TStart, &_TZ);
 #endif
 
-	localTime();
+	local_time();
 
-	memset(_timeBuffer, 0, 100);
+	memset(m_time_buffer, 0, 100);
 }
 
-TTime_t CTimeManager::nowSysTime()
+TTime_t CTimeManager::now_sys_time()
 {
-	return _setTime;
+	return m_set_time;
 }
 
 TTime_t CTimeManager::SysNowTime()
@@ -39,51 +39,51 @@ TTime_t CTimeManager::SysNowTime()
 	return CTimeManager::AnsiToGxTime(time(NULL));
 }
 
-uint32 CTimeManager::currentDate()
+uint32 CTimeManager::current_date()
 {
-	localTime();
+	local_time();
 	uint32 Date;
-	ConvertTU(&_tm, Date);
+	ConvertTU(&m_tm, Date);
 
 	return Date;
 }
 
 
-void CTimeManager::localTime()
+void CTimeManager::local_time()
 {
-	time((time_t*)&_setTime);
+	time((time_t*)&m_set_time);
 	tm tempTm;
-	tm* ptm = CTimeManager::LocalTime((time_t*)&_setTime, &tempTm);
-	_tm = *ptm;
+	tm* ptm = CTimeManager::LocalTime((time_t*)&m_set_time, &tempTm);
+	m_tm = *ptm;
 }
 
 // 得到标准时间
-TTime_t CTimeManager::getANSITime()
+TTime_t CTimeManager::get_ansi_time()
 {
-	localTime();
-	return _setTime;
+	local_time();
+	return m_set_time;
 }
 
-uint32 CTimeManager::time2Number()
+uint32 CTimeManager::time_2_number()
 {
-	localTime();
+	local_time();
 
 	uint32 uRet = 0;
 
-	uRet += getYear();
+	uRet += get_year();
 	uRet -= 2000;
 	uRet = uRet * 100;
 
-	uRet += getMonth() + 1;
+	uRet += get_month() + 1;
 	uRet = uRet * 100;
 
-	uRet += getDay();
+	uRet += get_day();
 	uRet = uRet * 100;
 
-	uRet += getHour();
+	uRet += get_hour();
 	uRet = uRet * 100;
 
-	uRet += getMinute();
+	uRet += get_minute();
 
 	return uRet;
 }
@@ -127,7 +127,7 @@ void CTimeManager::ConvertTU(tm* TM, uint32& Date)
 	Date += TM->tm_sec & 0x3f;
 }
 
-uint32 CTimeManager::getDayTime()
+uint32 CTimeManager::get_day_time()
 {
 	time_t st;
 	time(&st);
@@ -140,10 +140,10 @@ uint32 CTimeManager::getDayTime()
 	return uRet;
 }
 
-uint32 CTimeManager::getTodayTime()
+uint32 CTimeManager::get_today_time()
 {
 	tm tempTm;
-	tm* ptm = CTimeManager::LocalTime((time_t*)&_setTime, &tempTm);
+	tm* ptm = CTimeManager::LocalTime((time_t*)&m_set_time, &tempTm);
 	uint32 uRet = 0;
 	uRet = ptm->tm_hour * 100;
 	uRet += ptm->tm_min;
@@ -175,10 +175,10 @@ bool CTimeManager::FormatTodayTime(uint32& nTime)
 
 TAppTime_t CTimeManager::update()
 {
-	getANSITime();
+	get_ansi_time();
 
 #if defined(OS_WINDOWS)
-	_currentTime = GetTickCount();
+	m_current_time = GetTickCount();
 #elif defined(OS_UNIX)
 	gettimeofday(&_TEnd, &_TZ);
 	double t1, t2;
@@ -187,9 +187,9 @@ TAppTime_t CTimeManager::update()
 	_currentTime = (uint32)(t2 - t1);
 #endif
 
-	strftime(_timeBuffer, 100, "%Y-%m-%d %H:%M:%S", &_tm);
+	strftime(m_time_buffer, 100, "%Y-%m-%d %H:%M:%S", &m_tm);
 
-	return _currentTime;
+	return m_current_time;
 }
 
 TTime_t CTimeManager::AnsiToGxTime(time_t times)
@@ -219,39 +219,39 @@ void CTimeManager::FormatSystemTime(TTime_t times, std::string& str)
 	str = cstime;
 }
 
-sint32 CTimeManager::getYear()
+sint32 CTimeManager::get_year()
 {
-	return _tm.tm_year + 1900;
+	return m_tm.tm_year + 1900;
 }
 
-sint32 CTimeManager::getMonth()
+sint32 CTimeManager::get_month()
 {
-	return _tm.tm_mon;
+	return m_tm.tm_mon;
 }
 
-sint32 CTimeManager::getDay()
+sint32 CTimeManager::get_day()
 {
-	return _tm.tm_mday;
+	return m_tm.tm_mday;
 }
 
-sint32 CTimeManager::getHour()
+sint32 CTimeManager::get_hour()
 {
-	return _tm.tm_hour;
+	return m_tm.tm_hour;
 }
 
-sint32 CTimeManager::getMinute()
+sint32 CTimeManager::get_minute()
 {
-	return _tm.tm_min;
+	return m_tm.tm_min;
 }
 
-sint32 CTimeManager::getSecond()
+sint32 CTimeManager::get_second()
 {
-	return _tm.tm_sec;
+	return m_tm.tm_sec;
 }
 
-sint32 CTimeManager::getWeek()
+sint32 CTimeManager::get_week()
 {
-	return _tm.tm_wday;
+	return m_tm.tm_wday;
 }
 
 struct tm * CTimeManager::LocalTime(const time_t *timep, struct tm *result)

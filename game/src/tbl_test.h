@@ -18,7 +18,7 @@ public:
 	uint32	value;
 };
 
-class CTblTestLoader : public CConfigLoader<CTblTestConfig>, public Singleton<CTblTestLoader>
+class CTblTestLoader : public CConfigLoader<CTblTestConfig>, public CSingleton<CTblTestLoader>
 {
 public:
 	virtual bool read_row(ConfigRow* row, sint32 count, CTblTestConfig* test)
@@ -36,6 +36,6 @@ public:
 	}
 };
 
-#define DTblTestMgr	Singleton<CTblTestLoader>::getInstance()
+#define DTblTestMgr	CSingleton<CTblTestLoader>::getInstance()
 
 #endif

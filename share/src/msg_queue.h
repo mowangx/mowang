@@ -77,7 +77,7 @@ public:
 		_queSize = (sint32)_queue.size();
 	}
 
-	void pushFront(const T& msg)
+	void push_front(const T& msg)
 	{
 		CLock lock(&_mutex);
 		_queue.push_front(msg);

@@ -45,7 +45,7 @@ void CGameServer::run()
 
 		DNetMgr.read_packets(packets);
 		for (auto packet_info : packets) {
-			packet_info->socket->getPacketHandler()->handle(packet_info->packet);
+			packet_info->socket->get_packet_handler()->handle(packet_info->packet);
 		}
 		DNetMgr.finish_read_packets(packets);
 		packets.clear();

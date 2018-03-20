@@ -58,9 +58,9 @@ void SOCKET_API::gx_lib_cleanup()
 //
 //
 //////////////////////////////////////////////////////////////////////
-TSocketIndex_t SOCKET_API::gx_socket(sint32 domain, sint32 type, sint32 protocol)
+TSocketFD_t SOCKET_API::gx_socket(sint32 domain, sint32 type, sint32 protocol)
 {
-	TSocketIndex_t s = ::socket(domain, type, protocol);
+	TSocketFD_t s = ::socket(domain, type, protocol);
 
 	if (s == INVALID_SOCKET)
 	{
@@ -135,7 +135,7 @@ TSocketIndex_t SOCKET_API::gx_socket(sint32 domain, sint32 type, sint32 protocol
 //
 //
 //////////////////////////////////////////////////////////////////////
-bool SOCKET_API::gx_bind(TSocketIndex_t s, const struct sockaddr * addr, sint32 addrlen)
+bool SOCKET_API::gx_bind(TSocketFD_t s, const struct sockaddr * addr, sint32 addrlen)
 {
 	if (bind(s, addr, addrlen) == SOCKET_ERROR)
 	{
@@ -218,7 +218,7 @@ bool SOCKET_API::gx_bind(TSocketIndex_t s, const struct sockaddr * addr, sint32 
 //     none
 //
 //////////////////////////////////////////////////////////////////////
-bool SOCKET_API::gx_connect(TSocketIndex_t s, const struct sockaddr * addr, sint32 addrlen)
+bool SOCKET_API::gx_connect(TSocketFD_t s, const struct sockaddr * addr, sint32 addrlen)
 {
 	if (connect(s, addr, addrlen) == SOCKET_ERROR)
 	{
@@ -308,7 +308,7 @@ bool SOCKET_API::gx_connect(TSocketIndex_t s, const struct sockaddr * addr, sint
 	return true;
 }
 
-bool SOCKET_API::gx_connect2(TSocketIndex_t sockfd, const struct sockaddr* addr, sint32 addrlen, sint32 timeout)
+bool SOCKET_API::gx_connect2(TSocketFD_t sockfd, const struct sockaddr* addr, sint32 addrlen, sint32 timeout)
 {
 	sint32 fd_num;
 	TTimeVal_t select_timeval;
@@ -394,7 +394,7 @@ bool SOCKET_API::gx_connect2(TSocketIndex_t sockfd, const struct sockaddr* addr,
 //
 //
 //////////////////////////////////////////////////////////////////////
-bool SOCKET_API::gx_listen(TSocketIndex_t s, sint32 backlog)
+bool SOCKET_API::gx_listen(TSocketFD_t s, sint32 backlog)
 {
 	if (listen(s, backlog) == SOCKET_ERROR)
 	{
@@ -472,12 +472,12 @@ bool SOCKET_API::gx_listen(TSocketIndex_t s, sint32 backlog)
 //
 //
 //////////////////////////////////////////////////////////////////////
-TSocketIndex_t SOCKET_API::gx_accept(TSocketIndex_t s, struct sockaddr * addr, uint32 * addrlen)
+TSocketFD_t SOCKET_API::gx_accept(TSocketFD_t s, struct sockaddr * addr, uint32 * addrlen)
 {
 #ifdef OS_UNIX
-	TSocketIndex_t client = accept(s, addr, (socklen_t*)addrlen);
+	TSocketFD_t client = accept(s, addr, (socklen_t*)addrlen);
 #elif defined( OS_WINDOWS )
-	TSocketIndex_t client = accept(s, addr, (int*)addrlen);
+	TSocketFD_t client = accept(s, addr, (int*)addrlen);
 #endif
 
 	if (client == INVALID_SOCKET)
@@ -569,7 +569,7 @@ TSocketIndex_t SOCKET_API::gx_accept(TSocketIndex_t s, struct sockaddr * addr, u
 //
 //
 //////////////////////////////////////////////////////////////////////
-bool SOCKET_API::gx_getsockopt(TSocketIndex_t s, sint32 level, sint32 optname, void * optval, uint32 * optlen)
+bool SOCKET_API::gx_getsockopt(TSocketFD_t s, sint32 level, sint32 optname, void * optval, uint32 * optlen)
 {
 #ifdef OS_UNIX
 	if (getsockopt(s, level, optname, optval, (socklen_t*)optlen) == SOCKET_ERROR)
@@ -630,7 +630,7 @@ bool SOCKET_API::gx_getsockopt(TSocketIndex_t s, sint32 level, sint32 optname, v
 	return true;
 }
 
-sint32 SOCKET_API::gx_getsockopt2(TSocketIndex_t s, sint32 level, sint32 optname, void * optval, uint32 * optlen)
+sint32 SOCKET_API::gx_getsockopt2(TSocketFD_t s, sint32 level, sint32 optname, void * optval, uint32 * optlen)
 {
 #ifdef OS_UNIX
 	if (getsockopt(s, level, optname, optval, (socklen_t*)optlen) == SOCKET_ERROR)
@@ -706,7 +706,7 @@ sint32 SOCKET_API::gx_getsockopt2(TSocketIndex_t s, sint32 level, sint32 optname
 //
 //
 //////////////////////////////////////////////////////////////////////
-bool SOCKET_API::gx_setsockopt(TSocketIndex_t s, sint32 level, sint32 optname, const void * optval, sint32 optlen)
+bool SOCKET_API::gx_setsockopt(TSocketFD_t s, sint32 level, sint32 optname, const void * optval, sint32 optlen)
 {
 #ifdef OS_UNIX
 	if (setsockopt(s, level, optname, optval, optlen) == SOCKET_ERROR)
@@ -788,7 +788,7 @@ bool SOCKET_API::gx_setsockopt(TSocketIndex_t s, sint32 level, sint32 optname, c
 // 
 // 
 //////////////////////////////////////////////////////////////////////
-sint32 SOCKET_API::gx_send(TSocketIndex_t s, const void * buf, sint32 len, sint32 flags)
+sint32 SOCKET_API::gx_send(TSocketFD_t s, const void * buf, sint32 len, sint32 flags)
 {
 	sint32 nSent;
 #ifdef OS_UNIX
@@ -898,7 +898,7 @@ sint32 SOCKET_API::gx_send(TSocketIndex_t s, const void * buf, sint32 len, sint3
 }
 
 
-sint32 SOCKET_API::gx_sendto(TSocketIndex_t s, const void * buf, sint32 len, sint32 flags, const struct sockaddr * to, sint32 tolen)
+sint32 SOCKET_API::gx_sendto(TSocketFD_t s, const void * buf, sint32 len, sint32 flags, const struct sockaddr * to, sint32 tolen)
 {
 #ifdef OS_UNIX
 	sint32 nSent = sendto(s, buf, len, flags, to, tolen);
@@ -951,7 +951,7 @@ sint32 SOCKET_API::gx_sendto(TSocketIndex_t s, const void * buf, sint32 len, sin
 // 
 //
 //////////////////////////////////////////////////////////////////////
-sint32 SOCKET_API::gx_recv(TSocketIndex_t s, void * buf, sint32 len, sint32 flags)
+sint32 SOCKET_API::gx_recv(TSocketFD_t s, void * buf, sint32 len, sint32 flags)
 {
 #ifdef OS_UNIX
 	sint32 nrecv = recv(s, buf, len, flags);
@@ -1049,7 +1049,7 @@ sint32 SOCKET_API::gx_recv(TSocketIndex_t s, void * buf, sint32 len, sint32 flag
 	return nrecv;
 }
 
-sint32 SOCKET_API::gx_recvfrom(TSocketIndex_t s, void * buf, sint32 len, sint32 flags, struct sockaddr * from, uint32 * fromlen)
+sint32 SOCKET_API::gx_recvfrom(TSocketFD_t s, void * buf, sint32 len, sint32 flags, struct sockaddr * from, uint32 * fromlen)
 {
 #ifdef OS_UNIX
 	sint32 nReceived = recvfrom(s, buf, len, flags, from, (socklen_t*)fromlen);
@@ -1100,7 +1100,7 @@ sint32 SOCKET_API::gx_recvfrom(TSocketIndex_t s, void * buf, sint32 len, sint32 
 //
 //
 /////////////////////////////////////////////////////////////////////
-bool SOCKET_API::gx_closesocket(TSocketIndex_t s)
+bool SOCKET_API::gx_closesocket(TSocketFD_t s)
 {
 	gx_shutdown(s, 0x02);
 #ifdef OS_UNIX
@@ -1143,7 +1143,7 @@ bool SOCKET_API::gx_closesocket(TSocketIndex_t s)
 	return true;
 }
 
-bool SOCKET_API::gx_ioctlsocket(TSocketIndex_t s, long cmd, unsigned long * argp)
+bool SOCKET_API::gx_ioctlsocket(TSocketFD_t s, long cmd, unsigned long * argp)
 {
 #ifdef OS_UNIX
 #elif defined( OS_WINDOWS )
@@ -1193,7 +1193,7 @@ bool SOCKET_API::gx_ioctlsocket(TSocketIndex_t s, long cmd, unsigned long * argp
 //
 //
 //////////////////////////////////////////////////////////////////////
-bool SOCKET_API::gx_getsocketnonblocking(TSocketIndex_t s)
+bool SOCKET_API::gx_getsocketnonblocking(TSocketFD_t s)
 {
 #ifdef OS_UNIX
 	sint32 flags = FILE_API::gx_fcntl(s, F_GETFL, 0);
@@ -1215,7 +1215,7 @@ bool SOCKET_API::gx_getsocketnonblocking(TSocketIndex_t s)
 //     none
 //
 //////////////////////////////////////////////////////////////////////
-bool SOCKET_API::gx_setsocketnonblocking(TSocketIndex_t s, bool on)
+bool SOCKET_API::gx_setsocketnonblocking(TSocketFD_t s, bool on)
 {
 #ifdef OS_UNIX
 	sint32 flags = FILE_API::gx_fcntl(s, F_GETFL, 0);
@@ -1251,7 +1251,7 @@ bool SOCKET_API::gx_setsocketnonblocking(TSocketIndex_t s, bool on)
 //
 //
 //////////////////////////////////////////////////////////////////////
-sint32 SOCKET_API::gx_availablesocket(TSocketIndex_t s)
+sint32 SOCKET_API::gx_availablesocket(TSocketFD_t s)
 {
 #ifdef OS_UNIX
 	return FILE_API::gx_availablefile(s);
@@ -1276,7 +1276,7 @@ sint32 SOCKET_API::gx_availablesocket(TSocketIndex_t s)
 //
 //
 //////////////////////////////////////////////////////////////////////
-bool SOCKET_API::gx_shutdown(TSocketIndex_t s, sint32 how)
+bool SOCKET_API::gx_shutdown(TSocketFD_t s, sint32 how)
 {
 	if (shutdown(s, how) < 0)
 	{
@@ -1328,7 +1328,7 @@ bool SOCKET_API::gx_shutdown(TSocketIndex_t s, sint32 how)
 	return true;
 }
 
-sint32 SOCKET_API::gx_select(TSocketIndex_t maxfdp1, fd_set * readset, fd_set * writeset, fd_set * exceptset, TTimeVal_t * timeout)
+sint32 SOCKET_API::gx_select(TSocketFD_t maxfdp1, fd_set * readset, fd_set * writeset, fd_set * exceptset, TTimeVal_t * timeout)
 {
 
 	sint32 result;

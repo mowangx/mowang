@@ -38,7 +38,7 @@ void CGameServerHandler::write_packet(TPacketInfo_t* packet_info)
 bool CGameServerHandler::handle_test_1(CBasePacket* packet)
 {
 	CLoginRequest* login = (CLoginRequest*)packet;
-	log_info("'%"I64_FMT"u', %d, %d", get_socket()->getUniqueIndex(), login->get_packet_len(), login->m_user);
+	log_info("'%"I64_FMT"u', %d, %d", get_socket()->get_socket_index(), login->get_packet_len(), login->m_user);
 
 	CLoginRequest login_ret;
 	login_ret.m_id = 12345678;
@@ -52,7 +52,7 @@ bool CGameServerHandler::handle_test_1(CBasePacket* packet)
 bool CGameServerHandler::handle_test_2(CBasePacket* packet)
 {
 	CLogoutRequest* logout = (CLogoutRequest*)packet;
-	log_info("'%"I64_FMT"u', %d, %d, %s", get_socket()->getUniqueIndex(), logout->get_packet_len(), logout->m_user, logout->m_name);
+	log_info("'%"I64_FMT"u', %d, %d, %s", get_socket()->get_socket_index(), logout->get_packet_len(), logout->m_user, logout->m_name);
 
 	CLogoutRequest logout_ret;
 	logout_ret.m_id = 8888888;

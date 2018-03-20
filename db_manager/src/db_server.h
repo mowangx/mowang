@@ -10,7 +10,7 @@
 
 class CDbConn;
 
-class CDbServer : public Singleton<CDbServer>
+class CDbServer : public CSingleton<CDbServer>
 {
 public:
 	CDbServer();
@@ -32,7 +32,7 @@ private:
 	std::vector<TPacketInfo_t*> m_write_packets;
 };
 
-#define DDbServer Singleton<CDbServer>::getInstance()
+#define DDbServer CSingleton<CDbServer>::getInstance()
 
 
 #endif // !_DB_SERVER_H_

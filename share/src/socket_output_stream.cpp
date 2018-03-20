@@ -5,27 +5,27 @@
 
 CSocketOutputStream::CSocketOutputStream()
 {
-	_socket = NULL;
-	_buffer = NULL;
-	_bufferLen = 0;
-	_maxBufferLen = 0;
-	_head = 0;
-	_tail = 0;
-	_outputLen = 0;
+	m_socket = NULL;
+	m_buffer = NULL;
+	m_buffer_len = 0;
+	m_max_buffer_len = 0;
+	m_head = 0;
+	m_tail = 0;
+	m_output_len = 0;
 }
 
 CSocketOutputStream::~CSocketOutputStream()
 {
-	DSafeDeleteArray(_buffer);
+	DSafeDeleteArray(m_buffer);
 }
 
 sint32 CSocketOutputStream::_length()const
 {
-	if (_head<_tail)
-		return _tail - _head;
+	if (m_head<m_tail)
+		return m_tail - m_head;
 
-	else if (_head>_tail)
-		return _bufferLen - _head + _tail;
+	else if (m_head>m_tail)
+		return m_buffer_len - m_head + m_tail;
 
 	return 0;
 }
@@ -38,7 +38,7 @@ sint32 CSocketOutputStream::write(const char* buf, sint32 len)
 	// abcd...efg		// ...abcd...
 	//					//
 
-	sint32 nFree = ((_head <= _tail) ? (_bufferLen - _tail + _head - 1) : (_head - _tail - 1));
+	sint32 nFree = ((m_head <= m_tail) ? (m_buffer_len - m_tail + m_head - 1) : (m_head - m_tail - 1));
 
 	if (len >= nFree)
 	{
@@ -46,51 +46,51 @@ sint32 CSocketOutputStream::write(const char* buf, sint32 len)
 			return 0;
 	}
 
-	if (_head <= _tail)
+	if (m_head <= m_tail)
 	{
-		if (_head == 0)
+		if (m_head == 0)
 		{
-			nFree = _bufferLen - _tail - 1;
-			memcpy(&_buffer[_tail], buf, len);
+			nFree = m_buffer_len - m_tail - 1;
+			memcpy(&m_buffer[m_tail], buf, len);
 		}
 		else
 		{
-			nFree = _bufferLen - _tail;
+			nFree = m_buffer_len - m_tail;
 			if (len <= nFree)
 			{
-				memcpy(&_buffer[_tail], buf, len);
+				memcpy(&m_buffer[m_tail], buf, len);
 			}
 			else
 			{
-				memcpy(&_buffer[_tail], buf, nFree);
-				memcpy(_buffer, &buf[nFree], len - nFree);
+				memcpy(&m_buffer[m_tail], buf, nFree);
+				memcpy(m_buffer, &buf[nFree], len - nFree);
 			}
 		}
 	}
 	else
 	{
-		memcpy(&_buffer[_tail], buf, len);
+		memcpy(&m_buffer[m_tail], buf, len);
 	}
 
-	_tail = (_tail + len) % _bufferLen;
+	m_tail = (m_tail + len) % m_buffer_len;
 	sint32 tempLen = _length();
-	_outputLen = tempLen;
+	m_output_len = tempLen;
 	return len;
 }
 
 void CSocketOutputStream::initsize(CSocket* sock, sint32 BufferLen, sint32 MaxBufferLen)
 {
-	_socket = sock;
-	_bufferLen = BufferLen;
-	_maxBufferLen = MaxBufferLen;
+	m_socket = sock;
+	m_buffer_len = BufferLen;
+	m_max_buffer_len = MaxBufferLen;
 
-	_head = 0;
-	_tail = 0;
+	m_head = 0;
+	m_tail = 0;
 
-	DSafeDeleteArray(_buffer);
-	_buffer = new char[_bufferLen];
+	DSafeDeleteArray(m_buffer);
+	m_buffer = new char[m_buffer_len];
 
-	memset(_buffer, 0, _bufferLen);
+	memset(m_buffer, 0, m_buffer_len);
 }
 
 sint32 CSocketOutputStream::flush()
@@ -99,11 +99,11 @@ sint32 CSocketOutputStream::flush()
 	sint32 nSent = 0;
 	sint32 nLeft;
 
-	if (_bufferLen>_maxBufferLen)
+	if (m_buffer_len>m_max_buffer_len)
 	{//如果单个客户端的缓存太大，则重新设置缓存，并将此客户端断开连接
-		initsize(_socket, _bufferLen, _maxBufferLen);
-		_socket->setActive(false);
-		log_error("output stream too big, socket index = "I64_FMT"u", _socket->getUniqueIndex());
+		initsize(m_socket, m_buffer_len, m_max_buffer_len);
+		m_socket->set_active(false);
+		log_error("output stream too big, socket index = "I64_FMT"u", m_socket->get_socket_index());
 		return SOCKET_ERROR - 1;
 	}
 
@@ -113,67 +113,67 @@ sint32 CSocketOutputStream::flush()
 	sint32 flag = MSG_NOSIGNAL;
 #endif
 
-	if (_head < _tail)
+	if (m_head < m_tail)
 	{
-		nLeft = _tail - _head;
+		nLeft = m_tail - m_head;
 
 		while (nLeft > 0)
 		{
-			nSent = _socket->send(&_buffer[_head], nLeft, flag);
+			nSent = m_socket->send(&m_buffer[m_head], nLeft, flag);
 			if (nSent == SOCKET_ERROR_WOULDBLOCK) return 0;
 			if (nSent == SOCKET_ERROR) return SOCKET_ERROR - 2;
 			if (nSent == 0) return 0;
 
 			nFlushed += nSent;
 			nLeft -= nSent;
-			_head += nSent;
+			m_head += nSent;
 		}
 	}
-	else if (_head > _tail)
+	else if (m_head > m_tail)
 	{
-		nLeft = _bufferLen - _head;
+		nLeft = m_buffer_len - m_head;
 
 		while (nLeft > 0)
 		{
-			nSent = _socket->send(&_buffer[_head], nLeft, flag);
+			nSent = m_socket->send(&m_buffer[m_head], nLeft, flag);
 			if (nSent == SOCKET_ERROR_WOULDBLOCK) return 0;
 			if (nSent == SOCKET_ERROR) return SOCKET_ERROR - 3;
 			if (nSent == 0) return 0;
 
 			nFlushed += nSent;
 			nLeft -= nSent;
-			_head += nSent;
+			m_head += nSent;
 		}
 
-		_head = 0;
+		m_head = 0;
 
-		nLeft = _tail;
+		nLeft = m_tail;
 
 		while (nLeft > 0)
 		{
-			nSent = _socket->send(&_buffer[_head], nLeft, flag);
+			nSent = m_socket->send(&m_buffer[m_head], nLeft, flag);
 			if (nSent == SOCKET_ERROR_WOULDBLOCK) return 0;
 			if (nSent == SOCKET_ERROR) return SOCKET_ERROR - 4;
 			if (nSent == 0) return 0;
 
 			nFlushed += nSent;
 			nLeft -= nSent;
-			_head += nSent;
+			m_head += nSent;
 		}
 	}
 
-	_head = _tail = 0;
+	m_head = m_tail = 0;
 
 	sint32 tempLen = _length();
-	_outputLen = tempLen;
+	m_output_len = tempLen;
 	return nFlushed;
 }
 
 bool CSocketOutputStream::resize(sint32 size)
 {
-	sint32 len = (_bufferLen >> 1);
+	sint32 len = (m_buffer_len >> 1);
 	size = len > size ? len : size;
-	sint32 newBufferLen = _bufferLen + size;
+	sint32 newBufferLen = m_buffer_len + size;
 	len = _length();
 
 	if (size<0)
@@ -186,28 +186,28 @@ bool CSocketOutputStream::resize(sint32 size)
 	if (newBuffer == NULL)
 		return false;
 
-	if (_head<_tail)
+	if (m_head<m_tail)
 	{
-		memcpy(newBuffer, &_buffer[_head], _tail - _head);
+		memcpy(newBuffer, &m_buffer[m_head], m_tail - m_head);
 	}
-	else if (_head>_tail)
+	else if (m_head>m_tail)
 	{
-		memcpy(newBuffer, &_buffer[_head], _bufferLen - _head);
-		memcpy(&newBuffer[_bufferLen - _head], _buffer, _tail);
+		memcpy(newBuffer, &m_buffer[m_head], m_buffer_len - m_head);
+		memcpy(&newBuffer[m_buffer_len - m_head], m_buffer, m_tail);
 	}
 
-	DSafeDeleteArray(_buffer);
+	DSafeDeleteArray(m_buffer);
 
-	_buffer = newBuffer;
-	_bufferLen = newBufferLen;
-	_head = 0;
-	_tail = len;
+	m_buffer = newBuffer;
+	m_buffer_len = newBufferLen;
+	m_head = 0;
+	m_tail = len;
 
 	return true;
 }
 
-void CSocketOutputStream::cleanUp()
+void CSocketOutputStream::clean_up()
 {
-	_head = 0;
-	_tail = 0;
+	m_head = 0;
+	m_tail = 0;
 }

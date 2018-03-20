@@ -67,7 +67,7 @@ typedef struct PacketInfo
 {
 	CBasePacket* packet;
 	CSocket* socket;
-	TUniqueIndex_t index;
+	TSocketIndex_t index;
 	PacketInfo() {
 		clean_up();
 	}

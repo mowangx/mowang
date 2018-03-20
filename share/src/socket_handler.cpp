@@ -39,7 +39,7 @@ char* CSocketHandler::buffer()
 	return m_buffer;
 }
 
-void CSocketHandler::setBuffer(char* p)
+void CSocketHandler::set_buffer(char* p)
 {
 	m_buffer = p;
 }

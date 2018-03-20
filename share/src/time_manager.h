@@ -32,16 +32,16 @@ public:
 	TAppTime_t          update();
 
 	/** @brief 系统当前时间, 不调用系统接口, 直接返回保存的系统时间 */
-	TTime_t             nowSysTime();
+	TTime_t             now_sys_time();
 
 	/**
 	* @brief 返回自程序启动以来运行的时间
 	*        返回的值为：千分之一秒时间
 	*/
-	TAppTime_t          nowAppTime() { return _currentTime; }
+	TAppTime_t          now_app_time() { return m_current_time; }
 
 	/** @brief 取得服务器启动后的运行时间（毫秒） */
-	TAppTime_t          runTime() { return (_currentTime - _startTime); }
+	TAppTime_t          run_time() { return (m_current_time - m_start_time); }
 
 	//         /** 
 	//         * @brief 注意
@@ -49,25 +49,25 @@ public:
 	//         */
 	//         /** @brief 取得设置时间时候的“年、月、日、小时、分、秒、星期的值”*/
 public:
-	sint32 getYear();   ///< @brief [1900,????]
-	sint32 getMonth();  ///< @brief [0,11]
-	sint32 getDay();    ///< @brief [1,31]
-	sint32 getHour();   ///< @brief [0,23]
-	sint32 getMinute(); ///< @brief [0,59]
-	sint32 getSecond(); ///< @brief [0,59]
-	sint32 getWeek();   ///< @brief 取得当前是星期几；0表示：星期天，1～6表示：星期一～星期六
+	sint32 get_year();   ///< @brief [1900,????]
+	sint32 get_month();  ///< @brief [0,11]
+	sint32 get_day();    ///< @brief [1,31]
+	sint32 get_hour();   ///< @brief [0,23]
+	sint32 get_minute(); ///< @brief [0,59]
+	sint32 get_second(); ///< @brief [0,59]
+	sint32 get_week();   ///< @brief 取得当前是星期几；0表示：星期天，1～6表示：星期一～星期六
 
 	/**
 	* @brief 将当前的时间（年、月、日、小时、分）转换成一个time_t来表示
 	*		  例如：0,507,211,233 表示 "2005.07.21 12:33"
 	*/
-	uint32			time2Number();
+	uint32			time_2_number();
 	/** @brief 取得当前的日期[4bit 0-9][4bit 0-11][5bit 0-30][5bit 0-23][6bit 0-59][6bit 0-59]*/
-	uint32			currentDate();
+	uint32			current_date();
 	//取得已天为单位的时间值, 千位数代表年份，其他三位代表时间（天数）
-	uint32	        getDayTime();
+	uint32	        get_day_time();
 	//得到当前是今天的什么时间2310表示23点10分
-	uint32	        getTodayTime();
+	uint32	        get_today_time();
 
 public:
 	// 取得两个日期时间的时间差（单位：毫秒）, Ret = Date2-Data1
@@ -93,25 +93,25 @@ public:
 	* @brief 取得服务器端程序启动时的时间计数值
 	*        返回的值为：毫秒单位的时间值
 	*/
-	TAppTime_t      startAppTime(){ return _startTime; }
+	TAppTime_t      start_app_time(){ return m_start_time; }
 
 	/**
 	* @brief 将当前的系统时间格式化到时间管理器里
 	*/
-	void            localTime();
+	void            local_time();
 
 	/**
 	* @brief 得到标准时间
 	*        返回值为: 系统时间
 	*/
-	TTime_t         getANSITime();
+	TTime_t         get_ansi_time();
 
 private:
-	struct tm           _tm;					///< @brief 当前系统本地的时间结构
-	TAppTime_t			_startTime;			///< @brief 系统的起始时间(单位为毫秒)
-	TAppTime_t			_currentTime;			///< @brief 系统的当前时间(单位为毫秒)
-	TTime_t			    _setTime;				///< @brief 当前系统时间(单位为秒)
-	char                _timeBuffer[100];       ///< @brief 标准化过的时间字符串 形如: 2011-01-01 23:00:00
+	struct tm           m_tm;					///< @brief 当前系统本地的时间结构
+	TAppTime_t			m_start_time;			///< @brief 系统的起始时间(单位为毫秒)
+	TAppTime_t			m_current_time;			///< @brief 系统的当前时间(单位为毫秒)
+	TTime_t			    m_set_time;				///< @brief 当前系统时间(单位为秒)
+	char                m_time_buffer[100];       ///< @brief 标准化过的时间字符串 形如: 2011-01-01 23:00:00
 
 #ifdef OS_UNIX
 	struct timeval  _TStart, _TEnd;
@@ -119,6 +119,6 @@ private:
 #endif
 };
 
-#define DTimeMgr	Singleton<CTimeManager>::getInstance()
+#define DTimeMgr	CSingleton<CTimeManager>::getInstance()
 
 #endif

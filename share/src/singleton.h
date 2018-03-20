@@ -5,7 +5,7 @@
 #include <mutex>
 
 template <class T>
-class Singleton
+class CSingleton
 {
 public:
 	static T& getInstance()
@@ -24,11 +24,11 @@ public:
 	}
 
 protected:
-	Singleton()	{}
+	CSingleton()	{}
 
 private:
-	Singleton(const Singleton&) {}
-	Singleton operator = (const Singleton&) {}
+	CSingleton(const CSingleton&) {}
+	CSingleton operator = (const CSingleton&) {}
 
 private:
 	static T* m_instance;
@@ -36,9 +36,9 @@ private:
 };
 
 template <class T>
-T* Singleton<T>::m_instance = NULL;
+T* CSingleton<T>::m_instance = NULL;
 
 template <class T>
-std::mutex Singleton<T>::m_mutex;
+std::mutex CSingleton<T>::m_mutex;
 
 #endif

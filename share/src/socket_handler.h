@@ -14,7 +14,7 @@ public:
 	char* buffer(int len);
 
 	char* buffer();
-	void setBuffer(char* p);
+	void set_buffer(char* p);
 
 	CBasePacket* unpacket();
 

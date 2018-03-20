@@ -15,7 +15,7 @@
 #include "socket_wrapper.h"
 #include "packet_handler.h"
 
-class CSocketManager : public Singleton<CSocketManager>
+class CSocketManager : public CSingleton<CSocketManager>
 {
 public:
 	CSocketManager();
@@ -42,46 +42,46 @@ public:
 	void	test_get_sockets(std::vector<CSocket*>& sockets);
 
 private:
-	bool	onAccept(CSocketWrapper* listener);
+	bool	on_accept(CSocketWrapper* listener);
 
-	void	onWrite(CSocket* socket);
-	void	onRead(CSocket* socket);
+	void	on_write(CSocket* socket);
+	void	on_read(CSocket* socket);
 
-	void	handleNewSocket();
-	void	handleUnPacket();
-	void	handleSocketUnPacket(CSocket* socket);
-	void	handleWriteMsg();
-	void	handleCloseSocket(CSocket* socket, bool writeFlag);
-	void	handleReleasePacket();
+	void	handle_new_socket();
+	void	handle_unpacket();
+	void	handle_socket_unpacket(CSocket* socket);
+	void	handle_write_msg();
+	void	handle_close_socket(CSocket* socket, bool writeFlag);
+	void	handle_release_packet();
 
-	void	addSocket(CSocket* socket);
-	void	delSocket(CSocket* socket);
+	void	add_socket(CSocket* socket);
+	void	del_socket(CSocket* socket);
 
-	void	sendPacket(CSocket* socket, char* msg, uint32 len);
+	void	send_packet(CSocket* socket, char* msg, uint32 len);
 
-	TUniqueIndex_t genUniqueIndex();
+	TSocketIndex_t gen_socket_index();
 
-	void	cleanUp();
+	void	clean_up();
 
 private:
-	static void OnAccept(TSocketIndex_t fd, short evt, void* arg);
-	static void OnWriteEvent(TSocketIndex_t fd, short evt, void* arg);
-	static void OnReadEvent(TSocketIndex_t fd, short evt, void* arg);
+	static void OnAccept(TSocketFD_t fd, short evt, void* arg);
+	static void OnWriteEvent(TSocketFD_t fd, short evt, void* arg);
+	static void OnReadEvent(TSocketFD_t fd, short evt, void* arg);
 
 private:
 	std::mutex m_mutex;
-	TUniqueIndex_t m_socketSequenceIndex;
+	TSocketIndex_t m_socket_sequence_index;
 	SocketEventBase_t* m_eventbase;
-	CMemoryAllocator<MAX_PACKET_BUFFER_SIZE, 100> m_packetBufferPool;
-	CObjMemoryPool<CSocketHandler, 100> m_socketHandlerPool;
-	CObjMemoryPool<TPacketInfo_t, 1000> m_packetInfoPool;
-	CMemoryPool	m_memPool;
-	CMsgQueue<CSocket*> m_newSocketQueue;
-	std::unordered_map<TUniqueIndex_t, CSocket*> m_sockets;
-	std::vector<TPacketInfo_t*> m_readPackets;
-	std::vector<TPacketInfo_t*> m_finishReadPackets;
-	std::vector<TPacketInfo_t*> m_writePackets;
-	std::vector<TPacketInfo_t*> m_finishWritePackets;
+	CMemoryAllocator<MAX_PACKET_BUFFER_SIZE, 100> m_packet_buffer_pool;
+	CObjMemoryPool<CSocketHandler, 100> m_socket_handler_pool;
+	CObjMemoryPool<TPacketInfo_t, 1000> m_packet_info_pool;
+	CMemoryPool	m_mem_pool;
+	CMsgQueue<CSocket*> m_new_socket_queue;
+	std::unordered_map<TSocketIndex_t, CSocket*> m_sockets;
+	std::vector<TPacketInfo_t*> m_read_packets;
+	std::vector<TPacketInfo_t*> m_finish_read_packets;
+	std::vector<TPacketInfo_t*> m_write_packets;
+	std::vector<TPacketInfo_t*> m_finish_write_packets;
 };
 
 template <class T>
@@ -96,7 +96,7 @@ bool CSocketManager::start_listen(TPort_t port)
 		return false;
 	}
 
-	if (!socket->setReuseAddr()) {
+	if (!socket->set_reuse_addr()) {
 		return false;
 	}
 
@@ -108,15 +108,15 @@ bool CSocketManager::start_listen(TPort_t port)
 		return false;
 	}
 
-	socket->setReuseAddr(true);
-	socket->setLinger(0);
-	socket->setNonBlocking(true);
+	socket->set_reuse_addr(true);
+	socket->set_linger(0);
+	socket->set_non_blocking(true);
 
-	TSocketEvent_t& listen_event = socket->getReadEvent();
+	TSocketEvent_t& listen_event = socket->get_read_event();
 	TSocketWrapperEventArg_t& event_arg = socket->get_wrapper_event_arg();
 	event_arg.s = socket;
 	event_arg.mgr = this;
-	if (0 != event_assign(&listen_event, m_eventbase, socket->getSocketIndex(), EV_READ | EV_PERSIST,
+	if (0 != event_assign(&listen_event, m_eventbase, socket->get_socket_fd(), EV_READ | EV_PERSIST,
 		CSocketManager::OnAccept, &event_arg)) {
 		log_warning("can't event assign!");
 		return false;
@@ -147,17 +147,17 @@ bool CSocketManager::start_connect(const char* host, TPort_t port)
 		return false;
 	}
 
-	socket->setNonBlocking(true);
+	socket->set_non_blocking(true);
 
-	TUniqueIndex_t index = genUniqueIndex();
-	socket->setUniqueIndex(index);
+	TSocketIndex_t index = gen_socket_index();
+	socket->set_socket_index(index);
 	log_info("connect socket success! index = '%"I64_FMT"u', host = %s, port = %u", index, host, port);
 
-	socket->setPacketHandler(socket->create_handler());
-	socket->getPacketHandler()->set_socket(socket);
-	socket->getPacketHandler()->set_index(index);
+	socket->set_packet_handler(socket->create_handler());
+	socket->get_packet_handler()->set_socket(socket);
+	socket->get_packet_handler()->set_index(index);
 
-	addSocket(socket);
+	add_socket(socket);
 
 	return true;
 }

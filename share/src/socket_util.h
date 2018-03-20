@@ -20,11 +20,11 @@
 #define _ESIZE 256
 
 #if defined(OS_UNIX)
-typedef		sint32	TSocketIndex_t;
+typedef		sint32	TSocketFD_t;
 #define         INVALID_SOCKET   -1
 #define		    SOCKET_ERROR	 -1
 #elif defined(OS_WINDOWS)
-typedef     intptr_t TSocketIndex_t;
+typedef     intptr_t TSocketFD_t;
 typedef		sint32	 socklen_t;
 #endif
 

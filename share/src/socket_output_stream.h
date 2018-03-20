@@ -20,34 +20,34 @@ public:
 	void						initsize(CSocket* sock, sint32 BufferSize = DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE, sint32 MaxBufferSize = DISCONNECT_SOCKET_OUTPUT_SIZE);
 	bool						resize(sint32 size);
 
-	sint32                      capacity()const { return _bufferLen; }
+	sint32                      capacity()const { return m_buffer_len; }
 
 	sint32						size()const { return length(); }
-	sint32                      length() const{ return _outputLen; }
-	char*						getBuffer()const { return _buffer; }
+	sint32                      length() const{ return m_output_len; }
+	char*						get_buffer()const { return m_buffer; }
 
-	char*						getTail()const { return &(_buffer[_tail]); }
+	char*						get_tail()const { return &(m_buffer[m_tail]); }
 
-	bool						isEmpty()const { return _head == _tail; }
+	bool						is_empty()const { return m_head == m_tail; }
 
-	void						cleanUp();
+	void						clean_up();
 
-	sint32						getHead(){ return _head; }
-	sint32						getTail(){ return _tail; }
-	sint32						getBuffLen(){ return _bufferLen; }
-	char*						getBuff(){ return _buffer; }
+	sint32						get_head(){ return m_head; }
+	sint32						get_tail(){ return m_tail; }
+	sint32						get_buff_len(){ return m_buffer_len; }
+	char*						get_buff(){ return m_buffer; }
 
 private:
 	sint32						_length()const;
 
 protected:
-	CSocket*    _socket;
-	char*		_buffer;
-	sint32		_bufferLen;
-	sint32		_maxBufferLen;
-	sint32		_head;
-	sint32		_tail;
-	volatile uint32	   _outputLen;             // 当前缓冲区长度, 必须实时改变数值
+	CSocket*    m_socket;
+	char*		m_buffer;
+	sint32		m_buffer_len;
+	sint32		m_max_buffer_len;
+	sint32		m_head;
+	sint32		m_tail;
+	volatile uint32	   m_output_len;             // 当前缓冲区长度, 必须实时改变数值
 };
 
 #endif

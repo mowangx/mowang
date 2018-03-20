@@ -5,29 +5,29 @@
 
 CSocketInputStream::CSocketInputStream()
 {
-	_socket = NULL;
-	_buffer = NULL;
-	_bufferLen = 0;
-	_maxBufferLen = 0;
-	_head = 0;
-	_tail = 0;
-	_inputLen = 0;
+	m_socket = NULL;
+	m_buffer = NULL;
+	m_buffer_len = 0;
+	m_max_buffer_len = 0;
+	m_head = 0;
+	m_tail = 0;
+	m_input_len = 0;
 }
 
 CSocketInputStream::~CSocketInputStream()
 {
-	DSafeDeleteArray(_buffer);
+	DSafeDeleteArray(m_buffer);
 }
 
 sint32 CSocketInputStream::_length() const
 {
-	if (_head<_tail)
+	if (m_head<m_tail)
 	{
-		return _tail - _head;
+		return m_tail - m_head;
 	}
-	else if (_head>_tail)
+	else if (m_head>m_tail)
 	{
-		return _bufferLen - _head + _tail;
+		return m_buffer_len - m_head + m_tail;
 	}
 
 	return 0;
@@ -42,28 +42,28 @@ sint32 CSocketInputStream::read(char* buf, sint32 len)
 	if (len > _length())
 		return 0;
 
-	if (_head < _tail)
+	if (m_head < m_tail)
 	{
-		memcpy(buf, &_buffer[_head], len);
+		memcpy(buf, &m_buffer[m_head], len);
 	}
 	else
 	{
-		sint32 rightLen = _bufferLen - _head;
+		sint32 rightLen = m_buffer_len - m_head;
 		if (len <= rightLen)
 		{
-			memcpy(buf, &_buffer[_head], len);
+			memcpy(buf, &m_buffer[m_head], len);
 		}
 		else
 		{
-			memcpy(buf, &_buffer[_head], rightLen);
-			memcpy(&buf[rightLen], _buffer, len - rightLen);
+			memcpy(buf, &m_buffer[m_head], rightLen);
+			memcpy(&buf[rightLen], m_buffer, len - rightLen);
 		}
 	}
 
-	_head = (_head + len) % _bufferLen;
+	m_head = (m_head + len) % m_buffer_len;
 
 	sint32 tempLen = _length();
-	_inputLen = tempLen;
+	m_input_len = tempLen;
 	return len;
 }
 
@@ -75,29 +75,29 @@ bool CSocketInputStream::peek(char* buf, sint32 len)
 	if (len>_length())
 		return false;
 
-	if (_head<_tail)
+	if (m_head<m_tail)
 	{
-		memcpy(buf, &_buffer[_head], len);
+		memcpy(buf, &m_buffer[m_head], len);
 
 	}
 	else
 	{
-		sint32 rightLen = _bufferLen - _head;
+		sint32 rightLen = m_buffer_len - m_head;
 		if (len <= rightLen)
 		{
-			memcpy(&buf[0], &_buffer[_head], len);
+			memcpy(&buf[0], &m_buffer[m_head], len);
 		}
 		else
 		{
-			memcpy(&buf[0], &_buffer[_head], rightLen);
-			memcpy(&buf[rightLen], &_buffer[0], len - rightLen);
+			memcpy(&buf[0], &m_buffer[m_head], rightLen);
+			memcpy(&buf[rightLen], &m_buffer[0], len - rightLen);
 		}
 	}
 
 	return true;
 }
 
-sint32 CSocketInputStream::peakInt()
+sint32 CSocketInputStream::peak_int()
 {
 	sint32 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -108,7 +108,7 @@ sint32 CSocketInputStream::peakInt()
 	return len;
 }
 
-uint32 CSocketInputStream::peakUint()
+uint32 CSocketInputStream::peak_uint()
 {
 	uint32 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -119,7 +119,7 @@ uint32 CSocketInputStream::peakUint()
 	return len;
 }
 
-sint16 CSocketInputStream::peakInt16()
+sint16 CSocketInputStream::peak_int16()
 {
 	sint16 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -130,7 +130,7 @@ sint16 CSocketInputStream::peakInt16()
 	return len;
 }
 
-uint16 CSocketInputStream::peakUint16()
+uint16 CSocketInputStream::peak_uint16()
 {
 	uint16 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -141,7 +141,7 @@ uint16 CSocketInputStream::peakUint16()
 	return len;
 }
 
-sint8 CSocketInputStream::peakByte()
+sint8 CSocketInputStream::peak_byte()
 {
 	sint8 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -165,7 +165,7 @@ bool CSocketInputStream::skip(sint32 len)
 		return false;
 	}
 
-	_head = (_head + len) % _bufferLen;
+	m_head = (m_head + len) % m_buffer_len;
 
 	return true;
 }
@@ -173,17 +173,17 @@ bool CSocketInputStream::skip(sint32 len)
 // @todo 重新初始化
 void CSocketInputStream::initsize(CSocket* sock, sint32 BufferLen, sint32 MaxBufferLen)
 {
-	_socket = sock;
-	_bufferLen = BufferLen;
-	_maxBufferLen = MaxBufferLen;
+	m_socket = sock;
+	m_buffer_len = BufferLen;
+	m_max_buffer_len = MaxBufferLen;
 
-	_head = 0;
-	_tail = 0;
+	m_head = 0;
+	m_tail = 0;
 
-	DSafeDeleteArray(_buffer);
-	_buffer = new char[_bufferLen];
+	DSafeDeleteArray(m_buffer);
+	m_buffer = new char[m_buffer_len];
 
-	memset(_buffer, 0, _bufferLen);
+	memset(m_buffer, 0, m_buffer_len);
 }
 
 sint32 CSocketInputStream::fill()
@@ -192,9 +192,9 @@ sint32 CSocketInputStream::fill()
 	sint32 nReceived = 0;
 	sint32 nFree = 0;
 
-	if (_head <= _tail)
+	if (m_head <= m_tail)
 	{
-		if (_head == 0)
+		if (m_head == 0)
 		{
 			//
 			// H   T		LEN=10
@@ -203,29 +203,29 @@ sint32 CSocketInputStream::fill()
 			//
 
 			nReceived = 0;
-			nFree = _bufferLen - _tail - 1;
+			nFree = m_buffer_len - m_tail - 1;
 			if (nFree != 0)
 			{
-				nReceived = _socket->receive(&_buffer[_tail], nFree);
+				nReceived = m_socket->receive(&m_buffer[m_tail], nFree);
 				if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
 				if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 1;
 				if (nReceived == 0) return SOCKET_ERROR - 2;
 
-				_tail += nReceived;
+				m_tail += nReceived;
 				nFilled += nReceived;
 			}
 
 			if (nReceived == nFree)
 			{
-				sint32 available = _socket->available();
+				sint32 available = m_socket->available();
 				if (available > 0)
 				{
 					// 如果缓冲区过大则断开连接
-					if ((_bufferLen + available + 1)>_maxBufferLen)
+					if ((m_buffer_len + available + 1)>m_max_buffer_len)
 					{
-						initsize(_socket, _bufferLen, _maxBufferLen);
+						initsize(m_socket, m_buffer_len, m_max_buffer_len);
 						log_error("Socket input buff is too big!");
-						_socket->setActive(false);
+						m_socket->set_active(false);
 						return SOCKET_ERROR - 3;
 					}
 					if (!resize(available + 1))
@@ -233,12 +233,12 @@ sint32 CSocketInputStream::fill()
 						return 0;
 					}
 
-					nReceived = _socket->receive(&_buffer[_tail], available);
+					nReceived = m_socket->receive(&m_buffer[m_tail], available);
 					if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
 					if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 4;
 					if (nReceived == 0) return SOCKET_ERROR - 5;
 
-					_tail += nReceived;
+					m_tail += nReceived;
 					nFilled += nReceived;
 				}
 			}
@@ -251,13 +251,13 @@ sint32 CSocketInputStream::fill()
 			// ...abcd...
 			//
 
-			nFree = _bufferLen - _tail;
-			nReceived = _socket->receive(&_buffer[_tail], nFree);
+			nFree = m_buffer_len - m_tail;
+			nReceived = m_socket->receive(&m_buffer[m_tail], nFree);
 			if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
 			if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 6;
 			if (nReceived == 0) return SOCKET_ERROR - 7;
 
-			_tail = (_tail + nReceived) % _bufferLen;
+			m_tail = (m_tail + nReceived) % m_buffer_len;
 			nFilled += nReceived;
 
 			if (nReceived == nFree)
@@ -265,39 +265,39 @@ sint32 CSocketInputStream::fill()
 				//				Assert( m_Tail == 0 );
 
 				nReceived = 0;
-				nFree = _head - 1;
+				nFree = m_head - 1;
 				if (nFree != 0)
 				{
-					nReceived = _socket->receive(&_buffer[0], nFree);
+					nReceived = m_socket->receive(&m_buffer[0], nFree);
 					if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
 					if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 8;
 					if (nReceived == 0) return SOCKET_ERROR - 9;
 
-					_tail += nReceived;
+					m_tail += nReceived;
 					nFilled += nReceived;
 				}
 
 				if (nReceived == nFree)
 				{
-					sint32 available = _socket->available();
+					sint32 available = m_socket->available();
 					if (available > 0)
 					{
-						if ((_bufferLen + available + 1)>_maxBufferLen)
+						if ((m_buffer_len + available + 1)>m_max_buffer_len)
 						{
-							initsize(_socket, _bufferLen, _maxBufferLen);
-							_socket->setActive(false);
+							initsize(m_socket, m_buffer_len, m_max_buffer_len);
+							m_socket->set_active(false);
 							log_error("Socket input buff is too big!");
 							return SOCKET_ERROR - 10;
 						}
 						if (!resize(available + 1))
 							return 0;
 
-						nReceived = _socket->receive(&_buffer[_tail], available);
+						nReceived = m_socket->receive(&m_buffer[m_tail], available);
 						if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
 						if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 11;
 						if (nReceived == 0) return SOCKET_ERROR - 12;
 
-						_tail += nReceived;
+						m_tail += nReceived;
 						nFilled += nReceived;
 					}
 				}
@@ -314,54 +314,54 @@ sint32 CSocketInputStream::fill()
 		//
 
 		nReceived = 0;
-		nFree = _head - _tail - 1;
+		nFree = m_head - m_tail - 1;
 		if (nFree != 0)
 		{
-			nReceived = _socket->receive(&_buffer[_tail], nFree);
+			nReceived = m_socket->receive(&m_buffer[m_tail], nFree);
 			if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
 			if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 13;
 			if (nReceived == 0) return SOCKET_ERROR - 14;
 
-			_tail += nReceived;
+			m_tail += nReceived;
 			nFilled += nReceived;
 		}
 		if (nReceived == nFree)
 		{
-			sint32 available = _socket->available();
+			sint32 available = m_socket->available();
 			if (available>0)
 			{
-				if ((_bufferLen + available + 1)>_maxBufferLen)
+				if ((m_buffer_len + available + 1)>m_max_buffer_len)
 				{
-					initsize(_socket, _bufferLen, _maxBufferLen);
-					_socket->setActive(false);
+					initsize(m_socket, m_buffer_len, m_max_buffer_len);
+					m_socket->set_active(false);
 					log_error("Socket input buff is too big!");
 					return SOCKET_ERROR - 15;
 				}
 				if (!resize(available + 1))
 					return 0;
 
-				nReceived = _socket->receive(&_buffer[_tail], available);
+				nReceived = m_socket->receive(&m_buffer[m_tail], available);
 				if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
 				if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 16;
 				if (nReceived == 0) return SOCKET_ERROR - 17;
 
-				_tail += nReceived;
+				m_tail += nReceived;
 				nFilled += nReceived;
 			}
 		}
 	}
 
 	sint32 tempLen = _length();
-	_inputLen = tempLen;
+	m_input_len = tempLen;
 
 	return nFilled;
 }
 
 bool CSocketInputStream::resize(sint32 size)
 {
-	sint32 len = (_bufferLen >> 1);
+	sint32 len = (m_buffer_len >> 1);
 	size = len > size ? len : size;
-	sint32 newBufferLen = _bufferLen + size;
+	sint32 newBufferLen = m_buffer_len + size;
 	len = _length();
 
 	if (size < 0)
@@ -372,33 +372,33 @@ bool CSocketInputStream::resize(sint32 size)
 
 	char * newBuffer = new char[newBufferLen];
 
-	if (_head < _tail)
+	if (m_head < m_tail)
 	{
-		memcpy(newBuffer, &_buffer[_head], _tail - _head);
+		memcpy(newBuffer, &m_buffer[m_head], m_tail - m_head);
 	}
-	else if (_head > _tail)
+	else if (m_head > m_tail)
 	{
-		memcpy(newBuffer, &_buffer[_head], _bufferLen - _head);
-		memcpy(&newBuffer[_bufferLen - _head], _buffer, _tail);
+		memcpy(newBuffer, &m_buffer[m_head], m_buffer_len - m_head);
+		memcpy(&newBuffer[m_buffer_len - m_head], m_buffer, m_tail);
 	}
 
-	DSafeDeleteArray(_buffer);
+	DSafeDeleteArray(m_buffer);
 
-	_buffer = newBuffer;
-	_bufferLen = newBufferLen;
-	_head = 0;
-	_tail = len;
+	m_buffer = newBuffer;
+	m_buffer_len = newBufferLen;
+	m_head = 0;
+	m_tail = len;
 
 	return true;
 }
 
-void CSocketInputStream::cleanUp()
+void CSocketInputStream::clean_up()
 {
-	_head = 0;
-	_tail = 0;
+	m_head = 0;
+	m_tail = 0;
 }
 
 sint32 CSocketInputStream::length() const
 {
-	return _inputLen;
+	return m_input_len;
 }
