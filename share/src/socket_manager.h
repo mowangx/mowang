@@ -25,6 +25,8 @@ public:
 	bool	init();
 	void	update(uint32 diff);
 
+	void	test_kick();
+
 	template <class T>
 	bool	start_listen(TPort_t port);
 
@@ -33,8 +35,8 @@ public:
 
 	uint32	socket_num() const;
 
-	void	read_packets(std::vector<TPacketInfo_t*>& packets);
-	void	finish_read_packets(std::vector<TPacketInfo_t*>& packets);
+	void	read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<CSocket*>& sockets);
+	void	finish_read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<CSocket*>& sockets);
 
 	void	write_packets(std::vector<TPacketInfo_t*>& packets);
 	void	finish_write_packets(std::vector<TPacketInfo_t*>& packets);
@@ -51,7 +53,8 @@ private:
 	void	handle_unpacket();
 	void	handle_socket_unpacket(CSocket* socket);
 	void	handle_write_msg();
-	void	handle_close_socket(CSocket* socket, bool writeFlag);
+	void	handle_close_socket(CSocket* socket, bool write_flag);
+	void	handle_release_socket();
 	void	handle_release_packet();
 
 	void	add_socket(CSocket* socket);
@@ -76,12 +79,14 @@ private:
 	CObjMemoryPool<CSocketHandler, 100> m_socket_handler_pool;
 	CObjMemoryPool<TPacketInfo_t, 1000> m_packet_info_pool;
 	CMemoryPool	m_mem_pool;
-	CMsgQueue<CSocket*> m_new_socket_queue;
-	std::unordered_map<TSocketIndex_t, CSocket*> m_sockets;
 	std::vector<TPacketInfo_t*> m_read_packets;
 	std::vector<TPacketInfo_t*> m_finish_read_packets;
 	std::vector<TPacketInfo_t*> m_write_packets;
 	std::vector<TPacketInfo_t*> m_finish_write_packets;
+	std::vector<CSocket*> m_new_sockets;
+	std::vector<CSocket*> m_wait_delete_sockets;
+	std::vector<CSocket*> m_delete_sockets;
+	std::unordered_map<TSocketIndex_t, CSocket*> m_sockets;
 };
 
 template <class T>
@@ -155,7 +160,6 @@ bool CSocketManager::start_connect(const char* host, TPort_t port)
 
 	socket->set_packet_handler(socket->create_handler());
 	socket->get_packet_handler()->set_socket(socket);
-	socket->get_packet_handler()->set_index(index);
 
 	add_socket(socket);
 

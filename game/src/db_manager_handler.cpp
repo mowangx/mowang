@@ -35,10 +35,16 @@ void CDbManagerHandler::write_packet(TPacketInfo_t* packet_info)
 	DGameSerger.push_write_packets(packet_info);
 }
 
+void CDbManagerHandler::handle_close()
+{
+	log_info("'%"I64_FMT"u', handle close", get_socket_index());
+	TBaseType_t::handle_close();
+}
+
 bool CDbManagerHandler::handle_test_1(CBasePacket* packet)
 {
 	CLoginRequest* login = (CLoginRequest*)packet;
-	log_info("'%"I64_FMT"u', %d, %d", get_socket()->get_socket_index(), login->get_packet_len(), login->m_user);
+	log_info("'%"I64_FMT"u', %d, %d", get_socket_index(), login->get_packet_len(), login->m_user);
 
 	CLogoutRequest logout_ret;
 	logout_ret.m_id = 8888888;
@@ -53,7 +59,7 @@ bool CDbManagerHandler::handle_test_1(CBasePacket* packet)
 bool CDbManagerHandler::handle_test_2(CBasePacket* packet)
 {
 	CLogoutRequest* logout = (CLogoutRequest*)packet;
-	log_info("'%"I64_FMT"u', %d, %d, %s", get_socket()->get_socket_index(), logout->get_packet_len(), logout->m_user, logout->m_name);
+	log_info("'%"I64_FMT"u', %d, %d, %s", get_socket_index(), logout->get_packet_len(), logout->m_user, logout->m_name);
 
 	CLoginRequest login_ret;
 	login_ret.m_id = 12345678;

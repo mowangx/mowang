@@ -44,6 +44,7 @@ void net_run()
 
 	while (true) {
 		DNetMgr.update(0);
+		DNetMgr.test_kick();
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 }

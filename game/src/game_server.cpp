@@ -42,12 +42,19 @@ void CGameServer::run()
 
 		// 
 		std::vector<TPacketInfo_t*> packets;
+		std::vector<CSocket*> sockets;
 
-		DNetMgr.read_packets(packets);
+		DNetMgr.read_packets(packets, sockets);
+
+		for (auto socket : sockets) {
+			socket->get_packet_handler()->handle_close();
+		}
+
 		for (auto packet_info : packets) {
 			packet_info->socket->get_packet_handler()->handle(packet_info->packet);
 		}
-		DNetMgr.finish_read_packets(packets);
+		
+		DNetMgr.finish_read_packets(packets, sockets);
 		packets.clear();
 
 		DNetMgr.finish_write_packets(packets);

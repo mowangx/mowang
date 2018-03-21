@@ -5,16 +5,20 @@
 #include "log.h"
 #include "socket.h"
 #include "socket_api.h"
+#include "game_random.h"
 
 CSocketManager::CSocketManager()
 {
 	m_socket_sequence_index = 0;
 	m_eventbase = NULL;
-	m_sockets.clear();
 	m_read_packets.clear();
 	m_finish_read_packets.clear();
 	m_write_packets.clear();
 	m_finish_write_packets.clear();
+	m_new_sockets.clear();
+	m_wait_delete_sockets.clear();
+	m_delete_sockets.clear();
+	m_sockets.clear();
 }
 
 CSocketManager::~CSocketManager()
@@ -51,6 +55,22 @@ void CSocketManager::update(uint32 diff)
 	handle_release_packet();
 
 	handle_write_msg();
+
+	handle_release_socket();
+}
+
+void CSocketManager::test_kick()
+{
+	if (DGameRandom.rand_odds(10, 1)) {
+		if (m_sockets.empty()) {
+			return;
+		}
+		for (auto itr : m_sockets) {
+			log_info("test close socket! socket index = '%"I64_FMT"u'", itr.first);
+			handle_close_socket(itr.second, false);
+			return;
+		}
+	}
 }
 
 uint32 CSocketManager::socket_num() const
@@ -58,17 +78,24 @@ uint32 CSocketManager::socket_num() const
 	return (uint32)m_sockets.size();
 }
 
-void CSocketManager::read_packets(std::vector<TPacketInfo_t*>& packets)
+void CSocketManager::read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<CSocket*>& sockets)
 {
 	CLock lock(&m_mutex);
+
 	packets.insert(packets.end(), m_read_packets.begin(), m_read_packets.end());
 	m_read_packets.clear();
+
+	sockets.insert(sockets.end(), m_wait_delete_sockets.begin(), m_wait_delete_sockets.end());
+	m_wait_delete_sockets.clear();
 }
 
-void CSocketManager::finish_read_packets(std::vector<TPacketInfo_t*>& packets)
+void CSocketManager::finish_read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<CSocket*>& sockets)
 {
 	CLock lock(&m_mutex);
-	m_finish_read_packets.insert(m_finish_read_packets.begin(), packets.begin(), packets.end());
+
+	m_finish_read_packets.insert(m_finish_read_packets.end(), packets.begin(), packets.end());
+
+	m_delete_sockets.insert(m_delete_sockets.end(), sockets.begin(), sockets.end());
 }
 
 void CSocketManager::write_packets(std::vector<TPacketInfo_t*>& packets)
@@ -105,9 +132,8 @@ bool CSocketManager::on_accept(CSocketWrapper* listener)
 
 	socket->set_packet_handler(listener->create_handler());
 	socket->get_packet_handler()->set_socket(socket);
-	socket->get_packet_handler()->set_index(index);
 
-	m_new_socket_queue.push(socket);
+	m_new_sockets.push_back(socket);
 
 	return true;
 }
@@ -139,16 +165,15 @@ void CSocketManager::on_read(CSocket* socket)
 
 void CSocketManager::handle_new_socket()
 {
-	std::list<CSocket*> lst;
-	m_new_socket_queue.pop(lst);
-	for (auto socket : lst) {
+	for (auto socket : m_new_sockets) {
 		add_socket(socket);
 	}
+	m_new_sockets.clear();
 }
 
 void CSocketManager::handle_unpacket()
 {
-	std::vector<CSocket*> delSockets;
+	std::vector<CSocket*> del_sockets;
 
 	for (auto itr = m_sockets.begin(); itr != m_sockets.end(); ++itr) {
 		CSocket* socket = itr->second;
@@ -165,12 +190,12 @@ void CSocketManager::handle_unpacket()
 		}
 
 		if (!socket->is_active()) {
-			delSockets.push_back(socket);
+			del_sockets.push_back(socket);
 		}
 	}
 
-	for (uint32 i = 0; i < delSockets.size(); ++i) {
-		handle_close_socket(delSockets[i], false);
+	for (uint32 i = 0; i < del_sockets.size(); ++i) {
+		handle_close_socket(del_sockets[i], false);
 	}
 }
 
@@ -209,20 +234,15 @@ void CSocketManager::handle_write_msg()
 		m_write_packets.clear();
 	}
 	for (auto packet_info : packets) {
-		if (m_sockets.find(packet_info->index) != m_sockets.end()) {
-			send_packet(packet_info->socket, (char*)packet_info->packet, packet_info->packet->get_packet_len());
-		}
-		else {
-			log_info("send packet failed for can't find socket index! socket index = '%"I64_FMT"u'", packet_info->index);
-		}
+		send_packet(packet_info->socket, (char*)packet_info->packet, packet_info->packet->get_packet_len());
 		CLock lock(&m_mutex);
 		m_finish_write_packets.push_back(packet_info);
 	}
 }
 
-void CSocketManager::handle_close_socket(CSocket* socket, bool writeFlag)
+void CSocketManager::handle_close_socket(CSocket* socket, bool write_flag)
 {
-	if (writeFlag) {
+	if (write_flag) {
 		log_info("Write close socke!index = '%"I64_FMT"u'", socket->get_socket_index());
 	} else {
 		log_info("Read close socke!index = '%"I64_FMT"u'", socket->get_socket_index());
@@ -233,6 +253,26 @@ void CSocketManager::handle_close_socket(CSocket* socket, bool writeFlag)
 	}
 
 	del_socket(socket);
+}
+
+void CSocketManager::handle_release_socket()
+{
+	std::vector<CSocket*> sockets;
+	{
+		CLock lock(&m_mutex);
+		sockets.insert(sockets.begin(), m_delete_sockets.begin(), m_delete_sockets.end());
+		m_delete_sockets.clear();
+	}
+
+	for (auto socket : sockets) {
+		CSocketHandler* socket_handler = socket->get_socket_handler();
+		m_packet_buffer_pool.deallocate(socket_handler->buffer());
+		m_socket_handler_pool.deallocate(socket_handler);
+
+		delete socket->get_packet_handler();
+		
+		DSafeDelete(socket);
+	}
 }
 
 void CSocketManager::handle_release_packet()
@@ -296,19 +336,20 @@ void CSocketManager::del_socket(CSocket* socket)
 	// ¹Ø±ÕÁ´½Ó
 	socket->close();
 
-	CSocketHandler* socket_handler = socket->get_socket_handler();
-	m_packet_buffer_pool.deallocate(socket_handler->buffer());
-	m_socket_handler_pool.deallocate(socket_handler);
-
 	m_sockets.erase(socket->get_socket_index());
 
-	delete socket->get_packet_handler();
-
-	DSafeDelete(socket);
+	{
+		CLock lock(&m_mutex);
+		m_wait_delete_sockets.push_back(socket);
+	}
 }
 
 void CSocketManager::send_packet(CSocket* socket, char* msg, uint32 len)
 {
+	if (m_sockets.find(socket->get_socket_index()) == m_sockets.end()) {
+		log_error("send packet failed for socket is invalid, socket index = '%"I64_FMT"u'", socket->get_socket_index());
+		return;
+	}
 	socket->write(msg, len);
 	TSocketEvent_t& writeEvent = socket->get_write_event();
 	event_add(&writeEvent, NULL);

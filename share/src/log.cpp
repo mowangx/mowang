@@ -132,7 +132,7 @@ void CLog::check_rename_file()
 	fclose(m_file);
 
 	std::string cur_filename = m_filename + ".log";
-	for (int i = 0; i < 999; ++i) {
+	for (int i = 0; i < 9999; ++i) {
 		char filename[256];
 		sprintf(filename, "%s_%d.log", m_filename.c_str(), i);
 #ifdef OS_WINDOWS

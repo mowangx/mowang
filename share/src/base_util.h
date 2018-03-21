@@ -26,6 +26,10 @@ const TPacketLen_t INVALID_PACKET_LEN = 0;
 typedef uint32 TPacketID_t;				// 协议的id
 const TPacketID_t INVALID_PACKET_ID = 0;
 
+typedef uint32 TSeedType_t;				// 随机种子
+const TSeedType_t INVALID_SEED_TYPE = 0;
+static const TSeedType_t RandomMax = 0xFFFFFFFFLU;
+
 //根据指针值删除内存
 #ifndef DSafeDelete
 #define DSafeDelete(x)	if( (x)!=NULL ) { delete (x); (x)=NULL; }

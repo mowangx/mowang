@@ -42,9 +42,8 @@ void CDbServer::run()
 		before_loop_time = DTimeMgr.update();
 
 		static bool first_flag = true;
-		if (first_flag) {
+		if (DTimeMgr.run_time() > 60000 && first_flag) {
 			first_flag = false;
-			std::this_thread::sleep_for(std::chrono::milliseconds(60000));
 			std::vector<CSocket*> sockets;
 			DNetMgr.test_get_sockets(sockets);
 			for (auto s : sockets) {
@@ -53,28 +52,30 @@ void CDbServer::run()
 				login_ret.m_len = sizeof(CLoginRequest);
 				login_ret.m_check = 987654321;
 				login_ret.m_user = 89;
-				s->get_packet_handler()->handle(&login_ret);
-				s->get_packet_handler()->handle(&login_ret);
-				s->get_packet_handler()->handle(&login_ret);
-				s->get_packet_handler()->handle(&login_ret);
-				s->get_packet_handler()->handle(&login_ret);
-				s->get_packet_handler()->handle(&login_ret);
-				s->get_packet_handler()->handle(&login_ret);
-				s->get_packet_handler()->handle(&login_ret);
+				for (int i = 0; i < 10; ++i) {
+					s->get_packet_handler()->handle(&login_ret);
+				}
 			}
 		}
 
 		// 
 		std::vector<TPacketInfo_t*> packets;
+		std::vector<CSocket*> sockets;
 
 		int read_packet_num(0), write_packet_num(0);
 
-		DNetMgr.read_packets(packets);
+		DNetMgr.read_packets(packets, sockets);
 		read_packet_num = packets.size();
+
+		for (auto socket : sockets) {
+			socket->get_packet_handler()->handle_close();
+		}
+
 		for (auto packet_info : packets) {
 			packet_info->socket->get_packet_handler()->handle(packet_info->packet);
 		}
-		DNetMgr.finish_read_packets(packets);
+
+		DNetMgr.finish_read_packets(packets, sockets);
 		packets.clear();
 
 		DNetMgr.finish_write_packets(packets);

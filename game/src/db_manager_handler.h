@@ -6,6 +6,7 @@
 
 class CDbManagerHandler : public CPacketHandler<CDbManagerHandler>
 {
+	typedef CPacketHandler<CDbManagerHandler>	TBaseType_t;
 public:
 	CDbManagerHandler();
 	~CDbManagerHandler();
@@ -19,6 +20,8 @@ private:
 	virtual void write_packet(TPacketInfo_t* packet_info) override;
 
 public:
+	virtual void handle_close() override;
+
 	bool handle_test_1(CBasePacket* packet);
 	bool handle_test_2(CBasePacket* packet);
 };

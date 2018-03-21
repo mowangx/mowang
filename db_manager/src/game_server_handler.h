@@ -6,6 +6,8 @@
 
 class CGameServerHandler : public CPacketHandler<CGameServerHandler>
 {
+	typedef CPacketHandler<CGameServerHandler>	TBaseType_t;
+
 public:
 	CGameServerHandler();
 	~CGameServerHandler();
@@ -19,6 +21,8 @@ private:
 	virtual void write_packet(TPacketInfo_t* packet_info) override;
 
 public:
+	virtual void handle_close() override;
+
 	bool handle_test_1(CBasePacket* packet);
 	bool handle_test_2(CBasePacket* packet);
 };
