@@ -30,6 +30,12 @@ typedef uint32 TSeedType_t;				// 随机种子
 const TSeedType_t INVALID_SEED_TYPE = 0;
 static const TSeedType_t RandomMax = 0xFFFFFFFFLU;
 
+typedef uint16	TRpcIndex_t;			// rpc索引
+const TRpcIndex_t INVALID_RPC_INDEX = 0;
+
+typedef uint8	TParamIndex_t;			// 参数索引
+const TParamIndex_t INVALID_PARAM_INDEX = 0;
+
 //根据指针值删除内存
 #ifndef DSafeDelete
 #define DSafeDelete(x)	if( (x)!=NULL ) { delete (x); (x)=NULL; }

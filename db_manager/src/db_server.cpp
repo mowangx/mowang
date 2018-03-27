@@ -41,26 +41,20 @@ void CDbServer::run()
 	while (true) {
 		before_loop_time = DTimeMgr.update();
 
-		static bool first_flag = true;
-		if (DTimeMgr.run_time() > 60000 && first_flag) {
-			first_flag = false;
-			std::vector<CSocket*> sockets;
-			DNetMgr.test_get_sockets(sockets);
-			for (auto s : sockets) {
-				CLoginRequest login_ret;
-				login_ret.m_id = 12345678;
-				login_ret.m_len = sizeof(CLoginRequest);
-				login_ret.m_check = 987654321;
-				login_ret.m_user = 89;
-				for (int i = 0; i < 10; ++i) {
-					s->get_packet_handler()->handle(&login_ret);
-				}
-			}
+		std::vector<CSocket*> sockets;
+		DNetMgr.test_get_sockets(sockets);
+		for (auto s : sockets) {
+			CLoginRequest login_ret;
+			login_ret.m_id = 12345678;
+			login_ret.m_len = sizeof(CLoginRequest);
+			login_ret.m_check = 987654321;
+			login_ret.m_user = 89;
+			s->get_packet_handler()->handle(&login_ret);
 		}
+		sockets.clear();
 
 		// 
 		std::vector<TPacketInfo_t*> packets;
-		std::vector<CSocket*> sockets;
 
 		int read_packet_num(0), write_packet_num(0);
 
