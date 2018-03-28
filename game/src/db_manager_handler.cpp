@@ -3,69 +3,56 @@
 #include "log.h"
 #include "game_server.h"
 #include "socket.h"
+#include "rpc_proxy.h"
+#include "rpc_client.h"
 
-CDbManagerHandler::CDbManagerHandler() : CPacketHandler<CDbManagerHandler>()
+db_manager_handler::db_manager_handler() : packet_handler<db_manager_handler>()
+{
+	m_rpc_client = new rpc_client(this);
+}
+
+db_manager_handler::~db_manager_handler()
 {
 
 }
 
-CDbManagerHandler::~CDbManagerHandler()
+void db_manager_handler::Setup()
 {
-
+	register_handler(PACKET_ID_RPC_BY_INDEX, (packet_handler_func)&db_manager_handler::handle_rpc_by_index);
+	register_handler(PACKET_ID_RPC_BY_NAME, (packet_handler_func)&db_manager_handler::handle_rpc_by_name);
 }
 
-void CDbManagerHandler::Setup()
-{
-	register_handler(12345678, (TPacketHandler)&CDbManagerHandler::handle_test_1);
-	register_handler(8888888, (TPacketHandler)&CDbManagerHandler::handle_test_2);
-}
-
-TPacketInfo_t* CDbManagerHandler::create_packet_info()
+TPacketInfo_t* db_manager_handler::create_packet_info()
 {
 	return DGameSerger.allocate_packet_info();
 }
 
-char* CDbManagerHandler::create_packet(int n)
+char* db_manager_handler::create_packet(int n)
 {
 	return DGameSerger.allocate_memory(n);
 }
 
-void CDbManagerHandler::write_packet(TPacketInfo_t* packet_info)
+void db_manager_handler::write_packet(TPacketInfo_t* packet_info)
 {
 	DGameSerger.push_write_packets(packet_info);
 }
 
-void CDbManagerHandler::handle_close()
+void db_manager_handler::handle_close()
 {
 	log_info("'%"I64_FMT"u', handle close", get_socket_index());
 	TBaseType_t::handle_close();
 }
 
-bool CDbManagerHandler::handle_test_1(CBasePacket* packet)
+bool db_manager_handler::handle_rpc_by_index(packet_base* packet)
 {
-	CLoginRequest* login = (CLoginRequest*)packet;
-	log_info("'%"I64_FMT"u', %d, %d", get_socket_index(), login->get_packet_len(), login->m_user);
-
-	CLogoutRequest logout_ret;
-	logout_ret.m_id = 8888888;
-	logout_ret.m_len = sizeof(CLogoutRequest);
-	logout_ret.m_check = 6666666;
-	strcpy(logout_ret.m_name, "Hello World");
-	logout_ret.m_user = 168;
-	send_packet(logout_ret);
+	rpc_by_index_packet* rpc_info = (rpc_by_index_packet*)packet;
+	DRpcProxy.call(rpc_info->rpc_index, rpc_info->buffer);
 	return true;
 }
 
-bool CDbManagerHandler::handle_test_2(CBasePacket* packet)
+bool db_manager_handler::handle_rpc_by_name(packet_base* packet)
 {
-	CLogoutRequest* logout = (CLogoutRequest*)packet;
-	log_info("'%"I64_FMT"u', %d, %d, %s", get_socket_index(), logout->get_packet_len(), logout->m_user, logout->m_name);
-
-	CLoginRequest login_ret;
-	login_ret.m_id = 12345678;
-	login_ret.m_len = sizeof(CLoginRequest);
-	login_ret.m_check = 987654321;
-	login_ret.m_user = 89;
-	send_packet(login_ret);
+	rpc_by_name_packet* rpc_info = (rpc_by_name_packet*)packet;
+	DRpcProxy.call(rpc_info->rpc_name, rpc_info->buffer);
 	return true;
 }

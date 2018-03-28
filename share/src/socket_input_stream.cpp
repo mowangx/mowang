@@ -3,7 +3,7 @@
 #include "socket.h"
 #include "log.h"
 
-CSocketInputStream::CSocketInputStream()
+socket_input_stream::socket_input_stream()
 {
 	m_socket = NULL;
 	m_buffer = NULL;
@@ -14,12 +14,12 @@ CSocketInputStream::CSocketInputStream()
 	m_input_len = 0;
 }
 
-CSocketInputStream::~CSocketInputStream()
+socket_input_stream::~socket_input_stream()
 {
 	DSafeDeleteArray(m_buffer);
 }
 
-sint32 CSocketInputStream::_length() const
+sint32 socket_input_stream::_length() const
 {
 	if (m_head<m_tail)
 	{
@@ -34,7 +34,7 @@ sint32 CSocketInputStream::_length() const
 }
 
 //返回0表示没有读到数据
-sint32 CSocketInputStream::read(char* buf, sint32 len)
+sint32 socket_input_stream::read(char* buf, sint32 len)
 {
 	if (len == 0)
 		return 0;
@@ -67,7 +67,7 @@ sint32 CSocketInputStream::read(char* buf, sint32 len)
 	return len;
 }
 
-bool CSocketInputStream::peek(char* buf, sint32 len)
+bool socket_input_stream::peek(char* buf, sint32 len)
 {
 	if (len == 0)
 		return false;
@@ -97,7 +97,7 @@ bool CSocketInputStream::peek(char* buf, sint32 len)
 	return true;
 }
 
-sint32 CSocketInputStream::peak_int()
+sint32 socket_input_stream::peak_int()
 {
 	sint32 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -108,7 +108,7 @@ sint32 CSocketInputStream::peak_int()
 	return len;
 }
 
-uint32 CSocketInputStream::peak_uint()
+uint32 socket_input_stream::peak_uint()
 {
 	uint32 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -119,7 +119,7 @@ uint32 CSocketInputStream::peak_uint()
 	return len;
 }
 
-sint16 CSocketInputStream::peak_int16()
+sint16 socket_input_stream::peak_int16()
 {
 	sint16 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -130,7 +130,7 @@ sint16 CSocketInputStream::peak_int16()
 	return len;
 }
 
-uint16 CSocketInputStream::peak_uint16()
+uint16 socket_input_stream::peak_uint16()
 {
 	uint16 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -141,7 +141,7 @@ uint16 CSocketInputStream::peak_uint16()
 	return len;
 }
 
-sint8 CSocketInputStream::peak_byte()
+sint8 socket_input_stream::peak_byte()
 {
 	sint8 len = 0;
 	if (uint32(_length()) >= sizeof(len))
@@ -153,7 +153,7 @@ sint8 CSocketInputStream::peak_byte()
 }
 
 
-bool CSocketInputStream::skip(sint32 len)
+bool socket_input_stream::skip(sint32 len)
 {
 	if (len == 0)
 	{
@@ -171,7 +171,7 @@ bool CSocketInputStream::skip(sint32 len)
 }
 
 // @todo 重新初始化
-void CSocketInputStream::initsize(CSocket* sock, sint32 BufferLen, sint32 MaxBufferLen)
+void socket_input_stream::initsize(socket_base* sock, sint32 BufferLen, sint32 MaxBufferLen)
 {
 	m_socket = sock;
 	m_buffer_len = BufferLen;
@@ -186,7 +186,7 @@ void CSocketInputStream::initsize(CSocket* sock, sint32 BufferLen, sint32 MaxBuf
 	memset(m_buffer, 0, m_buffer_len);
 }
 
-sint32 CSocketInputStream::fill()
+sint32 socket_input_stream::fill()
 {
 	sint32 nFilled = 0;
 	sint32 nReceived = 0;
@@ -357,7 +357,7 @@ sint32 CSocketInputStream::fill()
 	return nFilled;
 }
 
-bool CSocketInputStream::resize(sint32 size)
+bool socket_input_stream::resize(sint32 size)
 {
 	sint32 len = (m_buffer_len >> 1);
 	size = len > size ? len : size;
@@ -392,13 +392,13 @@ bool CSocketInputStream::resize(sint32 size)
 	return true;
 }
 
-void CSocketInputStream::clean_up()
+void socket_input_stream::clean_up()
 {
 	m_head = 0;
 	m_tail = 0;
 }
 
-sint32 CSocketInputStream::length() const
+sint32 socket_input_stream::length() const
 {
 	return m_input_len;
 }

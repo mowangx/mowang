@@ -7,20 +7,20 @@
 #include "socket_output_stream.h"
 #include "socket_handler.h"
 
-class CGameHandler;
+class game_handler;
 
-class CSocket
+class socket_base
 {
 public:
 	// constructor
-	CSocket(sint32 inputStreamLen = DEFAULT_SOCKET_INPUT_BUFFER_SIZE, sint32 outputStreamLen = DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE,
+	socket_base(sint32 inputStreamLen = DEFAULT_SOCKET_INPUT_BUFFER_SIZE, sint32 outputStreamLen = DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE,
 		sint32 maxInputStreamLen = DISCONNECT_SOCKET_INPUT_SIZE, sint32 maxOutputStreamLen = DISCONNECT_SOCKET_OUTPUT_SIZE);
-	CSocket(const char* host, sint32 port, sint32 inputStreamLen = DEFAULT_SOCKET_INPUT_BUFFER_SIZE,
+	socket_base(const char* host, sint32 port, sint32 inputStreamLen = DEFAULT_SOCKET_INPUT_BUFFER_SIZE,
 		sint32 outputStreamLen = DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE, sint32 maxInputStreamLen = DISCONNECT_SOCKET_INPUT_SIZE,
 		sint32 maxOutputStreamLen = DISCONNECT_SOCKET_OUTPUT_SIZE);
 
 	// destructor
-	virtual ~CSocket();
+	virtual ~socket_base();
 
 public:
 	virtual bool on_read();
@@ -29,8 +29,8 @@ public:
 	sint32 write(const char* msg, sint32 len);
 	sint32 read(char* msg, sint32 len);
 
-	CSocketInputStream* get_input_stream();
-	CSocketOutputStream* get_output_stream();
+	socket_input_stream* get_input_stream();
+	socket_output_stream* get_output_stream();
 
 	void clean_up();
 
@@ -44,7 +44,7 @@ public:
 	// 读写事件
 	TSocketEvent_t& get_read_event();
 	TSocketEvent_t& get_write_event();
-	TSocketEventArg_t& get_event_arg();
+	socket_event_arg_t& get_event_arg();
 
 public:
 	// try connect to remote host
@@ -53,7 +53,7 @@ public:
 	// close previous connection and connect to another socket
 	bool reconnect(const char* host, sint32 port, sint32 diff);
 
-	CSocket* accept(sint32 inputStreamLen = DEFAULT_SOCKET_INPUT_BUFFER_SIZE, sint32 outputStreamLen = DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE,
+	socket_base* accept(sint32 inputStreamLen = DEFAULT_SOCKET_INPUT_BUFFER_SIZE, sint32 outputStreamLen = DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE,
 		sint32 maxInputStreamLen = DISCONNECT_SOCKET_INPUT_SIZE, sint32 maxOutputStreamLen = DISCONNECT_SOCKET_OUTPUT_SIZE);
 
 	bool bind();
@@ -133,11 +133,11 @@ public:
 	TSocketFD_t   get_socket_fd() const;
 	void        set_socket_fd(TSocketFD_t id);
 
-	CSocketHandler* get_socket_handler();
-	void set_socket_handler(CSocketHandler* handler);
+	socket_handler* get_socket_handler();
+	void set_socket_handler(socket_handler* handler);
 
-	CGameHandler* get_packet_handler();
-	void set_packet_handler(CGameHandler* handler);
+	game_handler* get_packet_handler();
+	void set_packet_handler(game_handler* handler);
 
 	// 获取缓冲区长度
 	sint32 get_input_len();
@@ -169,14 +169,14 @@ protected:
 	// 事件
 	TSocketEvent_t m_read_event;
 	TSocketEvent_t m_write_event;
-	TSocketEventArg_t m_event_arg;
+	socket_event_arg_t m_event_arg;
 
 	// 唯一索引
 	TSocketIndex_t m_index;
 	// 读流
-	CSocketInputStream  m_input_stream;
+	socket_input_stream  m_input_stream;
 	// 写流
-	CSocketOutputStream m_output_stream;
+	socket_output_stream m_output_stream;
 
 	// 解包时间
 	TTime_t m_last_unpacket_time;
@@ -188,8 +188,8 @@ protected:
 	uint32 m_wait_close_secs;
 	uint32 m_wait_close_start_time;
 
-	CSocketHandler* m_socket_handler;
-	CGameHandler* m_packet_handler;
+	socket_handler* m_socket_handler;
+	game_handler* m_packet_handler;
 };
 
 #endif

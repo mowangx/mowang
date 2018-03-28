@@ -3,14 +3,14 @@
 #define _ENTITY_H_
 
 // 所有对象的基类
-class CEntity
+class entity
 {
 public:
-	CEntity() {
+	entity() {
 
 	}
 
-	virtual ~CEntity() {
+	virtual ~entity() {
 
 	}
 };

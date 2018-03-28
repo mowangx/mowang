@@ -7,7 +7,7 @@
 #include "socket_api.h"
 #include "game_random.h"
 
-CSocketManager::CSocketManager()
+socket_manager::socket_manager()
 {
 	m_socket_sequence_index = 0;
 	m_eventbase = NULL;
@@ -21,13 +21,13 @@ CSocketManager::CSocketManager()
 	m_sockets.clear();
 }
 
-CSocketManager::~CSocketManager()
+socket_manager::~socket_manager()
 {
 	SOCKET_API::gx_lib_cleanup();
 	clean_up();
 }
 
-bool CSocketManager::init()
+bool socket_manager::init()
 {
 	if (!SOCKET_API::gx_lib_init()) {
 		return false;
@@ -41,7 +41,7 @@ bool CSocketManager::init()
 	return true;
 }
 
-void CSocketManager::update(uint32 diff)
+void socket_manager::update(uint32 diff)
 {
 	if (-1 == event_base_loop(m_eventbase, EVLOOP_ONCE | EVLOOP_NONBLOCK)) {
 		log_info("update ret -1");
@@ -59,7 +59,7 @@ void CSocketManager::update(uint32 diff)
 	handle_release_socket();
 }
 
-void CSocketManager::test_kick()
+void socket_manager::test_kick()
 {
 	if (DGameRandom.rand_odds(10, 1)) {
 		if (m_sockets.empty()) {
@@ -73,14 +73,14 @@ void CSocketManager::test_kick()
 	}
 }
 
-uint32 CSocketManager::socket_num() const
+uint32 socket_manager::socket_num() const
 {
 	return (uint32)m_sockets.size();
 }
 
-void CSocketManager::read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<CSocket*>& sockets)
+void socket_manager::read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& sockets)
 {
-	CLock lock(&m_mutex);
+	auto_lock lock(&m_mutex);
 
 	packets.insert(packets.end(), m_read_packets.begin(), m_read_packets.end());
 	m_read_packets.clear();
@@ -89,38 +89,38 @@ void CSocketManager::read_packets(std::vector<TPacketInfo_t*>& packets, std::vec
 	m_wait_delete_sockets.clear();
 }
 
-void CSocketManager::finish_read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<CSocket*>& sockets)
+void socket_manager::finish_read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& sockets)
 {
-	CLock lock(&m_mutex);
+	auto_lock lock(&m_mutex);
 
 	m_finish_read_packets.insert(m_finish_read_packets.end(), packets.begin(), packets.end());
 
 	m_delete_sockets.insert(m_delete_sockets.end(), sockets.begin(), sockets.end());
 }
 
-void CSocketManager::write_packets(std::vector<TPacketInfo_t*>& packets)
+void socket_manager::write_packets(std::vector<TPacketInfo_t*>& packets)
 {
-	CLock lock(&m_mutex);
+	auto_lock lock(&m_mutex);
 	m_write_packets.insert(m_write_packets.end(), packets.begin(), packets.end());
 }
 
-void CSocketManager::finish_write_packets(std::vector<TPacketInfo_t*>& packets)
+void socket_manager::finish_write_packets(std::vector<TPacketInfo_t*>& packets)
 {
-	CLock lock(&m_mutex);
+	auto_lock lock(&m_mutex);
 	packets.insert(packets.end(), m_finish_write_packets.begin(), m_finish_write_packets.end());
 	m_finish_write_packets.clear();
 }
 
-void CSocketManager::test_get_sockets(std::vector<CSocket*>& sockets)
+void socket_manager::test_get_sockets(std::vector<socket_base*>& sockets)
 {
 	for (auto itr : m_sockets) {
 		sockets.push_back(itr.second);
 	}
 }
 
-bool CSocketManager::on_accept(CSocketWrapper* listener)
+bool socket_manager::on_accept(socket_wrapper* listener)
 {
-	CSocket* socket = listener->accept();
+	socket_base* socket = listener->accept();
 	if (NULL == socket) {
 		return false;
 	}
@@ -138,7 +138,7 @@ bool CSocketManager::on_accept(CSocketWrapper* listener)
 	return true;
 }
 
-void CSocketManager::on_write(CSocket* socket)
+void socket_manager::on_write(socket_base* socket)
 {
 	if (!socket->on_write()) {
 		handle_close_socket(socket, true);
@@ -151,7 +151,7 @@ void CSocketManager::on_write(CSocket* socket)
 	}
 }
 
-void CSocketManager::on_read(CSocket* socket)
+void socket_manager::on_read(socket_base* socket)
 {
 	if (!socket->is_active()) {
 		return;
@@ -163,7 +163,7 @@ void CSocketManager::on_read(CSocket* socket)
 	}
 }
 
-void CSocketManager::handle_new_socket()
+void socket_manager::handle_new_socket()
 {
 	for (auto socket : m_new_sockets) {
 		add_socket(socket);
@@ -171,12 +171,12 @@ void CSocketManager::handle_new_socket()
 	m_new_sockets.clear();
 }
 
-void CSocketManager::handle_unpacket()
+void socket_manager::handle_unpacket()
 {
-	std::vector<CSocket*> del_sockets;
+	std::vector<socket_base*> del_sockets;
 
 	for (auto itr = m_sockets.begin(); itr != m_sockets.end(); ++itr) {
-		CSocket* socket = itr->second;
+		socket_base* socket = itr->second;
 		if (NULL == socket) {
 			continue;
 		}
@@ -199,48 +199,48 @@ void CSocketManager::handle_unpacket()
 	}
 }
 
-void CSocketManager::handle_socket_unpacket(CSocket* socket)
+void socket_manager::handle_socket_unpacket(socket_base* socket)
 {
 	int len = socket->get_input_len();
 	if (len > MAX_PACKET_READ_SIZE) {
 		len = MAX_PACKET_READ_SIZE;
 	}
-	CSocketHandler* socket_handler = socket->get_socket_handler();
+	socket_handler* socket_handler = socket->get_socket_handler();
 	int cur_len = socket->read(socket_handler->buffer(len), len);
 	if (cur_len != len) {
 		log_error("socket index = '%"I64_FMT"u', read len is not equal cache len, read len = %d, cache len = %d", socket->get_socket_index(), cur_len, len);
 	}
-	CBasePacket* packet = socket_handler->unpacket();
+	packet_base* packet = socket_handler->unpacket();
 	while (NULL != packet) {
 		char* packet_pool = m_mem_pool.allocate(packet->get_packet_len());
 		memcpy(packet_pool, packet, packet->get_packet_len());
 		TPacketInfo_t* packet_info = m_packet_info_pool.allocate();
 		packet_info->socket = socket;
-		packet_info->packet = (CBasePacket*)packet_pool;
+		packet_info->packet = (packet_base*)packet_pool;
 		{
-			CLock lock(&m_mutex);
+			auto_lock lock(&m_mutex);
 			m_read_packets.push_back(packet_info);
 		}
 		packet = socket_handler->unpacket();
 	}
 }
 
-void CSocketManager::handle_write_msg()
+void socket_manager::handle_write_msg()
 {
 	std::vector<TPacketInfo_t*> packets;
 	{
-		CLock lock(&m_mutex);
+		auto_lock lock(&m_mutex);
 		packets.insert(packets.begin(), m_write_packets.begin(), m_write_packets.end());
 		m_write_packets.clear();
 	}
 	for (auto packet_info : packets) {
 		send_packet(packet_info->socket, (char*)packet_info->packet, packet_info->packet->get_packet_len());
-		CLock lock(&m_mutex);
+		auto_lock lock(&m_mutex);
 		m_finish_write_packets.push_back(packet_info);
 	}
 }
 
-void CSocketManager::handle_close_socket(CSocket* socket, bool write_flag)
+void socket_manager::handle_close_socket(socket_base* socket, bool write_flag)
 {
 	if (write_flag) {
 		log_info("Write close socke!index = '%"I64_FMT"u'", socket->get_socket_index());
@@ -255,17 +255,17 @@ void CSocketManager::handle_close_socket(CSocket* socket, bool write_flag)
 	del_socket(socket);
 }
 
-void CSocketManager::handle_release_socket()
+void socket_manager::handle_release_socket()
 {
-	std::vector<CSocket*> sockets;
+	std::vector<socket_base*> sockets;
 	{
-		CLock lock(&m_mutex);
+		auto_lock lock(&m_mutex);
 		sockets.insert(sockets.begin(), m_delete_sockets.begin(), m_delete_sockets.end());
 		m_delete_sockets.clear();
 	}
 
 	for (auto socket : sockets) {
-		CSocketHandler* socket_handler = socket->get_socket_handler();
+		socket_handler* socket_handler = socket->get_socket_handler();
 		m_packet_buffer_pool.deallocate(socket_handler->buffer());
 		m_socket_handler_pool.deallocate(socket_handler);
 
@@ -275,11 +275,11 @@ void CSocketManager::handle_release_socket()
 	}
 }
 
-void CSocketManager::handle_release_packet()
+void socket_manager::handle_release_packet()
 {
 	std::vector<TPacketInfo_t*> packets;
 	{
-		CLock lock(&m_mutex);
+		auto_lock lock(&m_mutex);
 		packets.insert(packets.begin(), m_finish_read_packets.begin(), m_finish_read_packets.end());
 		m_finish_read_packets.clear();
 	}
@@ -289,18 +289,18 @@ void CSocketManager::handle_release_packet()
 	}
 }
 
-void CSocketManager::add_socket(CSocket* socket)
+void socket_manager::add_socket(socket_base* socket)
 {
 	TSocketEvent_t& readEvent = socket->get_read_event();
 	TSocketEvent_t& writeEvent = socket->get_write_event();
-	TSocketEventArg_t& eventArg = socket->get_event_arg();
+	socket_event_arg_t& eventArg = socket->get_event_arg();
 	eventArg.mgr = this;
 	eventArg.s = socket;
 
-	if (0 != event_assign(&readEvent, m_eventbase, socket->get_socket_fd(), EV_READ | EV_PERSIST, CSocketManager::OnReadEvent, &eventArg)) {
+	if (0 != event_assign(&readEvent, m_eventbase, socket->get_socket_fd(), EV_READ | EV_PERSIST, socket_manager::OnReadEvent, &eventArg)) {
 
 	}
-	if (0 != event_assign(&writeEvent, m_eventbase, socket->get_socket_fd(), EV_WRITE, CSocketManager::OnWriteEvent, &eventArg)) {
+	if (0 != event_assign(&writeEvent, m_eventbase, socket->get_socket_fd(), EV_WRITE, socket_manager::OnWriteEvent, &eventArg)) {
 
 	}
 
@@ -316,14 +316,14 @@ void CSocketManager::add_socket(CSocket* socket)
 		return;
 	}
 
-	CSocketHandler* socket_handler = m_socket_handler_pool.allocate();
+	socket_handler* socket_handler = m_socket_handler_pool.allocate();
 	socket_handler->set_buffer(m_packet_buffer_pool.allocate());
 	socket->set_socket_handler(socket_handler);
 
 	m_sockets[index] = socket;
 }
 
-void CSocketManager::del_socket(CSocket* socket)
+void socket_manager::del_socket(socket_base* socket)
 {
 	// 将数据全部写出
 	socket->on_write();
@@ -339,12 +339,12 @@ void CSocketManager::del_socket(CSocket* socket)
 	m_sockets.erase(socket->get_socket_index());
 
 	{
-		CLock lock(&m_mutex);
+		auto_lock lock(&m_mutex);
 		m_wait_delete_sockets.push_back(socket);
 	}
 }
 
-void CSocketManager::send_packet(CSocket* socket, char* msg, uint32 len)
+void socket_manager::send_packet(socket_base* socket, char* msg, uint32 len)
 {
 	if (m_sockets.find(socket->get_socket_index()) == m_sockets.end()) {
 		log_error("send packet failed for socket is invalid, socket index = '%"I64_FMT"u'", socket->get_socket_index());
@@ -355,21 +355,21 @@ void CSocketManager::send_packet(CSocket* socket, char* msg, uint32 len)
 	event_add(&writeEvent, NULL);
 }
 
-TSocketIndex_t CSocketManager::gen_socket_index()
+TSocketIndex_t socket_manager::gen_socket_index()
 {
 	return ++m_socket_sequence_index;
 }
 
-void CSocketManager::clean_up()
+void socket_manager::clean_up()
 {
 	if (NULL != m_eventbase) {
 		event_base_free(m_eventbase);
 	}
 }
 
-void CSocketManager::OnAccept(TSocketFD_t fd, short evt, void* arg)
+void socket_manager::OnAccept(TSocketFD_t fd, short evt, void* arg)
 {
-	TSocketWrapperEventArg_t* event_arg = (TSocketWrapperEventArg_t*)arg;
+	socket_wrapper_event_arg_t* event_arg = (socket_wrapper_event_arg_t*)arg;
 	if (NULL == event_arg || NULL == event_arg->s || NULL == event_arg->mgr) {
 		log_error("Cast socket arg failed");
 		return;
@@ -381,9 +381,9 @@ void CSocketManager::OnAccept(TSocketFD_t fd, short evt, void* arg)
 	}
 }
 
-void CSocketManager::OnWriteEvent(TSocketFD_t fd, short evt, void* arg)
+void socket_manager::OnWriteEvent(TSocketFD_t fd, short evt, void* arg)
 {
-	TSocketEventArg_t* eventArg = (TSocketEventArg_t*)arg;
+	socket_event_arg_t* eventArg = (socket_event_arg_t*)arg;
 
 	if (evt & EV_WRITE) {
 		eventArg->mgr->on_write(eventArg->s);
@@ -392,9 +392,9 @@ void CSocketManager::OnWriteEvent(TSocketFD_t fd, short evt, void* arg)
 	}
 }
 
-void CSocketManager::OnReadEvent(TSocketFD_t fd, short evt, void* arg)
+void socket_manager::OnReadEvent(TSocketFD_t fd, short evt, void* arg)
 {
-	TSocketEventArg_t* eventArg = (TSocketEventArg_t*)arg;
+	socket_event_arg_t* eventArg = (socket_event_arg_t*)arg;
 
 	if (!eventArg->s->is_active()) {
 		return;

@@ -15,11 +15,11 @@
 #include "socket_wrapper.h"
 #include "packet_handler.h"
 
-class CSocketManager : public CSingleton<CSocketManager>
+class socket_manager : public singleton<socket_manager>
 {
 public:
-	CSocketManager();
-	~CSocketManager();
+	socket_manager();
+	~socket_manager();
 
 public:
 	bool	init();
@@ -35,32 +35,32 @@ public:
 
 	uint32	socket_num() const;
 
-	void	read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<CSocket*>& sockets);
-	void	finish_read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<CSocket*>& sockets);
+	void	read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& sockets);
+	void	finish_read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& sockets);
 
 	void	write_packets(std::vector<TPacketInfo_t*>& packets);
 	void	finish_write_packets(std::vector<TPacketInfo_t*>& packets);
 
-	void	test_get_sockets(std::vector<CSocket*>& sockets);
+	void	test_get_sockets(std::vector<socket_base*>& sockets);
 
 private:
-	bool	on_accept(CSocketWrapper* listener);
+	bool	on_accept(socket_wrapper* listener);
 
-	void	on_write(CSocket* socket);
-	void	on_read(CSocket* socket);
+	void	on_write(socket_base* socket);
+	void	on_read(socket_base* socket);
 
 	void	handle_new_socket();
 	void	handle_unpacket();
-	void	handle_socket_unpacket(CSocket* socket);
+	void	handle_socket_unpacket(socket_base* socket);
 	void	handle_write_msg();
-	void	handle_close_socket(CSocket* socket, bool write_flag);
+	void	handle_close_socket(socket_base* socket, bool write_flag);
 	void	handle_release_socket();
 	void	handle_release_packet();
 
-	void	add_socket(CSocket* socket);
-	void	del_socket(CSocket* socket);
+	void	add_socket(socket_base* socket);
+	void	del_socket(socket_base* socket);
 
-	void	send_packet(CSocket* socket, char* msg, uint32 len);
+	void	send_packet(socket_base* socket, char* msg, uint32 len);
 
 	TSocketIndex_t gen_socket_index();
 
@@ -75,24 +75,24 @@ private:
 	std::mutex m_mutex;
 	TSocketIndex_t m_socket_sequence_index;
 	SocketEventBase_t* m_eventbase;
-	CMemoryAllocator<MAX_PACKET_BUFFER_SIZE, 100> m_packet_buffer_pool;
-	CObjMemoryPool<CSocketHandler, 100> m_socket_handler_pool;
-	CObjMemoryPool<TPacketInfo_t, 1000> m_packet_info_pool;
-	CMemoryPool	m_mem_pool;
+	memory_allocator<MAX_PACKET_BUFFER_SIZE, 100> m_packet_buffer_pool;
+	obj_memory_pool<socket_handler, 100> m_socket_handler_pool;
+	obj_memory_pool<TPacketInfo_t, 1000> m_packet_info_pool;
+	memory_pool	m_mem_pool;
 	std::vector<TPacketInfo_t*> m_read_packets;
 	std::vector<TPacketInfo_t*> m_finish_read_packets;
 	std::vector<TPacketInfo_t*> m_write_packets;
 	std::vector<TPacketInfo_t*> m_finish_write_packets;
-	std::vector<CSocket*> m_new_sockets;
-	std::vector<CSocket*> m_wait_delete_sockets;
-	std::vector<CSocket*> m_delete_sockets;
-	std::unordered_map<TSocketIndex_t, CSocket*> m_sockets;
+	std::vector<socket_base*> m_new_sockets;
+	std::vector<socket_base*> m_wait_delete_sockets;
+	std::vector<socket_base*> m_delete_sockets;
+	std::unordered_map<TSocketIndex_t, socket_base*> m_sockets;
 };
 
 template <class T>
-bool CSocketManager::start_listen(TPort_t port)
+bool socket_manager::start_listen(TPort_t port)
 {
-	CSocketWrapper * socket = new CSocketListener<T>("any", port);
+	socket_wrapper * socket = new socket_listener<T>("any", port);
 	if (NULL == socket) {
 		return false;
 	}
@@ -118,11 +118,11 @@ bool CSocketManager::start_listen(TPort_t port)
 	socket->set_non_blocking(true);
 
 	TSocketEvent_t& listen_event = socket->get_read_event();
-	TSocketWrapperEventArg_t& event_arg = socket->get_wrapper_event_arg();
+	socket_wrapper_event_arg_t& event_arg = socket->get_wrapper_event_arg();
 	event_arg.s = socket;
 	event_arg.mgr = this;
 	if (0 != event_assign(&listen_event, m_eventbase, socket->get_socket_fd(), EV_READ | EV_PERSIST,
-		CSocketManager::OnAccept, &event_arg)) {
+		socket_manager::OnAccept, &event_arg)) {
 		log_warning("can't event assign!");
 		return false;
 	}
@@ -137,9 +137,9 @@ bool CSocketManager::start_listen(TPort_t port)
 
 
 template <class T>
-bool CSocketManager::start_connect(const char* host, TPort_t port)
+bool socket_manager::start_connect(const char* host, TPort_t port)
 {
-	CSocketWrapper* socket = new CSocketConnector<T>();
+	socket_wrapper* socket = new socket_connector<T>();
 	if (NULL == socket) {
 		return false;
 	}
@@ -166,6 +166,6 @@ bool CSocketManager::start_connect(const char* host, TPort_t port)
 	return true;
 }
 
-#define DNetMgr		CSocketManager::getInstance()
+#define DNetMgr		socket_manager::get_instance()
 
 #endif

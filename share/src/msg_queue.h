@@ -9,7 +9,7 @@
 #include "auto_lock.h"
 
 template<typename T>
-class CMsgQueue
+class msg_queue
 {
 private:
 	//! Lock access to the queue.
@@ -22,13 +22,13 @@ private:
 	sint32					_queSize;
 public:
 
-	CMsgQueue()
+	msg_queue()
 	{
 		_queSize = 0;
 
 	}
 
-	virtual ~CMsgQueue()
+	virtual ~msg_queue()
 	{
 	}
 
@@ -41,7 +41,7 @@ public:
 
 		do
 		{
-			CLock lock(&_mutex);
+			auto_lock lock(&_mutex);
 			typename std::list<T>::iterator iter = tempList.begin();
 			sint32 count = 0;
 			for (; iter != tempList.end() && count < num; count++, iter++)
@@ -59,7 +59,7 @@ public:
 			return;
 		}
 
-		CLock lock(&_mutex);
+		auto_lock lock(&_mutex);
 		sint32 nCount = 0;
 		while (!empty() && nCount < num)
 		{
@@ -72,14 +72,14 @@ public:
 
 	void push(const T& msg)
 	{
-		CLock lock(&_mutex);
+		auto_lock lock(&_mutex);
 		_queue.push_back(msg);
 		_queSize = (sint32)_queue.size();
 	}
 
 	void push_front(const T& msg)
 	{
-		CLock lock(&_mutex);
+		auto_lock lock(&_mutex);
 		_queue.push_front(msg);
 		_queSize = _queue.size();
 	}
@@ -91,7 +91,7 @@ public:
 			return false;
 		}
 
-		CLock lock(&_mutex);
+		auto_lock lock(&_mutex);
 		if (!empty())
 		{
 			msg = _queue.front();

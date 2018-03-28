@@ -4,7 +4,7 @@
 
 #include "base_util.h"
 
-class CDbConn
+class db_conn
 {
 public:
 	virtual bool init(const char* ip, uint16 port, const char* user, const char* pwd, const char* db_name) = 0;

@@ -11,7 +11,6 @@
 #include "time_manager.h"
 #include "db_manager_handler.h"
 
-
 void work_run()
 {
 	if (!DGameSerger.init()) {
@@ -36,7 +35,7 @@ void net_run()
 		return ;
 	}
 
-	if (!DNetMgr.start_listen<CDbManagerHandler>(10000)) {
+	if (!DNetMgr.start_listen<db_manager_handler>(10000)) {
 		return ;
 	}
 
@@ -57,7 +56,7 @@ int main(int argc, char* argv[])
 	}
 
 	std::cout << "start game" << argv[1] << std::endl;
-	
+
 	std::string module_name = "game";
 	DLogMgr.init(module_name + argv[1]);
 	gxSetDumpHandler(module_name);

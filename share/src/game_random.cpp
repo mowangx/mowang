@@ -1,12 +1,12 @@
 
 #include "game_random.h"
 
-CGameRandom::CGameRandom(TSeedType_t seed)
+game_random::game_random(TSeedType_t seed)
 {
 	reset(seed);
 }
 
-void CGameRandom::reset(TSeedType_t seed)
+void game_random::reset(TSeedType_t seed)
 {
 	m_seed[0] = (seed ^ 0xFEA09B9DLU) & 0xFFFFFFFELU;
 	m_seed[0] ^= (((m_seed[0] << 7) & RandomMax) ^ m_seed[0]) >> 31;
@@ -20,7 +20,7 @@ void CGameRandom::reset(TSeedType_t seed)
 	rand_uint();
 }
 
-uint32 CGameRandom::rand_uint()
+uint32 game_random::rand_uint()
 {
 	m_seed[0] = (((m_seed[0] & 0xFFFFFFFELU) << 24) & RandomMax)
 		^ ((m_seed[0] ^ ((m_seed[0] << 7) & RandomMax)) >> 7);
@@ -34,17 +34,17 @@ uint32 CGameRandom::rand_uint()
 	return (m_seed[0] ^ m_seed[1] ^ m_seed[2]);
 }
 
-double CGameRandom::rand_double()
+double game_random::rand_double()
 {
 	return static_cast<double>(rand_uint()) / (static_cast<double>(RandomMax));
 }
 
-bool CGameRandom::rand_bool()
+bool game_random::rand_bool()
 {
 	return rand_uint() > (MAX_UINT32_NUM >> 1);
 }
 
-bool CGameRandom::rand_odds(uint32 base_num, uint32 rate_num)
+bool game_random::rand_odds(uint32 base_num, uint32 rate_num)
 {
 	return (rand_uint() % (base_num + 1)) <= rate_num;
 }

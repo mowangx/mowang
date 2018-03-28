@@ -4,11 +4,11 @@
 #include "base_util.h"
 #include "singleton.h"
 
-class CGameRandom : public CSingleton<CGameRandom>
+class game_random : public singleton<game_random>
 {
 public:
 
-	CGameRandom(TSeedType_t seed = 0);
+	game_random(TSeedType_t seed = 0);
 
 public:
 	//ReSeed the random number generator
@@ -36,7 +36,7 @@ private:
 	TSeedType_t m_seed[3];
 };
 
-#define DGameRandom	CSingleton<CGameRandom>::getInstance()
+#define DGameRandom	singleton<game_random>::get_instance()
 
 #endif // !_GAME_RANDOM_H_
 

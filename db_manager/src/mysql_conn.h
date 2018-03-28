@@ -4,11 +4,11 @@
 #include "db_conn.h"
 #include "mysql_connection.h"
 
-class CMysqlConn : public CDbConn
+class mysql_conn : public db_conn
 {
 public:
-	CMysqlConn();
-	~CMysqlConn();
+	mysql_conn();
+	~mysql_conn();
 
 public:
 	virtual bool init(const char* ip, uint16 port, const char* user, const char* pwd, const char* db_name) override;

@@ -4,15 +4,26 @@
 
 #include "base_util.h"
 
-class CSocket;
+class socket_base;
 
 #pragma pack(push, 1)
 
-class CBasePacket
+enum packet_id_type
+{
+	PACKET_ID_RPC_BY_INDEX = 0x0001,
+	PACKET_ID_RPC_BY_NAME = 0x0002
+};
+
+class packet_base
 {
 public:
-	CBasePacket() {
+	packet_base() {
 		clean_up();
+	}
+
+	packet_base(int id) {
+		clean_up();
+		m_id = id;
 	}
 
 public:
@@ -37,36 +48,38 @@ public:
 	uint32 m_check;
 };
 
-class CLoginRequest : public CBasePacket
+class rpc_by_index_packet : public packet_base
 {
 public:
-	CLoginRequest() {
-		m_user = 0;
+	rpc_by_index_packet() : packet_base(PACKET_ID_RPC_BY_INDEX) {
+		rpc_index = 0;
+		memset(buffer, 0, 65000);
 	}
 
 public:
-	uint8  m_user;
+	uint8 rpc_index;
+	char buffer[65000];
 };
 
-class CLogoutRequest : public CBasePacket
+class rpc_by_name_packet : public packet_base
 {
 public:
-	CLogoutRequest() {
-		m_user = 0;
-		memset(m_name, '\0', 16);
+	rpc_by_name_packet() : packet_base(PACKET_ID_RPC_BY_NAME){
+		memset(rpc_name, 0, 100);
+		memset(buffer, 0, 65000);
 	}
 
 public:
-	char	m_name[16];
-	uint8	m_user;
+	char rpc_name[100];
+	char buffer[65000];
 };
 
 #pragma pack(pop)
 
 typedef struct PacketInfo
 {
-	CBasePacket* packet;
-	CSocket* socket;
+	packet_base* packet;
+	socket_base* socket;
 	PacketInfo() {
 		clean_up();
 	}

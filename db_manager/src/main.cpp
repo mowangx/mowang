@@ -82,7 +82,7 @@ void net_run()
 		DNetMgr.update(0);
 		DNetMgr.test_kick();
 		if (DNetMgr.socket_num() < 1000) {
-			if (!DNetMgr.start_connect<CGameServerHandler>("127.0.0.1", 10000)) {
+			if (!DNetMgr.start_connect<game_server_handler>("127.0.0.1", 10000)) {
 				log_info("connect failed");
 				break;
 			}

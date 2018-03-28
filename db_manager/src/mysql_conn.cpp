@@ -11,13 +11,13 @@
 
 #include "log.h"
 
-CMysqlConn::CMysqlConn()
+mysql_conn::mysql_conn()
 {
 	m_driver = NULL;
 	m_conn = NULL;
 }
 
-CMysqlConn::~CMysqlConn()
+mysql_conn::~mysql_conn()
 {
 	if (NULL != m_conn) {
 		delete m_conn;
@@ -25,7 +25,7 @@ CMysqlConn::~CMysqlConn()
 	}
 }
 
-bool CMysqlConn::init(const char* ip, uint16 port, const char* user, const char* pwd, const char* db_name)
+bool mysql_conn::init(const char* ip, uint16 port, const char* user, const char* pwd, const char* db_name)
 {
 	m_driver = get_driver_instance();
 	
@@ -41,7 +41,7 @@ bool CMysqlConn::init(const char* ip, uint16 port, const char* user, const char*
 	return true;
 }
 
-void CMysqlConn::remove(const char* table, const char* query)
+void mysql_conn::remove(const char* table, const char* query)
 {
 	char sql[2048];
 	memset(sql, 0, 2048);
@@ -53,7 +53,7 @@ void CMysqlConn::remove(const char* table, const char* query)
 	}
 }
 
-void CMysqlConn::insert(const char* table, const char* fields)
+void mysql_conn::insert(const char* table, const char* fields)
 {
 	if (NULL == fields || strlen(fields) < 1) {
 		return;
@@ -64,7 +64,7 @@ void CMysqlConn::insert(const char* table, const char* fields)
 	sprintf(sql, "insert into %s %s", table, fields);
 }
 
-void CMysqlConn::update(const char* table, const char* query, const char* fields)
+void mysql_conn::update(const char* table, const char* query, const char* fields)
 {
 	char sql[2048];
 	memset(sql, 0, 2048);
@@ -76,7 +76,7 @@ void CMysqlConn::update(const char* table, const char* query, const char* fields
 	}
 }
 
-void CMysqlConn::query(const char* table, const char* query, const char* fields)
+void mysql_conn::query(const char* table, const char* query, const char* fields)
 {
 	char sql[2048];
 	memset(sql, 0, 2048);

@@ -2,13 +2,13 @@
 #ifndef _SOCKET_HANDLER_H_
 #define _SOCKET_HANDLER_H_
 
-class CBasePacket;
+class packet_base;
 
-class CSocketHandler
+class socket_handler
 {
 public:
-	CSocketHandler();
-	~CSocketHandler();
+	socket_handler();
+	~socket_handler();
 
 public:
 	char* buffer(int len);
@@ -16,7 +16,7 @@ public:
 	char* buffer();
 	void set_buffer(char* p);
 
-	CBasePacket* unpacket();
+	packet_base* unpacket();
 
 private:
 	void clean_up();

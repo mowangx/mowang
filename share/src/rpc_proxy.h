@@ -10,24 +10,25 @@
 #include "singleton.h"
 #include "rpc_param.h"
 
-class CRpcProxy : public CSingleton<CRpcProxy>
+class rpc_proxy : public singleton<rpc_proxy>
 {
 public:
-	CRpcProxy();
-	~CRpcProxy();
+	rpc_proxy();
+	~rpc_proxy();
 
 public:
 	template <size_t N, class F1, class F2>
 	void register_func(const std::string& func_name, F1 func1, F2 func2) {
 		using args_type = func_param<F1>::args_type;
-		m_funcs[func_name] = [&](char* buffer) {
+		m_name_2_func[func_name] = [&](char* buffer) {
 			int buffer_index = 0;
 			args_type args_real;
-			CRpcParam<N, N>::convert(args_real, buffer, buffer_index);
+			rpc_param<N, N>::convert(args_real, buffer, buffer_index);
 			call_func(func2, args_real);
 		};
 	}
 
+	void call(uint8 func_index, char* buffer);
 	void call(const std::string& func_name, char* buffer);
 
 private:
@@ -45,10 +46,11 @@ private:
 	void clean_up();
 
 private:
-	std::map<std::string, std::function<void(char*)>> m_funcs;
+	std::map<uint8, std::string> m_index_2_name;
+	std::map<std::string, std::function<void(char*)>> m_name_2_func;
 };
 
-#define DRpcProxy CSingleton<CRpcProxy>::getInstance()
+#define DRpcProxy singleton<rpc_proxy>::get_instance()
 
 
 #define DRpcBindFunc_0(obj) obj

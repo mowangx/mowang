@@ -23,10 +23,10 @@ if (NULL == row->Attribute(#attr, (int*)&val)) { \
 tabRow->attr = val;
 
 template <class T>
-class CConfigLoader
+class config_loader
 {
 public:
-	CConfigLoader()
+	config_loader()
 	{
 		m_data.clear();
 	}

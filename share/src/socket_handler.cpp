@@ -4,17 +4,17 @@
 #include "base_packet.h"
 #include "log.h"
 
-CSocketHandler::CSocketHandler()
+socket_handler::socket_handler()
 {
 	clean_up();
 }
 
-CSocketHandler::~CSocketHandler()
+socket_handler::~socket_handler()
 {
 	clean_up();
 }
 
-char* CSocketHandler::buffer(int len)
+char* socket_handler::buffer(int len)
 {
 	if ((m_write_index + len) >= MAX_PACKET_BUFFER_SIZE) {
 		m_max_index = m_write_index;
@@ -34,17 +34,17 @@ char* CSocketHandler::buffer(int len)
 	return (char*)(m_buffer + old_write_index);
 }
 
-char* CSocketHandler::buffer()
+char* socket_handler::buffer()
 {
 	return m_buffer;
 }
 
-void CSocketHandler::set_buffer(char* p)
+void socket_handler::set_buffer(char* p)
 {
 	m_buffer = p;
 }
 
-CBasePacket* CSocketHandler::unpacket()
+packet_base* socket_handler::unpacket()
 {
 	if (m_read_index == m_max_index) {
 		if (m_read_index > m_write_index) {
@@ -53,19 +53,11 @@ CBasePacket* CSocketHandler::unpacket()
 		}
 	}
 	int len = m_max_index - m_read_index;
-	if (len < sizeof(CBasePacket)) {
+	if (len < sizeof(packet_base)) {
 		return NULL;
 	}
-	CBasePacket* packet = (CBasePacket*)(m_buffer + m_read_index);
-	if (packet->get_packet_len() != 11 && packet->get_packet_len() != 27) {
-		log_error("socket handler! read error! read index = %d, write index = %d, max index = %d, len = %d", m_read_index, m_write_index, m_max_index, packet->get_packet_len());
-		return NULL;
-	}
+	packet_base* packet = (packet_base*)(m_buffer + m_read_index);
 	if (len < packet->get_packet_len()) {
-		return NULL;
-	}
-	if (packet->m_id != 8888888 && packet->m_id != 12345678) {
-		log_error("socket handler! read error! read index = %d, write index = %d, max index = %d, len = %d", m_read_index, m_write_index, m_max_index, packet->get_packet_len());
 		return NULL;
 	}
 	m_read_index += packet->get_packet_len();
@@ -78,7 +70,7 @@ CBasePacket* CSocketHandler::unpacket()
 	return packet;
 }
 
-void CSocketHandler::clean_up()
+void socket_handler::clean_up()
 {
 	m_read_index = 0;
 	m_write_index = 0;

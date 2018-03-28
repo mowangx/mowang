@@ -13,18 +13,18 @@
 	dest[count] = '\0'; \
 }
 
-void CSocket::clean_up()
+void socket_base::clean_up()
 {
 	reset();
 	m_index = INVALID_UNIQUE_INDEX;
 	m_unpacket_num = 0;
-	m_last_unpacket_time = CTimeManager::SysNowTime();
+	m_last_unpacket_time = time_manager::SysNowTime();
 	m_active_flag = true;
 	m_wait_close_secs = 0;
 	m_wait_close_start_time = MAX_UINT32_NUM;
 }
 
-CSocket::CSocket(sint32 inputStreamLen /*= DEFAULT_SOCKET_INPUT_BUFFER_SIZE*/,
+socket_base::socket_base(sint32 inputStreamLen /*= DEFAULT_SOCKET_INPUT_BUFFER_SIZE*/,
 	sint32 outputStreamLen /*= DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE*/, sint32 maxInputStreamLen /*= DISCONNECT_SOCKET_INPUT_SIZE*/,
 	sint32 maxOutputStreamLen /*= DISCONNECT_SOCKET_OUTPUT_SIZE*/)
 {
@@ -33,7 +33,7 @@ CSocket::CSocket(sint32 inputStreamLen /*= DEFAULT_SOCKET_INPUT_BUFFER_SIZE*/,
 	m_output_stream.initsize(this, outputStreamLen, maxOutputStreamLen);
 }
 
-CSocket::CSocket(const char* host, sint32 port, sint32 inputStreamLen /*= DEFAULT_SOCKET_INPUT_BUFFER_SIZE*/,
+socket_base::socket_base(const char* host, sint32 port, sint32 inputStreamLen /*= DEFAULT_SOCKET_INPUT_BUFFER_SIZE*/,
 	sint32 outputStreamLen /*= DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE*/, sint32 maxInputStreamLen /*= DISCONNECT_SOCKET_INPUT_SIZE*/,
 	sint32 maxOutputStreamLen /*= DISCONNECT_SOCKET_OUTPUT_SIZE*/)
 {
@@ -43,12 +43,12 @@ CSocket::CSocket(const char* host, sint32 port, sint32 inputStreamLen /*= DEFAUL
 	m_output_stream.initsize(this, outputStreamLen, maxOutputStreamLen);
 }
 
-CSocket::~CSocket()
+socket_base::~socket_base()
 {
 
 }
 
-bool CSocket::create()
+bool socket_base::create()
 {
 	m_socket = SOCKET_API::gx_socket(AF_INET, SOCK_STREAM, 0);
 
@@ -63,7 +63,7 @@ bool CSocket::create()
 }
 
 // close previous connection and connect to another server socket
-bool CSocket::reconnect(const char* host, sint32 port, sint32 diff)
+bool socket_base::reconnect(const char* host, sint32 port, sint32 diff)
 {
 	// delete old socket impl object
 	close();
@@ -76,7 +76,7 @@ bool CSocket::reconnect(const char* host, sint32 port, sint32 diff)
 	return connect(host, port, diff);
 }
 
-void CSocket::close()
+void socket_base::close()
 {
 	log_info("Close socket!Index=%"I64_FMT"u", get_socket_index());
 	if (is_valid() && !is_sock_error())
@@ -87,7 +87,7 @@ void CSocket::close()
 	reset();
 }
 
-void CSocket::reset()
+void socket_base::reset()
 {
 	m_socket = INVALID_SOCKET;
 	memset(&m_socket_addr, 0, sizeof(SOCKADDR_IN));
@@ -95,7 +95,7 @@ void CSocket::reset()
 	m_port = 0;
 }
 
-bool CSocket::connect(const char* host, sint32 port, sint32 diff)
+bool socket_base::connect(const char* host, sint32 port, sint32 diff)
 {
 	SOCKADDR_IN addr;
 	memset(&addr, 0, sizeof(addr));
@@ -121,10 +121,10 @@ bool CSocket::connect(const char* host, sint32 port, sint32 diff)
 	return ret;
 }
 
-CSocket* CSocket::accept(sint32 inputStreamLen /*= DEFAULT_SOCKET_INPUT_BUFFER_SIZE*/, sint32 outputStreamLen /*= DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE*/,
+socket_base* socket_base::accept(sint32 inputStreamLen /*= DEFAULT_SOCKET_INPUT_BUFFER_SIZE*/, sint32 outputStreamLen /*= DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE*/,
 	sint32 maxInputStreamLen /*= DISCONNECT_SOCKET_INPUT_SIZE*/, sint32 maxOutputStreamLen /*= DISCONNECT_SOCKET_OUTPUT_SIZE*/)
 {
-	CSocket* socket = new CSocket(inputStreamLen, outputStreamLen, maxInputStreamLen, maxOutputStreamLen);
+	socket_base* socket = new socket_base(inputStreamLen, outputStreamLen, maxInputStreamLen, maxOutputStreamLen);
 	uint32 addrlen = sizeof(SOCKADDR_IN);
 	SOCKADDR_IN addr;
 	//        socket->close();
@@ -146,24 +146,24 @@ CSocket* CSocket::accept(sint32 inputStreamLen /*= DEFAULT_SOCKET_INPUT_BUFFER_S
 	return socket;
 }
 
-sint32 CSocket::send(const void* buf, sint32 len, sint32 flags)
+sint32 socket_base::send(const void* buf, sint32 len, sint32 flags)
 {
 	sint32 ret = SOCKET_API::gx_send(m_socket, buf, len, flags);
 	return ret;
 }
 
-sint32 CSocket::receive(void* buf, sint32 len, sint32 flags)
+sint32 socket_base::receive(void* buf, sint32 len, sint32 flags)
 {
 	sint32 ret = SOCKET_API::gx_recv(m_socket, buf, len, flags);
 	return ret;
 }
 
-sint32 CSocket::available()const
+sint32 socket_base::available()const
 {
 	return SOCKET_API::gx_availablesocket(m_socket);
 }
 
-sint32 CSocket::get_linger()const
+sint32 socket_base::get_linger()const
 {
 	struct linger ling;
 	uint32 len = sizeof(ling);
@@ -173,7 +173,7 @@ sint32 CSocket::get_linger()const
 	return ling.l_linger;
 }
 
-bool CSocket::set_linger(sint32 lingertime)
+bool socket_base::set_linger(sint32 lingertime)
 {
 	struct linger ling;
 
@@ -183,22 +183,22 @@ bool CSocket::set_linger(sint32 lingertime)
 	return SOCKET_API::gx_setsockopt(m_socket, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling));
 }
 
-sint32 CSocket::get_sock_error()const
+sint32 socket_base::get_sock_error()const
 {
 	return is_sock_error();
 }
 
-bool CSocket::is_non_blocking()const
+bool socket_base::is_non_blocking()const
 {
 	return SOCKET_API::gx_getsocketnonblocking(m_socket);
 }
 
-bool CSocket::set_non_blocking(bool on)
+bool socket_base::set_non_blocking(bool on)
 {
 	return SOCKET_API::gx_setsocketnonblocking(m_socket, on);
 }
 
-sint32 CSocket::get_receive_buffer_size()const
+sint32 socket_base::get_receive_buffer_size()const
 {
 	sint32 ReceiveBufferSize;
 	uint32 size = sizeof(ReceiveBufferSize);
@@ -208,12 +208,12 @@ sint32 CSocket::get_receive_buffer_size()const
 	return ReceiveBufferSize;
 }
 
-bool CSocket::set_receive_buffer_size(sint32 size)
+bool socket_base::set_receive_buffer_size(sint32 size)
 {
 	return (bool)(SOCKET_API::gx_setsockopt(m_socket, SOL_SOCKET, SO_RCVBUF, &size, sizeof(sint32)));
 }
 
-sint32 CSocket::get_send_buffer_size()const
+sint32 socket_base::get_send_buffer_size()const
 {
 	sint32 SendBufferSize;
 	uint32 size = sizeof(SendBufferSize);
@@ -223,57 +223,57 @@ sint32 CSocket::get_send_buffer_size()const
 	return SendBufferSize;
 }
 
-bool CSocket::set_send_buffer_size(sint32 size)
+bool socket_base::set_send_buffer_size(sint32 size)
 {
 	return (bool)(SOCKET_API::gx_setsockopt(m_socket, SOL_SOCKET, SO_SNDBUF, &size, sizeof(sint32)));
 }
 
-sint32 CSocket::get_port()const
+sint32 socket_base::get_port()const
 {
 	return m_port;
 }
 
-TIP_t CSocket::get_host_ip()const
+TIP_t socket_base::get_host_ip()const
 {
 	return (TIP_t)(m_socket_addr.sin_addr.s_addr);
 }
 
-bool CSocket::is_valid()const
+bool socket_base::is_valid()const
 {
 	return m_socket != INVALID_SOCKET;
 }
 
-TSocketFD_t CSocket::get_socket_fd() const
+TSocketFD_t socket_base::get_socket_fd() const
 {
 	return m_socket;
 }
 
-void CSocket::set_socket_fd(TSocketFD_t id)
+void socket_base::set_socket_fd(TSocketFD_t id)
 {
 	m_socket = id;
 }
 
-CSocketHandler* CSocket::get_socket_handler()
+socket_handler* socket_base::get_socket_handler()
 {
 	return m_socket_handler;
 }
 
-void CSocket::set_socket_handler(CSocketHandler* handler)
+void socket_base::set_socket_handler(socket_handler* handler)
 {
 	m_socket_handler = handler;
 }
 
-CGameHandler* CSocket::get_packet_handler()
+game_handler* socket_base::get_packet_handler()
 {
 	return m_packet_handler;
 }
 
-void CSocket::set_packet_handler(CGameHandler* handler)
+void socket_base::set_packet_handler(game_handler* handler)
 {
 	m_packet_handler = handler;
 }
 
-bool CSocket::is_sock_error()const
+bool socket_base::is_sock_error()const
 {
 	sint32 error;
 	uint32 len = sizeof(error);
@@ -289,13 +289,13 @@ bool CSocket::is_sock_error()const
 	}
 }
 
-bool CSocket::bind()
+bool socket_base::bind()
 {
 	bool result = SOCKET_API::gx_bind(m_socket, (const struct sockaddr *)&m_socket_addr, sizeof(m_socket_addr));
 	return result;
 }
 
-bool CSocket::bind(sint32 port)
+bool socket_base::bind(sint32 port)
 {
 	m_socket_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	m_socket_addr.sin_port = htons(port);
@@ -312,12 +312,12 @@ bool CSocket::bind(sint32 port)
 	}
 }
 
-bool CSocket::listen(sint32 backlog)
+bool socket_base::listen(sint32 backlog)
 {
 	return SOCKET_API::gx_listen(m_socket, backlog);
 }
 
-void CSocket::set_addr(const char* host, sint32 port)
+void socket_base::set_addr(const char* host, sint32 port)
 {
 	m_socket_addr.sin_family = AF_INET;
 	m_socket_addr.sin_port = htons(port);
@@ -334,7 +334,7 @@ void CSocket::set_addr(const char* host, sint32 port)
 	m_port = port;
 }
 
-void CSocket::set_addr(SOCKADDR_IN addr)
+void socket_base::set_addr(SOCKADDR_IN addr)
 {
 	m_port = ntohs(addr.sin_port);
 	gxStrcpy(m_host, IP_SIZE, inet_ntoa(addr.sin_addr), IP_SIZE);
@@ -343,7 +343,7 @@ void CSocket::set_addr(SOCKADDR_IN addr)
 	m_socket_addr.sin_family = AF_INET;
 }
 
-void CSocket::set_remote_addr(const char* host, sint32 port)
+void socket_base::set_remote_addr(const char* host, sint32 port)
 {
 	memset(&m_remote_socket_addr, 0, sizeof(m_remote_socket_addr));
 	m_remote_socket_addr.sin_family = AF_INET;
@@ -354,7 +354,7 @@ void CSocket::set_remote_addr(const char* host, sint32 port)
 	m_remote_port = port;
 }
 
-void CSocket::set_remote_addr(SOCKADDR_IN addr)
+void socket_base::set_remote_addr(SOCKADDR_IN addr)
 {
 	memset(&m_remote_socket_addr, 0, sizeof(m_remote_socket_addr));
 
@@ -365,7 +365,7 @@ void CSocket::set_remote_addr(SOCKADDR_IN addr)
 	m_remote_socket_addr.sin_family = AF_INET;
 }
 
-bool CSocket::is_reuse_addr()const
+bool socket_base::is_reuse_addr()const
 {
 	sint32 reuse;
 	uint32 len = sizeof(reuse);
@@ -375,114 +375,114 @@ bool CSocket::is_reuse_addr()const
 	return reuse == 1;
 }
 
-bool CSocket::set_reuse_addr(bool on)
+bool socket_base::set_reuse_addr(bool on)
 {
 	sint32 opt = on == true ? 1 : 0;
 
 	return SOCKET_API::gx_setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 }
 
-bool CSocket::on_read()
+bool socket_base::on_read()
 {
 	return m_input_stream.fill() > SOCKET_ERROR;
 }
 
-bool CSocket::on_write()
+bool socket_base::on_write()
 {
 	return m_output_stream.flush() > SOCKET_ERROR;
 }
 
-TSocketIndex_t CSocket::get_socket_index()
+TSocketIndex_t socket_base::get_socket_index()
 {
 	return m_index;
 }
 
-void CSocket::set_socket_index(TSocketIndex_t index)
+void socket_base::set_socket_index(TSocketIndex_t index)
 {
 	m_index = index;
 }
 
-TSocketEvent_t& CSocket::get_read_event()
+TSocketEvent_t& socket_base::get_read_event()
 {
 	return m_read_event;
 }
 
-TSocketEvent_t& CSocket::get_write_event()
+TSocketEvent_t& socket_base::get_write_event()
 {
 	return m_write_event;
 }
 
-TSocketEventArg_t& CSocket::get_event_arg()
+socket_event_arg_t& socket_base::get_event_arg()
 {
 	return m_event_arg;
 }
 
-bool CSocket::is_need_write()
+bool socket_base::is_need_write()
 {
 	return m_output_stream.size() > 0;
 }
 
-sint32 CSocket::write(const char* msg, sint32 len)
+sint32 socket_base::write(const char* msg, sint32 len)
 {
 	sint32 ret = m_output_stream.write(msg, len);
 	return ret;
 }
 
-sint32 CSocket::read(char* msg, sint32 len)
+sint32 socket_base::read(char* msg, sint32 len)
 {
 	sint32 ret = m_input_stream.read(msg, len);
 	return ret;
 }
 
-CSocketInputStream* CSocket::get_input_stream()
+socket_input_stream* socket_base::get_input_stream()
 {
 	return &m_input_stream;
 }
 
-CSocketOutputStream* CSocket::get_output_stream()
+socket_output_stream* socket_base::get_output_stream()
 {
 	return &m_output_stream;
 }
 
-sint32 CSocket::get_input_len()
+sint32 socket_base::get_input_len()
 {
 	return m_input_stream.length();
 }
 
-sint32 CSocket::get_output_len()
+sint32 socket_base::get_output_len()
 {
 	return m_output_stream.length();
 }
 
-void CSocket::set_active(bool flag)
+void socket_base::set_active(bool flag)
 {
 	m_active_flag = flag;
 }
 
-bool CSocket::is_active()
+bool socket_base::is_active()
 {
 	return m_active_flag;
 }
 
-uint32 CSocket::get_wait_close_secs()
+uint32 socket_base::get_wait_close_secs()
 {
 	return m_wait_close_secs;
 }
 
-void CSocket::set_wait_close_secs(uint32 secs)
+void socket_base::set_wait_close_secs(uint32 secs)
 {
-	m_wait_close_start_time = CTimeManager::SysNowTime();
+	m_wait_close_start_time = time_manager::SysNowTime();
 	m_wait_close_secs = secs;
 }
 
-bool CSocket::need_del()
+bool socket_base::need_del()
 {
 	if (is_active())
 	{
 		return false;
 	}
 
-	if ((CTimeManager::SysNowTime() - m_wait_close_start_time)>m_wait_close_secs)
+	if ((time_manager::SysNowTime() - m_wait_close_start_time)>m_wait_close_secs)
 	{
 		return true;
 	}
@@ -490,12 +490,12 @@ bool CSocket::need_del()
 	return false;
 }
 
-std::string CSocket::get_host_ip_str() const
+std::string socket_base::get_host_ip_str() const
 {
 	return std::string(m_host);
 }
 
-void CSocket::get_local_addr()
+void socket_base::get_local_addr()
 {
 	SOCKADDR_IN localAddr;
 	memset(&localAddr, 0, sizeof(localAddr));
@@ -505,28 +505,28 @@ void CSocket::get_local_addr()
 	set_addr(localAddr);
 }
 
-void CSocket::on_accept_socket()
+void socket_base::on_accept_socket()
 {
 	get_local_addr();
 }
 
-void CSocket::on_connect_socket(const char* host, sint32 port)
+void socket_base::on_connect_socket(const char* host, sint32 port)
 {
 	get_local_addr();
 	set_remote_addr(host, port);
 }
 
-sint32 CSocket::get_remote_port() const
+sint32 socket_base::get_remote_port() const
 {
 	return m_remote_port;
 }
 
-TIP_t CSocket::get_remote_host_ip() const
+TIP_t socket_base::get_remote_host_ip() const
 {
 	return (TIP_t)(m_remote_socket_addr.sin_addr.s_addr);
 }
 
-std::string CSocket::get_remote_host_ip_str() const
+std::string socket_base::get_remote_host_ip_str() const
 {
 	return std::string(m_remote_host);
 }

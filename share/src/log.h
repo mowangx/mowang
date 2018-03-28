@@ -11,7 +11,7 @@
 #include "singleton.h"
 
 
-class CLog
+class log_wrapper : public singleton<log_wrapper>
 {
 public:
 	enum ELogType
@@ -22,8 +22,8 @@ public:
 		LOG_DEBUG = 4
 	};
 
-	CLog();
-	~CLog();
+	log_wrapper();
+	~log_wrapper();
 
 public:
 	bool init(const std::string& filename);
@@ -41,13 +41,13 @@ private:
 	std::deque<std::string> m_logs;
 };
 
-#define DLogMgr							CSingleton<CLog>::getInstance()
+#define DLogMgr							singleton<log_wrapper>::get_instance()
 
 #define log_core(type, fmt, ...)        DLogMgr.display(type, __FILE__, __FUNCTION__, __LINE__, std::this_thread::get_id(), fmt, ##__VA_ARGS__)
-#define log_debug(fmt, ...)				log_core(CLog::LOG_DEBUG, fmt, ##__VA_ARGS__)
-#define log_info(fmt, ...)				log_core(CLog::LOG_INFO, fmt, ##__VA_ARGS__)
-#define log_warning(fmt, ...)			log_core(CLog::LOG_WARNING, fmt, ##__VA_ARGS__)
-#define log_error(fmt, ...)				log_core(CLog::LOG_ERROR, fmt, ##__VA_ARGS__)
+#define log_debug(fmt, ...)				log_core(log_wrapper::LOG_DEBUG, fmt, ##__VA_ARGS__)
+#define log_info(fmt, ...)				log_core(log_wrapper::LOG_INFO, fmt, ##__VA_ARGS__)
+#define log_warning(fmt, ...)			log_core(log_wrapper::LOG_WARNING, fmt, ##__VA_ARGS__)
+#define log_error(fmt, ...)				log_core(log_wrapper::LOG_ERROR, fmt, ##__VA_ARGS__)
 
 
 #endif

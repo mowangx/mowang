@@ -182,6 +182,7 @@
     <ClInclude Include="src\memory_pool.h" />
     <ClInclude Include="src\msg_queue.h" />
     <ClInclude Include="src\packet_handler.h" />
+    <ClInclude Include="src\rpc_client.h" />
     <ClInclude Include="src\rpc_param.h" />
     <ClInclude Include="src\rpc_proxy.h" />
     <ClInclude Include="src\singleton.h" />

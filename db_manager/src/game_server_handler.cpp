@@ -1,71 +1,75 @@
 
 #include "game_server_handler.h"
+
+#include <array>
+
 #include "log.h"
 #include "db_server.h"
 #include "socket.h"
+#include "rpc_proxy.h"
+#include "rpc_client.h"
 
-CGameServerHandler::CGameServerHandler() : CPacketHandler<CGameServerHandler>()
+game_server_handler::game_server_handler() : packet_handler<game_server_handler>()
+{
+	m_rpc_client = new rpc_client(this);
+}
+
+game_server_handler::~game_server_handler()
 {
 
 }
 
-CGameServerHandler::~CGameServerHandler()
+void game_server_handler::Setup()
 {
-
+	register_handler(PACKET_ID_RPC_BY_INDEX, (packet_handler_func)&game_server_handler::handle_rpc_by_index);
+	register_handler(PACKET_ID_RPC_BY_NAME, (packet_handler_func)&game_server_handler::handle_rpc_by_name);
 }
 
-void CGameServerHandler::Setup()
-{
-	register_handler(12345678, (TPacketHandler)&CGameServerHandler::handle_test_1);
-	register_handler(8888888, (TPacketHandler)&CGameServerHandler::handle_test_2);
-}
-
-TPacketInfo_t* CGameServerHandler::create_packet_info()
+TPacketInfo_t* game_server_handler::create_packet_info()
 {
 	return DDbServer.allocate_packet_info();
 }
 
-char* CGameServerHandler::create_packet(int n)
+char* game_server_handler::create_packet(int n)
 {
 	return DDbServer.allocate_memory(n);
 }
 
-void CGameServerHandler::write_packet(TPacketInfo_t* packet_info)
+void game_server_handler::write_packet(TPacketInfo_t* packet_info)
 {
 	DDbServer.push_write_packets(packet_info);
 }
 
-void CGameServerHandler::handle_close()
+void game_server_handler::handle_close()
 {
 	log_info("'%"I64_FMT"u', handle close", get_socket_index());
 	TBaseType_t::handle_close();
 }
 
-bool CGameServerHandler::handle_test_1(CBasePacket* packet)
+bool game_server_handler::handle_rpc_by_index(packet_base* packet)
 {
-	CLoginRequest* login = (CLoginRequest*)packet;
-	log_info("'%"I64_FMT"u', %d, %d", get_socket_index(), login->get_packet_len(), login->m_user);
-
-	CLoginRequest login_ret;
-	login_ret.m_id = 12345678;
-	login_ret.m_len = sizeof(CLoginRequest);
-	login_ret.m_check = 987654321;
-	login_ret.m_user = 89;
-	send_packet(login_ret);
+	rpc_by_index_packet* rpc_info = (rpc_by_index_packet*)packet;
+	//DRpcProxy.call(rpc_info->rpc_index, rpc_info->buffer);
 	return true;
 }
 
-bool CGameServerHandler::handle_test_2(CBasePacket* packet)
+bool game_server_handler::handle_rpc_by_name(packet_base* packet)
 {
-	CLogoutRequest* logout = (CLogoutRequest*)packet;
-	log_info("'%"I64_FMT"u', %d, %d, %s", get_socket_index(), logout->get_packet_len(), logout->m_user, logout->m_name);
+	rpc_by_name_packet* rpc_info = (rpc_by_name_packet*)packet;
+	//DRpcProxy.call(rpc_info->rpc_name, rpc_info->buffer);
+	std::array<char, 22> p1;
+	memset(p1.data(), 0, 22);
+	memcpy(p1.data(), "xiedi", 5);
+	uint16 p2 = 65500;
+	std::array<char, 127> p3;
+	memset(p3.data(), 0, 127);
+	memcpy(p3.data(), "hello world", 11);
+	m_rpc_client->call_remote_func("game_rpc_func_1", p1, p2, p3);
 
-	CLogoutRequest logout_ret;
-	logout_ret.m_id = 8888888;
-	logout_ret.m_len = sizeof(CLogoutRequest);
-	logout_ret.m_check = 6666666;
-	strcpy(logout_ret.m_name, "Hello World");
-	logout_ret.m_user = 168;
-	send_packet(logout_ret);
+	uint8 p2_1 = 99;
+	std::array<char, 33> p2_2;
+	memset(p2_2.data(), 0, 33);
+	memcpy(p2_2.data(), "mowang", 6);
+	m_rpc_client->call_remote_func("game_rpc_func_2", p2_1, p2_2);
 	return true;
 }

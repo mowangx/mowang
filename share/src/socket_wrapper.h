@@ -4,62 +4,62 @@
 
 #include "socket.h"
 
-class CGameHandler;
+class game_handler;
 
-class CSocketWrapper : public CSocket
+class socket_wrapper : public socket_base
 {
 public:
-	CSocketWrapper(const char* ip, TPort_t port) : CSocket(ip, port) {
+	socket_wrapper(const char* ip, TPort_t port) : socket_base(ip, port) {
 
 	}
 
-	CSocketWrapper() : CSocket() {
+	socket_wrapper() : socket_base() {
 
 	}
 
 public:
-	virtual CGameHandler* create_handler() = 0;
+	virtual game_handler* create_handler() = 0;
 
-	TSocketWrapperEventArg_t& get_wrapper_event_arg() { 
+	socket_wrapper_event_arg_t& get_wrapper_event_arg() { 
 		return m_wrapper_event_arg; }
 
 private:
-	TSocketWrapperEventArg_t m_wrapper_event_arg;
+	socket_wrapper_event_arg_t m_wrapper_event_arg;
 };
 
 template <class T>
-class CSocketListener : public CSocketWrapper
+class socket_listener : public socket_wrapper
 {
 public:
-	CSocketListener(const char* ip, TPort_t port) : CSocketWrapper(ip, port) {
+	socket_listener(const char* ip, TPort_t port) : socket_wrapper(ip, port) {
 
 	}
 
-	~CSocketListener() {
+	~socket_listener() {
 
 	}
 
 public:
-	virtual CGameHandler* create_handler() override {
+	virtual game_handler* create_handler() override {
 		return new T();
 	}
 };
 
 template <class T>
-class CSocketConnector : public CSocketWrapper
+class socket_connector : public socket_wrapper
 {
 public:
-	CSocketConnector() : CSocketWrapper() {
+	socket_connector() : socket_wrapper() {
 
 	}
 
-	~CSocketConnector() {
+	~socket_connector() {
 
 	}
 
 
 public:
-	virtual CGameHandler* create_handler() override {
+	virtual game_handler* create_handler() override {
 		return new T();
 	}
 };

@@ -5,11 +5,11 @@
 #include "types_def.h"
 
 template <size_t data_size>
-struct TMemoryNode
+struct memory_node
 {
 	char data[data_size];
-	TMemoryNode* next;
-	TMemoryNode() {
+	memory_node* next;
+	memory_node() {
 		clean_up();
 	}
 
@@ -19,14 +19,14 @@ struct TMemoryNode
 };
 
 template <size_t data_size, size_t node_num>
-class CMemoryAllocator
+class memory_allocator
 {
 protected:
-	typedef TMemoryNode<data_size> _TMyNode;
-	struct TMyPool {
-		_TMyNode nodes[node_num];
-		TMyPool* next;
-		TMyPool() {
+	typedef memory_node<data_size> my_node;
+	struct my_pool {
+		my_node nodes[node_num];
+		my_pool* next;
+		my_pool() {
 			clean_up();
 		}
 
@@ -36,14 +36,14 @@ protected:
 	};
 
 public:
-	CMemoryAllocator() {
+	memory_allocator() {
 		m_pool = NULL;
-		m_freeNode = NULL;
+		m_free_node = NULL;
 	}
 
-	~CMemoryAllocator() {
+	~memory_allocator() {
 		while (NULL != m_pool) {
-			TMyPool* pool = m_pool;
+			my_pool* pool = m_pool;
 			m_pool = m_pool->next;
 			delete pool;
 		}
@@ -51,45 +51,45 @@ public:
 
 public:
 	char* allocate() {
-		if (NULL == m_freeNode) {
+		if (NULL == m_free_node) {
 			add_block_memory();
 		}
-		_TMyNode* node = m_freeNode;
-		m_freeNode = m_freeNode->next;
+		my_node* node = m_free_node;
+		m_free_node = m_free_node->next;
 		node->next = NULL;
 		return node->data;
 	}
 
 	void deallocate(char* p) {
-		_TMyNode* node = (_TMyNode*)p;
-		node->next = m_freeNode;
-		m_freeNode = node;
+		my_node* node = (my_node*)p;
+		node->next = m_free_node;
+		m_free_node = node;
 	}
 
 private:
 	void add_block_memory() {
-		TMyPool* pool = new TMyPool();
+		my_pool* pool = new my_pool();
 		pool->next = m_pool;
 		m_pool = pool;
 		for (int i = 0; i < node_num; ++i) {
 			pool->nodes[i].next = (i > 0) ? (&pool->nodes[i - 1]) : NULL;
 		}
-		m_freeNode = &pool->nodes[node_num - 1];
+		m_free_node = &pool->nodes[node_num - 1];
 	}
 
 private:
-	TMyPool* m_pool;
-	_TMyNode* m_freeNode;
+	my_pool* m_pool;
+	my_node* m_free_node;
 };
 
-class CMemoryPool
+class memory_pool
 {
 public:
-	CMemoryPool() {
+	memory_pool() {
 
 	}
 
-	~CMemoryPool() {
+	~memory_pool() {
 
 	}
 
@@ -180,25 +180,25 @@ public:
 	}
 
 private:
-	CMemoryAllocator<32, 512>		m_node_32;
-	CMemoryAllocator<64, 256>		m_node_64;
-	CMemoryAllocator<128, 128>		m_node_128;
-	CMemoryAllocator<128 * 2, 64>	m_node_128x2;
-	CMemoryAllocator<128 * 4, 32>	m_node_128x4;
-	CMemoryAllocator<128 * 8, 16>	m_node_128x8;
-	CMemoryAllocator<128 * 16, 16>	m_node_128x16;
-	CMemoryAllocator<128 * 32, 16>	m_node_128x32;
+	memory_allocator<32, 512>		m_node_32;
+	memory_allocator<64, 256>		m_node_64;
+	memory_allocator<128, 128>		m_node_128;
+	memory_allocator<128 * 2, 64>	m_node_128x2;
+	memory_allocator<128 * 4, 32>	m_node_128x4;
+	memory_allocator<128 * 8, 16>	m_node_128x8;
+	memory_allocator<128 * 16, 16>	m_node_128x16;
+	memory_allocator<128 * 32, 16>	m_node_128x32;
 };
 
 template <class T, size_t max_count>
-class CObjMemoryPool
+class obj_memory_pool
 {
 public:
-	CObjMemoryPool() {
+	obj_memory_pool() {
 
 	}
 
-	~CObjMemoryPool() {
+	~obj_memory_pool() {
 
 	}
 
@@ -214,7 +214,7 @@ public:
 		m_nodes.deallocate((char*)p);
 	}
 private:
-	CMemoryAllocator<sizeof(T), max_count> m_nodes;
+	memory_allocator<sizeof(T), max_count> m_nodes;
 };
 
 #endif

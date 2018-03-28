@@ -4,15 +4,15 @@
 
 #include <mutex>
 
-class CLock
+class auto_lock
 {
 public:
-	CLock(std::mutex* m): m_mutex(m)
+	auto_lock(std::mutex* m): m_mutex(m)
 	{
 		m_mutex->lock();
 	}
 
-	~CLock()
+	~auto_lock()
 	{
 		m_mutex->unlock();
 	}

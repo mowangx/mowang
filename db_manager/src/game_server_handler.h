@@ -4,13 +4,15 @@
 
 #include "packet_handler.h"
 
-class CGameServerHandler : public CPacketHandler<CGameServerHandler>
+class rpc_client;
+
+class game_server_handler : public packet_handler<game_server_handler>
 {
-	typedef CPacketHandler<CGameServerHandler>	TBaseType_t;
+	typedef packet_handler<game_server_handler>	TBaseType_t;
 
 public:
-	CGameServerHandler();
-	~CGameServerHandler();
+	game_server_handler();
+	~game_server_handler();
 
 public:
 	static void Setup();
@@ -23,8 +25,11 @@ private:
 public:
 	virtual void handle_close() override;
 
-	bool handle_test_1(CBasePacket* packet);
-	bool handle_test_2(CBasePacket* packet);
+	bool handle_rpc_by_index(packet_base* packet);
+	bool handle_rpc_by_name(packet_base* packet);
+
+private:
+	rpc_client * m_rpc_client;
 };
 
 #endif // !_GAME_SERVER_HANDLER_H_

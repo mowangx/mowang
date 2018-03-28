@@ -6,7 +6,7 @@
 #include "xml_loader.h"
 #include "singleton.h"
 
-class CTblTestConfig
+class tbl_test_config
 {
 public:
 	bool on_after_load()	{ return true; }
@@ -18,10 +18,10 @@ public:
 	uint32	value;
 };
 
-class CTblTestLoader : public CConfigLoader<CTblTestConfig>, public CSingleton<CTblTestLoader>
+class tbl_test_loader : public config_loader<tbl_test_config>, public singleton<tbl_test_loader>
 {
 public:
-	virtual bool read_row(ConfigRow* row, sint32 count, CTblTestConfig* test)
+	virtual bool read_row(ConfigRow* row, sint32 count, tbl_test_config* test)
 	{
 		int val;
 		DReadConfigInt(id, val, test);
@@ -36,6 +36,6 @@ public:
 	}
 };
 
-#define DTblTestMgr	CSingleton<CTblTestLoader>::getInstance()
+#define DTblTestMgr	singleton<tbl_test_loader>::get_instance()
 
 #endif

@@ -21,12 +21,12 @@ static const char* LogTypeString[] = {
 	"DEBUG"
 };
 
-CLog::CLog()
+log_wrapper::log_wrapper()
 {
 	m_file = (FILE*)1;
 }
 
-CLog::~CLog()
+log_wrapper::~log_wrapper()
 {
 	if (m_file > (FILE*)1) {
 		fclose(m_file);
@@ -34,7 +34,7 @@ CLog::~CLog()
 	}
 }
 
-bool CLog::init(const std::string& filename)
+bool log_wrapper::init(const std::string& filename)
 {
 	m_filename = filename;
 	std::string cur_filename = m_filename + ".log";
@@ -47,7 +47,7 @@ bool CLog::init(const std::string& filename)
 	return true;
 }
 
-void CLog::display(ELogType type, const char* filename, const char* funcname, sint32 line, const std::thread::id& thread_info, const char* format, ...)
+void log_wrapper::display(ELogType type, const char* filename, const char* funcname, sint32 line, const std::thread::id& thread_info, const char* format, ...)
 {
 	char content[2048];
 	va_list args;
@@ -61,7 +61,7 @@ void CLog::display(ELogType type, const char* filename, const char* funcname, si
 	time_t date = time(NULL);
 	char cstime[25];
 	tm tmp_tm;
-	tm* tms = CTimeManager::LocalTime((time_t*)&date, &tmp_tm);
+	tm* tms = time_manager::LocalTime((time_t*)&date, &tmp_tm);
 	if (NULL != tms) {
 		strftime(cstime, 25, "%Y/%m/%d %H:%M:%S", tms);
 	}
@@ -76,18 +76,18 @@ void CLog::display(ELogType type, const char* filename, const char* funcname, si
 	str += content;
 	str += "\n";
 
-	CLock lock(&m_mutex);
+	auto_lock lock(&m_mutex);
 	m_logs.push_back(str);
 }
 
-void CLog::flush()
+void log_wrapper::flush()
 {
 	if (m_logs.empty()) {
 		return;
 	}
 	std::string s = "";
 	{
-		CLock lock(&m_mutex);
+		auto_lock lock(&m_mutex);
 		s = m_logs.front();
 		m_logs.pop_front();
 		static int pop_count = 0;
@@ -103,7 +103,7 @@ void CLog::flush()
 	check_rename_file();
 }
 
-std::string CLog::parse_filename(const std::string& filename) const
+std::string log_wrapper::parse_filename(const std::string& filename) const
 {
 	std::string::size_type pos = filename.find_last_of('/');
 	if (pos == std::string::npos) {
@@ -121,7 +121,7 @@ std::string CLog::parse_filename(const std::string& filename) const
 	}
 }
 
-void CLog::check_rename_file()
+void log_wrapper::check_rename_file()
 {
 	// 10485760 = 10 * 1024 * 1024
 	if (ftell(m_file) < 10485760) {

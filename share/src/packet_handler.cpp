@@ -3,32 +3,32 @@
 
 #include "socket.h"
 
-CGameHandler::CGameHandler() : m_socket(NULL)
+game_handler::game_handler() : m_socket(NULL)
 {
 
 }
 
-void CGameHandler::handle_close()
+void game_handler::handle_close()
 {
 	m_socket = NULL;
 }
 
-void CGameHandler::set_socket(CSocket* socket)
+void game_handler::set_socket(socket_base* socket)
 {
 	m_socket = socket;
 }
 
-CSocket* CGameHandler::get_socket() const
+socket_base* game_handler::get_socket() const
 {
 	return m_socket;
 }
 
-bool CGameHandler::is_valid() const
+bool game_handler::is_valid() const
 {
 	return NULL != m_socket;
 }
 
-TSocketIndex_t CGameHandler::get_socket_index() const
+TSocketIndex_t game_handler::get_socket_index() const
 {
 	if (NULL != m_socket) {
 		return m_socket->get_socket_index();

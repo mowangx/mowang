@@ -3,13 +3,13 @@
 
 #include "socket_util.h"
 
-class CSocket;
+class socket_base;
 
-class CSocketOutputStream
+class socket_output_stream
 {
 public:
-	CSocketOutputStream();
-	virtual ~CSocketOutputStream();
+	socket_output_stream();
+	virtual ~socket_output_stream();
 
 
 public:
@@ -17,7 +17,7 @@ public:
 
 	sint32						flush();
 
-	void						initsize(CSocket* sock, sint32 BufferSize = DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE, sint32 MaxBufferSize = DISCONNECT_SOCKET_OUTPUT_SIZE);
+	void						initsize(socket_base* sock, sint32 BufferSize = DEFAULT_SOCKET_OUTPUT_BUFFER_SIZE, sint32 MaxBufferSize = DISCONNECT_SOCKET_OUTPUT_SIZE);
 	bool						resize(sint32 size);
 
 	sint32                      capacity()const { return m_buffer_len; }
@@ -41,7 +41,7 @@ private:
 	sint32						_length()const;
 
 protected:
-	CSocket*    m_socket;
+	socket_base*    m_socket;
 	char*		m_buffer;
 	sint32		m_buffer_len;
 	sint32		m_max_buffer_len;

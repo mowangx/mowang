@@ -13,11 +13,11 @@
 * @brief @todo 分成应用程序时间和系统标准时间
 *       // @todo clearFlushStream
 */
-class CTimeManager
+class time_manager
 {
 public:
-	CTimeManager();
-	~CTimeManager();
+	time_manager();
+	~time_manager();
 
 private:
 	/**
@@ -119,6 +119,6 @@ private:
 #endif
 };
 
-#define DTimeMgr	CSingleton<CTimeManager>::getInstance()
+#define DTimeMgr	singleton<time_manager>::get_instance()
 
 #endif

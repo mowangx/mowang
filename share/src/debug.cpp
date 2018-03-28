@@ -242,7 +242,7 @@ std::string gxGetDumpName()
 	static char cstime[25];
 	time_t tt = time(NULL);
 	tm tempTm;
-	tm* tms = CTimeManager::LocalTime((time_t*)&tt, &tempTm);
+	tm* tms = time_manager::LocalTime((time_t*)&tt, &tempTm);
 	if (tms)
 		strftime(cstime, 25, "%Y_%m_%d_%H_%M_%S", tms);
 	else

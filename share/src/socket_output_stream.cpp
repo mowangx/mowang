@@ -3,7 +3,7 @@
 #include "socket.h"
 #include "log.h"
 
-CSocketOutputStream::CSocketOutputStream()
+socket_output_stream::socket_output_stream()
 {
 	m_socket = NULL;
 	m_buffer = NULL;
@@ -14,12 +14,12 @@ CSocketOutputStream::CSocketOutputStream()
 	m_output_len = 0;
 }
 
-CSocketOutputStream::~CSocketOutputStream()
+socket_output_stream::~socket_output_stream()
 {
 	DSafeDeleteArray(m_buffer);
 }
 
-sint32 CSocketOutputStream::_length()const
+sint32 socket_output_stream::_length()const
 {
 	if (m_head<m_tail)
 		return m_tail - m_head;
@@ -30,7 +30,7 @@ sint32 CSocketOutputStream::_length()const
 	return 0;
 }
 
-sint32 CSocketOutputStream::write(const char* buf, sint32 len)
+sint32 socket_output_stream::write(const char* buf, sint32 len)
 {
 	//					//
 	//     T  H			//    H   T			LEN=10
@@ -78,7 +78,7 @@ sint32 CSocketOutputStream::write(const char* buf, sint32 len)
 	return len;
 }
 
-void CSocketOutputStream::initsize(CSocket* sock, sint32 BufferLen, sint32 MaxBufferLen)
+void socket_output_stream::initsize(socket_base* sock, sint32 BufferLen, sint32 MaxBufferLen)
 {
 	m_socket = sock;
 	m_buffer_len = BufferLen;
@@ -93,7 +93,7 @@ void CSocketOutputStream::initsize(CSocket* sock, sint32 BufferLen, sint32 MaxBu
 	memset(m_buffer, 0, m_buffer_len);
 }
 
-sint32 CSocketOutputStream::flush()
+sint32 socket_output_stream::flush()
 {
 	sint32 nFlushed = 0;
 	sint32 nSent = 0;
@@ -169,7 +169,7 @@ sint32 CSocketOutputStream::flush()
 	return nFlushed;
 }
 
-bool CSocketOutputStream::resize(sint32 size)
+bool socket_output_stream::resize(sint32 size)
 {
 	sint32 len = (m_buffer_len >> 1);
 	size = len > size ? len : size;
@@ -206,7 +206,7 @@ bool CSocketOutputStream::resize(sint32 size)
 	return true;
 }
 
-void CSocketOutputStream::clean_up()
+void socket_output_stream::clean_up()
 {
 	m_head = 0;
 	m_tail = 0;

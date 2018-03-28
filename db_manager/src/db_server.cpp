@@ -1,6 +1,8 @@
 
 #include "db_server.h"
 
+#include <array>
+
 #include "mysql_conn.h"
 #include "time_manager.h"
 #include "socket.h"
@@ -9,12 +11,12 @@
 
 static const uint32 PER_FRAME_TIME = 50;
 
-CDbServer::CDbServer()
+db_server::db_server()
 {
 	m_db = NULL;
 }
 
-CDbServer::~CDbServer()
+db_server::~db_server()
 {
 	if (NULL != m_db) {
 		delete m_db;
@@ -22,7 +24,7 @@ CDbServer::~CDbServer()
 	}
 }
 
-bool CDbServer::init()
+bool db_server::init()
 {
 	return true;
 	//m_db = new CMysqlConn();
@@ -33,23 +35,31 @@ bool CDbServer::init()
 	//return m_db->init("127.0.0.1", 3306, "root", "123456", "test");
 }
 
-void CDbServer::run()
+void db_server::run()
 {
-	CGameServerHandler::Setup();
+	game_server_handler::Setup();
 	TAppTime_t before_loop_time(0), after_loop_time(0);
 
 	while (true) {
 		before_loop_time = DTimeMgr.update();
 
-		std::vector<CSocket*> sockets;
+		std::vector<socket_base*> sockets;
 		DNetMgr.test_get_sockets(sockets);
 		for (auto s : sockets) {
-			CLoginRequest login_ret;
-			login_ret.m_id = 12345678;
-			login_ret.m_len = sizeof(CLoginRequest);
-			login_ret.m_check = 987654321;
-			login_ret.m_user = 89;
-			s->get_packet_handler()->handle(&login_ret);
+			rpc_by_name_packet rpc_info;
+			strcpy(rpc_info.rpc_name, "game_rpc_func_1");
+			int index = 0;
+			std::array<char, 22> p1;
+			memcpy(p1.data(), "xiedi", 5);
+			memcpy(rpc_info.buffer, p1.data(), sizeof(p1));
+			index += sizeof(p1);
+			uint16 p2 = 65500;
+			memcpy((void*)(rpc_info.buffer + index), &p2, sizeof(p2));
+			index += sizeof(p2);
+			std::array<char, 127> p3;
+			memcpy(p3.data(), "hello world", 11);
+			memcpy((void*)(rpc_info.buffer + index), p3.data(), sizeof(p3));
+			s->get_packet_handler()->handle(&rpc_info);
 		}
 		sockets.clear();
 
@@ -91,17 +101,17 @@ void CDbServer::run()
 	}
 }
 
-TPacketInfo_t* CDbServer::allocate_packet_info()
+TPacketInfo_t* db_server::allocate_packet_info()
 {
 	return m_packet_pool.allocate();
 }
 
-char* CDbServer::allocate_memory(int n)
+char* db_server::allocate_memory(int n)
 {
 	return m_mem_pool.allocate(n);
 }
 
-void CDbServer::push_write_packets(TPacketInfo_t* packet_info)
+void db_server::push_write_packets(TPacketInfo_t* packet_info)
 {
 	m_write_packets.push_back(packet_info);
 }

@@ -23,9 +23,7 @@ struct func_param<R(*)(Args...)> {
 };
 
 template <size_t N>
-class CRpcParamWrapper
-{
-public:
+struct rpc_param_wrapper {
 	template <class T>
 	static void convert_core(T& params, char* buffer, int& buffer_index) {
 		auto v = std::get<N>(params);
@@ -36,20 +34,16 @@ public:
 };
 
 template <size_t N, size_t M>
-class CRpcParam
-{
-public:
+struct rpc_param {
 	template <class T>
 	static void convert(T& params, char* buffer, int& buffer_index) {
-		CRpcParamWrapper<M - N>::convert_core(params, buffer, buffer_index);
-		CRpcParam<N - 1, M>::convert(params, buffer, buffer_index);
+		rpc_param_wrapper<M - N>::convert_core(params, buffer, buffer_index);
+		rpc_param<N - 1, M>::convert(params, buffer, buffer_index);
 	}
 };
 
 template <size_t M>
-class CRpcParam<0, M>
-{
-public:
+struct rpc_param<0, M> {
 	template <class T>
 	static void convert(T& params, char* buffer, int& buffer_index) {
 

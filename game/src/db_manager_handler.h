@@ -4,12 +4,14 @@
 
 #include "packet_handler.h"
 
-class CDbManagerHandler : public CPacketHandler<CDbManagerHandler>
+class rpc_client;
+
+class db_manager_handler : public packet_handler<db_manager_handler>
 {
-	typedef CPacketHandler<CDbManagerHandler>	TBaseType_t;
+	typedef packet_handler<db_manager_handler>	TBaseType_t;
 public:
-	CDbManagerHandler();
-	~CDbManagerHandler();
+	db_manager_handler();
+	~db_manager_handler();
 
 public:
 	static void Setup();
@@ -22,8 +24,11 @@ private:
 public:
 	virtual void handle_close() override;
 
-	bool handle_test_1(CBasePacket* packet);
-	bool handle_test_2(CBasePacket* packet);
+	bool handle_rpc_by_index(packet_base* packet);
+	bool handle_rpc_by_name(packet_base* packet);
+
+private:
+	rpc_client* m_rpc_client;
 };
 
 #endif // !_DB_MANAGER_HANDLER_H_
