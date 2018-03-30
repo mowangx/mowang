@@ -67,18 +67,19 @@ void log_run()
 {
 	while (true) {
 		DLogMgr.flush();
-		//std::this_thread::sleep_for(std::chrono::milliseconds(2));
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}
 }
 
-void net_run()
+void net_run(TProcessID_t process_id)
 {
 	if (!DNetMgr.init()) {
 		return;
 	}
 	log_info("init socket manager success");
 
-	if (!DNetMgr.start_listen<game_server_handler>(10100)) {
+	TPort_t listen_port = 10100 + process_id;
+	if (!DNetMgr.start_listen<game_server_handler>(listen_port)) {
 		return;
 	}
 
@@ -115,7 +116,7 @@ int main(int argc, char* argv[])
 	gxSetDumpHandler(module_name);
 
 	std::thread log_thread(log_run);
-	std::thread net_thread(net_run);
+	std::thread net_thread(net_run, std::ref(process_id));
 
 	work_run(process_id);
 

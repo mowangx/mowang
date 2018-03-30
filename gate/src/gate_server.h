@@ -1,22 +1,20 @@
 
-#ifndef _DB_SERVER_H_
-#define _DB_SERVER_H_
+#ifndef _GATE_SERVER_H_
+#define _GATE_SERVER_H_
 
 #include <vector>
 
+#include "socket_util.h"
 #include "singleton.h"
 #include "memory_pool.h"
 #include "base_packet.h"
-
 #include "dynamic_array.h"
 
-class db_conn;
-
-class db_server : public singleton<db_server>
+class gate_server : public singleton<gate_server>
 {
 public:
-	db_server();
-	~db_server();
+	gate_server();
+	~gate_server();
 
 public:
 	bool init(TProcessID_t process_id);
@@ -31,19 +29,19 @@ public:
 	char* allocate_memory(int n);
 	void push_write_packets(TPacketInfo_t* packet_info);
 
+public:
+	void on_query_servers(TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
+
 private:
 	TServerID_t m_server_id;
 	TProcessID_t m_process_id;
 	std::array<char, IP_SIZE> m_listen_ip;
 	TPort_t m_listen_port;
-	db_conn * m_db;
 	obj_memory_pool<TPacketInfo_t, 1000> m_packet_pool;
 	memory_pool m_mem_pool;
 	std::vector<TPacketInfo_t*> m_write_packets;
 };
 
-#define DDbServer singleton<db_server>::get_instance()
+#define DGateServer singleton<gate_server>::get_instance()
 
-
-#endif // !_DB_SERVER_H_
-
+#endif

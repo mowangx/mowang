@@ -1,18 +1,17 @@
 
-#ifndef _GAME_SERVER_HANDLER_H_
-#define _GAME_SERVER_HANDLER_H_
+#ifndef _GAME_MANAGER_HANDLER_H_
+#define _GAME_MANAGER_HANDLER_H_
 
 #include "packet_handler.h"
 
 class rpc_client;
 
-class game_server_handler : public packet_handler<game_server_handler>
+class game_manager_handler : public packet_handler<game_manager_handler>
 {
-	typedef packet_handler<game_server_handler>	TBaseType_t;
-
+	typedef packet_handler<game_manager_handler>	TBaseType_t;
 public:
-	game_server_handler();
-	~game_server_handler();
+	game_manager_handler();
+	~game_manager_handler();
 
 public:
 	static void Setup();
@@ -27,8 +26,7 @@ public:
 	virtual void handle_close() override;
 
 private:
-	rpc_client * m_rpc_client;
+	rpc_client* m_rpc_client;
 };
 
-#endif // !_GAME_SERVER_HANDLER_H_
-
+#endif // !_GAME_MANAGER_HANDLER_H_

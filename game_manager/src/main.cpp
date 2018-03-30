@@ -10,9 +10,9 @@
 #include "server_handler.h"
 #include "socket_manager.h"
 
-void work_run()
+void work_run(TProcessID_t process_id)
 {
-	if (!DGameManager.init()) {
+	if (!DGameManager.init(process_id)) {
 		log_error("Init game manager failed");
 		return;
 	}
@@ -24,17 +24,18 @@ void log_run()
 {
 	while (true) {
 		DLogMgr.flush();
-		//std::this_thread::sleep_for(std::chrono::milliseconds(2));
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}
 }
 
-void net_run()
+void net_run(TProcessID_t process_id)
 {
 	if (!DNetMgr.init()) {
 		return;
 	}
 
-	if (!DNetMgr.start_listen<server_handler>(10000)) {
+	TPort_t listen_port = 10000;
+	if (!DNetMgr.start_listen<server_handler>(listen_port)) {
 		return;
 	}
 
@@ -53,16 +54,18 @@ int main(int argc, char* argv[])
 		return false;
 	}
 
-	std::cout << "start game manager" << argv[1] << std::endl;
+	TProcessID_t process_id = atoi(argv[1]);
+
+	std::cout << "start game manager" << process_id << std::endl;
 
 	std::string module_name = "game_manager";
 	DLogMgr.init(module_name + argv[1]);
 	gxSetDumpHandler(module_name);
 
 	std::thread log_thread(log_run);
-	std::thread net_thread(net_run);
+	std::thread net_thread(net_run, std::ref(process_id));
 
-	work_run();
+	work_run(process_id);
 
 	log_thread.join();
 	net_thread.join();

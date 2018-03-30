@@ -26,17 +26,18 @@ void log_run()
 {
 	while (true) {
 		DLogMgr.flush();
-		//std::this_thread::sleep_for(std::chrono::milliseconds(2));
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}
 }
 
-void net_run()
+void net_run(TProcessID_t process_id)
 {
 	if (!DNetMgr.init()) {
 		return ;
 	}
 
-	if (!DNetMgr.start_listen<db_manager_handler>(10200)) {
+	TPort_t listen_port = 10200 + process_id;
+	if (!DNetMgr.start_listen<db_manager_handler>(listen_port)) {
 		return ;
 	}
 
@@ -69,7 +70,7 @@ int main(int argc, char* argv[])
 	gxSetDumpHandler(module_name);
 
 	std::thread log_thread(log_run);
-	std::thread net_thread(net_run);
+	std::thread net_thread(net_run, std::ref(process_id));
 	
 	work_run(process_id);
 

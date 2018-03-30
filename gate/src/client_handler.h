@@ -1,18 +1,18 @@
 
-#ifndef _GAME_SERVER_HANDLER_H_
-#define _GAME_SERVER_HANDLER_H_
+#ifndef _CLIENT_HANDLER_H_
+#define _CLIENT_HANDLER_H_
 
 #include "packet_handler.h"
 
 class rpc_client;
 
-class game_server_handler : public packet_handler<game_server_handler>
+class client_handler : public packet_handler<client_handler>
 {
-	typedef packet_handler<game_server_handler>	TBaseType_t;
+	typedef packet_handler<client_handler>	TBaseType_t;
 
 public:
-	game_server_handler();
-	~game_server_handler();
+	client_handler();
+	~client_handler();
 
 public:
 	static void Setup();
@@ -30,5 +30,5 @@ private:
 	rpc_client * m_rpc_client;
 };
 
-#endif // !_GAME_SERVER_HANDLER_H_
+#endif // !_CLIENT_HANDLER_H_
 

@@ -19,7 +19,7 @@ public:
 	~game_manager();
 	
 public:
-	bool init();
+	bool init(TProcessID_t process_id);
 	void run();
 
 public:

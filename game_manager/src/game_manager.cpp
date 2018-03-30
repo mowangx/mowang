@@ -18,7 +18,7 @@ game_manager::~game_manager()
 
 }
 
-bool game_manager::init()
+bool game_manager::init(TProcessID_t process_id)
 {
 	return true;
 }

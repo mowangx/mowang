@@ -1,7 +1,7 @@
 
 #include "game_server_handler.h"
 #include "log.h"
-#include "db_server.h"
+#include "gate_server.h"
 #include "rpc_proxy.h"
 #include "rpc_client.h"
 
@@ -25,17 +25,17 @@ void game_server_handler::Setup()
 
 TPacketInfo_t* game_server_handler::create_packet_info()
 {
-	return DDbServer.allocate_packet_info();
+	return DGateServer.allocate_packet_info();
 }
 
 char* game_server_handler::create_packet(int n)
 {
-	return DDbServer.allocate_memory(n);
+	return DGateServer.allocate_memory(n);
 }
 
 void game_server_handler::write_packet(TPacketInfo_t* packet_info)
 {
-	DDbServer.push_write_packets(packet_info);
+	DGateServer.push_write_packets(packet_info);
 }
 
 void game_server_handler::handle_init()

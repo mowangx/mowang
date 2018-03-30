@@ -42,7 +42,7 @@ bool game_server::init(TProcessID_t process_id)
 	char* ip = "127.0.0.1";
 	memcpy(m_listen_ip.data(), ip, strlen(ip));
 
-	m_listen_port = 10200;
+	m_listen_port = 10200 + m_process_id;
 
 	return true;
 }
@@ -139,7 +139,7 @@ void game_server::game_rpc_func_2(uint8 p1, const std::array<char, 33>& p2)
 
 void game_server::on_query_servers(TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
 {
-	log_info("on_query_servers, server id = %d, process type = %d", server_id, process_type);
+	log_info("on_query_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
 	for (int i = 0; i < servers.size(); ++i) {
 		const game_server_info& server_info = servers[i];
 		if (DNetMgr.start_connect<db_manager_handler>(server_info.ip.data(), server_info.port)) {
