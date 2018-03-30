@@ -17,9 +17,12 @@ public:
 	~db_server();
 
 public:
-	bool init();
+	bool init(TProcessID_t process_id);
 	void run();
 
+public:
+	void get_process_info(game_process_info& process_info) const;
+	void get_server_info(game_server_info& server_info) const;
 
 public:
 	TPacketInfo_t * allocate_packet_info();
@@ -27,6 +30,10 @@ public:
 	void push_write_packets(TPacketInfo_t* packet_info);
 
 private:
+	TServerID_t m_server_id;
+	TProcessID_t m_process_id;
+	std::array<char, IP_SIZE> m_listen_ip;
+	TPort_t m_listen_port;
 	db_conn * m_db;
 	obj_memory_pool<TPacketInfo_t, 1000> m_packet_pool;
 	memory_pool m_mem_pool;

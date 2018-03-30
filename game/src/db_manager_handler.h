@@ -24,9 +24,6 @@ private:
 public:
 	virtual void handle_close() override;
 
-	bool handle_rpc_by_index(packet_base* packet);
-	bool handle_rpc_by_name(packet_base* packet);
-
 private:
 	rpc_client* m_rpc_client;
 };

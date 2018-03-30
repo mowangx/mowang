@@ -16,6 +16,7 @@ socket_manager::socket_manager()
 	m_write_packets.clear();
 	m_finish_write_packets.clear();
 	m_new_sockets.clear();
+	m_wait_init_sockets.clear();
 	m_wait_delete_sockets.clear();
 	m_delete_sockets.clear();
 	m_sockets.clear();
@@ -78,14 +79,17 @@ uint32 socket_manager::socket_num() const
 	return (uint32)m_sockets.size();
 }
 
-void socket_manager::read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& sockets)
+void socket_manager::read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& new_sockets, std::vector<socket_base*>& del_sockets)
 {
 	auto_lock lock(&m_mutex);
 
 	packets.insert(packets.end(), m_read_packets.begin(), m_read_packets.end());
 	m_read_packets.clear();
 
-	sockets.insert(sockets.end(), m_wait_delete_sockets.begin(), m_wait_delete_sockets.end());
+	new_sockets.insert(new_sockets.end(), m_wait_init_sockets.begin(), m_wait_init_sockets.end());
+	m_wait_init_sockets.clear();
+
+	del_sockets.insert(del_sockets.end(), m_wait_delete_sockets.begin(), m_wait_delete_sockets.end());
 	m_wait_delete_sockets.clear();
 }
 
@@ -113,6 +117,7 @@ void socket_manager::finish_write_packets(std::vector<TPacketInfo_t*>& packets)
 
 void socket_manager::test_get_sockets(std::vector<socket_base*>& sockets)
 {
+	auto_lock lock(&m_mutex);
 	for (auto itr : m_sockets) {
 		sockets.push_back(itr.second);
 	}
@@ -321,6 +326,11 @@ void socket_manager::add_socket(socket_base* socket)
 	socket->set_socket_handler(socket_handler);
 
 	m_sockets[index] = socket;
+
+	{
+		auto_lock lock(&m_mutex);
+		m_wait_init_sockets.push_back(socket);
+	}
 }
 
 void socket_manager::del_socket(socket_base* socket)

@@ -35,7 +35,7 @@ public:
 
 	uint32	socket_num() const;
 
-	void	read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& sockets);
+	void	read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& new_sockets, std::vector<socket_base*>& del_sockets);
 	void	finish_read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& sockets);
 
 	void	write_packets(std::vector<TPacketInfo_t*>& packets);
@@ -84,6 +84,7 @@ private:
 	std::vector<TPacketInfo_t*> m_write_packets;
 	std::vector<TPacketInfo_t*> m_finish_write_packets;
 	std::vector<socket_base*> m_new_sockets;
+	std::vector<socket_base*> m_wait_init_sockets;
 	std::vector<socket_base*> m_wait_delete_sockets;
 	std::vector<socket_base*> m_delete_sockets;
 	std::unordered_map<TSocketIndex_t, socket_base*> m_sockets;

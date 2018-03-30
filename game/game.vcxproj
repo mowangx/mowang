@@ -162,12 +162,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\db_manager_handler.cpp" />
+    <ClCompile Include="src\game_manager_handler.cpp" />
     <ClCompile Include="src\game_server.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\role.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\city.h" />
     <ClInclude Include="src\db_manager_handler.h" />
+    <ClInclude Include="src\entity.h" />
+    <ClInclude Include="src\game_manager_handler.h" />
     <ClInclude Include="src\game_server.h" />
+    <ClInclude Include="src\npc.h" />
+    <ClInclude Include="src\role.h" />
     <ClInclude Include="src\tbl_test.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

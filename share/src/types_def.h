@@ -23,6 +23,7 @@
 #endif // FINAL_VERSION
 
 // This way we know about _HAS_TR1 and _STLPORT_VERSION
+#include <array>
 #include <string>
 
 // Operating systems definition

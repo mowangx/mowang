@@ -9,16 +9,17 @@
 #include "game_server.h"
 #include "socket_manager.h"
 #include "time_manager.h"
+#include "game_manager_handler.h"
 #include "db_manager_handler.h"
 
-void work_run()
+void work_run(TProcessID_t process_id)
 {
-	if (!DGameSerger.init()) {
+	if (!DGameServer.init(process_id)) {
 		log_error("Init game server failed");
 		return;
 	}
 	log_info("Init game server success");
-	DGameSerger.run();
+	DGameServer.run();
 }
 
 void log_run()
@@ -35,15 +36,19 @@ void net_run()
 		return ;
 	}
 
-	if (!DNetMgr.start_listen<db_manager_handler>(10000)) {
+	if (!DNetMgr.start_listen<db_manager_handler>(10200)) {
 		return ;
+	}
+
+	if (!DNetMgr.start_connect<game_manager_handler>("127.0.0.1", 10000)) {
+		return;
 	}
 
 	log_info("init socket manager success");
 
 	while (true) {
 		DNetMgr.update(0);
-		DNetMgr.test_kick();
+		//DNetMgr.test_kick();
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 }
@@ -55,7 +60,9 @@ int main(int argc, char* argv[])
 		return false;
 	}
 
-	std::cout << "start game" << argv[1] << std::endl;
+	TProcessID_t process_id = atoi(argv[1]);
+
+	std::cout << "start game" << process_id << std::endl;
 
 	std::string module_name = "game";
 	DLogMgr.init(module_name + argv[1]);
@@ -64,7 +71,7 @@ int main(int argc, char* argv[])
 	std::thread log_thread(log_run);
 	std::thread net_thread(net_run);
 	
-	work_run();
+	work_run(process_id);
 
 	log_thread.join();
 	net_thread.join();

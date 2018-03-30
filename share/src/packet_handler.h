@@ -25,7 +25,12 @@ public:
 
 	virtual void  send_packet(packet_base* packet) = 0;
 
+	virtual void handle_init();
+
 	virtual void handle_close();
+
+	virtual bool handle_rpc_by_index(packet_base* packet);
+	virtual bool handle_rpc_by_name(packet_base* packet);
 
 public:
 	void set_socket(socket_base* s);
@@ -95,6 +100,11 @@ public:
 
 	static void register_handler(TPacketID_t id, packet_handler_func handler) {
 		m_handlers.insert(packet_handler_map::value_type(id, handler));
+	}
+
+	static void Setup() {
+		register_handler((TPacketID_t)PACKET_ID_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_rpc_by_index);
+		register_handler((TPacketID_t)PACKET_ID_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_rpc_by_name);
 	}
 
 private:

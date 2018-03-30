@@ -19,10 +19,10 @@
 
 #include "db_server.h"
 #include "game_server_handler.h"
+#include "game_manager_handler.h"
 
 
-
-void work_run()
+void work_run(TProcessID_t process_id)
 {
 	//mongocxx::instance instance{}; // This should be done only once.
 	//mongocxx::uri uri("mongodb://127.0.0.1:27017");
@@ -56,7 +56,7 @@ void work_run()
 	//	std::cout << e.code() << e.what() << std::endl;
 	//}
 
-	if (!DDbServer.init()) {
+	if (!DDbServer.init(process_id)) {
 		return;
 	}
 
@@ -78,15 +78,23 @@ void net_run()
 	}
 	log_info("init socket manager success");
 
+	if (!DNetMgr.start_listen<game_server_handler>(10100)) {
+		return;
+	}
+
+	if (!DNetMgr.start_connect<game_manager_handler>("127.0.0.1", 10000)) {
+		return;
+	}
+
 	while (true) {
 		DNetMgr.update(0);
-		DNetMgr.test_kick();
-		if (DNetMgr.socket_num() < 1000) {
-			if (!DNetMgr.start_connect<game_server_handler>("127.0.0.1", 10000)) {
-				log_info("connect failed");
-				break;
-			}
-		}
+		//DNetMgr.test_kick();
+		//if (DNetMgr.socket_num() < 1000) {
+		//	if (!DNetMgr.start_connect<game_server_handler>("127.0.0.1", 10100)) {
+		//		log_info("connect failed");
+		//		break;
+		//	}
+		//}
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 }
@@ -98,7 +106,9 @@ int main(int argc, char* argv[])
 		return false;
 	}
 
-	std::cout << "start db manager" << argv[1] << std::endl;
+	TProcessID_t process_id = atoi(argv[1]);
+
+	std::cout << "start db manager" << process_id << std::endl;
 
 	std::string module_name = "db_manager";
 	DLogMgr.init(module_name + argv[1]);
@@ -107,7 +117,7 @@ int main(int argc, char* argv[])
 	std::thread log_thread(log_run);
 	std::thread net_thread(net_run);
 
-	work_run();
+	work_run(process_id);
 
 	log_thread.join();
 	net_thread.join();

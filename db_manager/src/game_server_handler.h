@@ -23,6 +23,7 @@ private:
 	virtual void write_packet(TPacketInfo_t* packet_info) override;
 
 public:
+	virtual void handle_init() override;
 	virtual void handle_close() override;
 
 	bool handle_rpc_by_index(packet_base* packet);

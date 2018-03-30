@@ -3,6 +3,8 @@
 #define _BASE_PACKET_H_
 
 #include "base_util.h"
+#include "socket_util.h"
+#include "packet_struct.h"
 
 class socket_base;
 
@@ -10,8 +12,9 @@ class socket_base;
 
 enum packet_id_type
 {
-	PACKET_ID_RPC_BY_INDEX = 0x0001,
-	PACKET_ID_RPC_BY_NAME = 0x0002
+	PACKET_ID_SERVER_INFO = 0x01,
+	PACKET_ID_RPC_BY_INDEX = 0xF1,
+	PACKET_ID_RPC_BY_NAME = 0xF2
 };
 
 class packet_base
@@ -48,30 +51,42 @@ public:
 	uint32 m_check;
 };
 
+class server_info_packet : public packet_base
+{
+public:
+	server_info_packet() : packet_base(PACKET_ID_SERVER_INFO) {
+
+	}
+
+public:
+	game_process_info m_process_info;
+	game_server_info m_server_info;
+};
+
 class rpc_by_index_packet : public packet_base
 {
 public:
 	rpc_by_index_packet() : packet_base(PACKET_ID_RPC_BY_INDEX) {
-		rpc_index = 0;
-		memset(buffer, 0, 65000);
+		m_rpc_index = 0;
+		memset(m_buffer, 0, 65000);
 	}
 
 public:
-	uint8 rpc_index;
-	char buffer[65000];
+	uint8 m_rpc_index;
+	char m_buffer[65000];
 };
 
 class rpc_by_name_packet : public packet_base
 {
 public:
 	rpc_by_name_packet() : packet_base(PACKET_ID_RPC_BY_NAME){
-		memset(rpc_name, 0, 100);
-		memset(buffer, 0, 65000);
+		memset(m_rpc_name, 0, 100);
+		memset(m_buffer, 0, 65000);
 	}
 
 public:
-	char rpc_name[100];
-	char buffer[65000];
+	char m_rpc_name[100];
+	char m_buffer[65000];
 };
 
 #pragma pack(pop)

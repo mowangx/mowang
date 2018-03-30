@@ -52,7 +52,6 @@ private:
 
 #define DRpcProxy singleton<rpc_proxy>::get_instance()
 
-
 #define DRpcBindFunc_0(obj) obj
 #define DRpcBindFunc_1(obj) DRpcBindFunc_0(obj), std::placeholders::_1
 #define DRpcBindFunc_2(obj) DRpcBindFunc_1(obj), std::placeholders::_2
@@ -66,6 +65,10 @@ private:
 // 参数依次为：
 #define DRegisterRpc(obj, class_name, func_name, args_count) { \
 	DRpcProxy.register_func<args_count>(#func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+}
+
+#define DRegisterStubRpc(obj, class_name, func_name, args_count) { \
+	DRpcProxy.register_func<args_count>(#class_name###func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
 #endif // !_RPC_PROXY_H_

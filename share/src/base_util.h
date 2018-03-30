@@ -17,6 +17,8 @@ static const uint32 MAX_PACKET_READ_SIZE = 128;			// 一次读取的数据的字节数
 static const uint32 MAX_PACKET_BUFFER_SIZE = 2048;		// 196608 = 65536 * 3
 static const uint32 MAX_PACKET_BUFFER_MOVE_FORWARD_SIZE = 1024;	// MAX_PACKET_BUFFER_SIZE - 65535(单个包最大的字节数) - MAX_PACKET_READ_SIZE, 需要注意MAX_PACKET_BUFFER_MOVE_FORWARD_SIZE + MAX_PACKET_READ_SIZE  * 2 < MAX_PACKET_BUFFER_SIZE
 
+static const uint32 PER_FRAME_TIME = 30;	// 每帧的时间（毫秒）
+
 typedef uint32 TTime_t;					// 系统时间
 typedef uint32 TAppTime_t;				// 程序运行的毫秒数
 
@@ -35,6 +37,15 @@ const TRpcIndex_t INVALID_RPC_INDEX = 0;
 
 typedef uint8	TParamIndex_t;			// 参数索引
 const TParamIndex_t INVALID_PARAM_INDEX = 0;
+
+typedef uint16 TServerID_t;				// 区服ID
+const TServerID_t INVALID_SERVER_ID = 0;
+
+typedef uint8 TProcessType_t;			// 进程类型 (参见process_type)
+const TProcessType_t INVALID_PROCESS_TYPE = 0;
+
+typedef uint16 TProcessID_t;			// 进程id
+const TProcessID_t INVALID_PROCESS_ID = 0;
 
 //根据指针值删除内存
 #ifndef DSafeDelete
