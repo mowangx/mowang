@@ -112,7 +112,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;OS_WIN32;LIB_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../share/src/;../share/src/libevent/;../share/src/libevent/WIN32-Code/;../share/src/tinyxpath/;E:\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../share/src/;../share/src/libevent/;../share/src/libevent/WIN32-Code/;../share/src/tinyxpath/;../game_manager/src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Async</ExceptionHandling>

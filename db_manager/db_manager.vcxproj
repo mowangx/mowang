@@ -106,7 +106,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;OS_WIN32;LIB_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../share/src/;../share/src/libevent/;../share/src/libevent/WIN32-Code/;../share/src/tinyxpath/;../share/src/mysql/;../share/src/mysql/cppconn/;E:\favourite\mongodb\mongo-cxx-driver\src;E:\favourite\mongodb\mongo-cxx-driver-lib\src;E:\include\libmongoc-1.0;E:\include\libbson-1.0;E:\favourite\boost_1_65_1;E:\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../share/src/;../share/src/libevent/;../share/src/libevent/WIN32-Code/;../share/src/tinyxpath/;../share/src/mysql/;../share/src/mysql/cppconn/;../db_manager/src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
