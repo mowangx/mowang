@@ -19,7 +19,7 @@ public:
 public:
 	template <size_t N, class F1, class F2>
 	void register_func(const std::string& func_name, F1 func1, F2 func2) {
-		using args_type = func_param<F1>::args_type;
+		typedef typename func_param<F1>::args_type args_type;
 		m_name_2_func[func_name] = [&](char* buffer) {
 			int buffer_index = 0;
 			args_type args_real;
@@ -32,15 +32,21 @@ public:
 	void call(const std::string& func_name, char* buffer);
 
 private:
-	template<class F, class T>
-	decltype(auto) call_func(F f, const T& args) {
-		return call_func_core(f, args, std::make_index_sequence<std::tuple_size<T>::value>());
+	template <typename F, typename... T>
+	auto call_func(F f, std::tuple<T...>& args) -> decltype(call_helper<sizeof...(T)>::call(f, args))
+	{
+		return call_helper<sizeof...(T)>::call(f, args);
 	}
 
-	template<class F, class T, std::size_t... Idx>
-	decltype(auto) call_func_core(F f, const T& args, std::index_sequence<Idx...>) {
-		return f(std::get<Idx>(args)...);
-	}
+	//template<class F, class T>
+	//decltype(auto) call_func(F f, const T& args) {
+	//	return call_func_core(f, args, std::make_index_sequence<std::tuple_size<T>::value>());
+	//}
+
+	//template<class F, class T, std::size_t... Idx>
+	//decltype(auto) call_func_core(F f, const T& args, std::index_sequence<Idx...>) {
+	//	return f(std::get<Idx>(args)...);
+	//}
 
 private:
 	void clean_up();

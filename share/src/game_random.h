@@ -24,7 +24,7 @@ public:
 
 	bool rand_odds(uint32 base_num, uint32 rate_num);
 
-	template<typename T>
+	template<class T>
 	T get_rand(T start, T end) {
 		if (start > end) {
 			std::swap(start, end);

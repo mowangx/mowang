@@ -33,55 +33,32 @@ static std::string ModuleName = "";
 
 // dump处理
 #ifdef OS_WINDOWS
-/* can't include dbghelp.h */
-typedef struct _GX_MINIDUMP_EXCEPTION_INFORMATION {
-	DWORD ThreadId;  PEXCEPTION_POINTERS ExceptionPointers;  BOOL ClientPointers;
-} GX_MINIDUMP_EXCEPTION_INFORMATION, *PGX_MINIDUMP_EXCEPTION_INFORMATION;
-typedef enum _GX_MINIDUMP_TYPE
-{
-	MiniDumpNormal = 0x00000000,
-	MiniDumpWithDataSegs = 0x00000001,
-	MiniDumpWithFullMemory = 0x00000002,
-	MiniDumpWithHandleData = 0x00000004,
-	MiniDumpFilterMemory = 0x00000010,
-	MiniDumpWithUnloaded = 0x00000020,
-	MiniDumpWithIndirectlyReferencedMemory = 0x00000040,
-	MiniDumpFilterModulePaths = 0x00000080,
-	MiniDumpWithProcessThreadData = 0x00000100,
-	MiniDumpWithPrivateReadWriteMemory = 0x00000200,
-	MiniDumpWithoutOptionalData = 0x00000400,
-	MiniDumpWithFullMemoryInfo = 0x00000800,
-	MiniDumpWithThreadInfo = 0x00001000,
-	MiniDumpWithCodeSegs = 0x00002000
-} GX_MINIDUMP_TYPE;
+
+#include <DbgHelp.h>
 
 static LONG WINAPI DumpMiniDump(PEXCEPTION_POINTERS excpInfo)
 {
-	if (DumpFlag)
-	{
+	if (DumpFlag) {
 		return 0;
 	}
 
 	DumpFlag = true;
 	HANDLE file = CreateFileA(gxGetDumpName().c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (file)
-	{
+	if (file) {
 		HMODULE hm = LoadLibraryA("dbghelp.dll");
-		if (hm)
-		{
-			BOOL (WINAPI* MiniDumpWriteDump)(
+		if (hm) {
+			BOOL(WINAPI *MiniDumpWriteDump)(
 				HANDLE hProcess,
 				DWORD ProcessId,
 				HANDLE hFile,
-				GX_MINIDUMP_TYPE DumpType,
-				PGX_MINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
-				PGX_MINIDUMP_EXCEPTION_INFORMATION UserStreamParam,
-				PGX_MINIDUMP_EXCEPTION_INFORMATION CallbackParam
+				MINIDUMP_TYPE DumpType,
+				PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
+				PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
+				PMINIDUMP_CALLBACK_INFORMATION CallbackParam
 				);
 			*(FARPROC*)&MiniDumpWriteDump = GetProcAddress(hm, "MiniDumpWriteDump");
-			if (MiniDumpWriteDump)
-			{
-				GX_MINIDUMP_EXCEPTION_INFORMATION eInfo;
+			if (MiniDumpWriteDump) {
+				_MINIDUMP_EXCEPTION_INFORMATION eInfo;
 				eInfo.ThreadId = GetCurrentThreadId();
 				eInfo.ExceptionPointers = excpInfo;
 				eInfo.ClientPointers = FALSE;
@@ -96,24 +73,22 @@ static LONG WINAPI DumpMiniDump(PEXCEPTION_POINTERS excpInfo)
 					NULL,
 					NULL);
 			}
-			else
-			{
+			else {
 				log_warning("Can't get proc MiniDumpWriteDump in dbghelp.dll");
 			}
 		}
-		else
-		{
+		else {
 			log_warning("Can't load dbghelp.dll");
 		}
 
 		CloseHandle(file);
 	}
-	else
-	{
+	else {
 		log_warning("Can't create mini dump file");
 	}
 
 	log_warning("Create dump file!");
+	
 	gxExit(EXIT_CODE_CRASH);
 	return 0;
 }
@@ -192,19 +167,16 @@ LONG CrashHandler(ULONG code /*= GetExceptionCode()*/, EXCEPTION_POINTERS *pExce
 // @todo 处理dump生成
 static void SigHandler(int signo)
 {
-	if (DumpFlag)
-	{
+	if (DumpFlag) {
 		return;
 	}
 
 	DumpFlag = true;
 	log_warning("signo = %d", signo);
-	if (0 == WriteCoreDump(gxGetDumpName().c_str()))
-	{
+	if (0 == WriteCoreDump(gxGetDumpName().c_str())) {
 		std::cerr << "write dump success!" << std::endl;
 	}
-	else
-	{
+	else {
 		std::cerr << "write dump failed!" << std::endl;
 	}
 
@@ -255,12 +227,10 @@ std::string gxGetDumpName()
 
 void gxExit(EExitCode code)
 {
-	if (code == EXIT_CODE_CRASH)
-	{
+	if (code == EXIT_CODE_CRASH) {
 		exit(code);
 	}
-	else
-	{
+	else {
 		char *temp = NULL;
 		*temp = 1;
 		exit(code);

@@ -112,7 +112,7 @@ private:
 };
 
 template <class T>
-typename packet_handler_map packet_handler<T>::m_handlers;
+packet_handler_map packet_handler<T>::m_handlers;
 
 #endif // !_PACKET_HANDLER_H_
 

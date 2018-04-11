@@ -5,7 +5,7 @@
 #include "dynamic_array.h"
 #include "packet_struct.h"
 
-template <typename T>
+template <class T>
 struct func_param : func_param<decltype(&T::operator())> {};
 
 template<class C, class R, class... Args>
@@ -20,8 +20,8 @@ struct func_param<R(C::*)(Args...) const> : public func_param<R(*)(Args...)> {
 
 template<class R, class... Args>
 struct func_param<R(*)(Args...)> {
-	using args_count = std::integral_constant<std::size_t, sizeof...(Args)>;
-	using args_type = std::tuple<typename std::decay<Args>::type...>;
+	typedef typename std::integral_constant<std::size_t, sizeof...(Args)> args_count;
+	typedef typename std::tuple<typename std::decay<Args>::type...> args_type;
 };
 
 template <class T>
@@ -92,7 +92,7 @@ struct rpc_param_wrapper {
 	template <class T>
 	static void convert_core(T& params, char* buffer, int& buffer_index) {
 		auto v = std::get<N>(params);
-		typedef typename decltype(v) TValue_t;
+		typedef decltype(v) TValue_t;
 		rpc_param_parse<TValue_t>::parse_param(std::get<N>(params), buffer, buffer_index);
 	}
 };
@@ -111,6 +111,24 @@ struct rpc_param<0, M> {
 	template <class T>
 	static void convert(T& params, char* buffer, int& buffer_index) {
 
+	}
+};
+
+template <size_t N>
+struct call_helper
+{
+	template <typename Functor, typename... ArgsT, typename... ArgsF>
+	static auto call(Functor f, std::tuple<ArgsT...>& args_t, ArgsF&&... args_f) -> decltype(call_helper<N - 1>::call( f, args_t, std::get<N - 1>(args_t), std::forward<ArgsF>(args_f)...)) {
+		return call_helper<N - 1>::call(f, args_t, std::get<N - 1>(args_t), std::forward<ArgsF>(args_f)...);
+	}
+};
+
+template <>
+struct call_helper<0>
+{
+	template <typename Functor, typename... ArgsT, typename... ArgsF>
+	static auto call(Functor f, std::tuple<ArgsT...>&, ArgsF&&... args_f) -> decltype(f(std::forward<ArgsF>(args_f)...)) {
+		return f(std::forward<ArgsF>(args_f)...);
 	}
 };
 

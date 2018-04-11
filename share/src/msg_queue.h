@@ -8,7 +8,7 @@
 #include "types_def.h"
 #include "auto_lock.h"
 
-template<typename T>
+template<class T>
 class msg_queue
 {
 private:
@@ -42,7 +42,7 @@ public:
 		do
 		{
 			auto_lock lock(&_mutex);
-			typename std::list<T>::iterator iter = tempList.begin();
+			auto iter = tempList.begin();
 			sint32 count = 0;
 			for (; iter != tempList.end() && count < num; count++, iter++)
 			{

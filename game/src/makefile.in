@@ -1,0 +1,8 @@
+src: ${OBJS}
+
+# Each subdirectory must supply rules for building sources it contributes
+${OBJ_DIR}/src/%.o: ${SRC_DIR}/src/%.cpp
+	@echo 'Building file: $<'
+	${CC} ${CC_DEF} ${CC_INC} ${CC_OPT} ${CC_FLAG} -MF"$(@:${OBJ_DIR}src/%.o=${DEP_DIR}/src/%.d)" -MT"$(@:${OBJ_DIR}/src/%.o=${DEP_DIR}/src/%.d)" ${CC_OJB} ${CC_IGO}
+	@echo 'Finished building: $<'
+	@echo ' '

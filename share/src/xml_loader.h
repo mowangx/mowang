@@ -34,7 +34,7 @@ public:
 public:
 	T* get(uint32 key_id)
 	{
-		std::unordered_map<uint32, T*>::iterator itr = m_data.find(key_id);
+		auto itr = m_data.find(key_id);
 		if (itr != m_data.end()) {
 			return itr->second;
 		}

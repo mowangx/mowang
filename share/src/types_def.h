@@ -24,7 +24,7 @@
 
 // This way we know about _HAS_TR1 and _STLPORT_VERSION
 #include <array>
-#include <string>
+#include <string.h>
 
 // Operating systems definition
 #ifdef OS_WIN32
