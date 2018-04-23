@@ -14,6 +14,11 @@ public:
 	virtual ~entity() {
 
 	}
+
+public:
+	virtual bool init() {
+		return true;
+	}
 };
 
 #endif // !_ENTITY_H_
