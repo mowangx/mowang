@@ -3,12 +3,25 @@
 
 rpc_proxy::rpc_proxy()
 {
+	log_info("rpx proxy constructor");
 	clean_up();
+}
+
+rpc_proxy::rpc_proxy(const rpc_proxy & rhs)
+{
+	log_info("rcp proxy copy constructor");
 }
 
 rpc_proxy::~rpc_proxy()
 {
+	log_info("rpc proxy desconstrutor");
 	clean_up();
+}
+
+rpc_proxy rpc_proxy::operator=(const rpc_proxy & rhs)
+{
+	log_info("rx proxy operator =");
+	return *this;
 }
 
 void rpc_proxy::call(uint8 rpc_index, char* buffer)

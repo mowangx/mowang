@@ -14,7 +14,10 @@ class rpc_proxy
 {
 public:
 	rpc_proxy();
+	rpc_proxy(const rpc_proxy& rhs);
 	~rpc_proxy();
+
+	rpc_proxy operator = (const rpc_proxy& rhs);
 
 public:
 	template <size_t N, class F1, class F2>
