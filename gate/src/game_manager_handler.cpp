@@ -24,7 +24,7 @@ void game_manager_handler::Setup()
 	TBaseType_t::Setup();
 }
 
-TPacketInfo_t* game_manager_handler::create_packet_info()
+TPacketSendInfo_t* game_manager_handler::create_packet_info()
 {
 	return DGateServer.allocate_packet_info();
 }
@@ -34,7 +34,7 @@ char* game_manager_handler::create_packet(int n)
 	return DGateServer.allocate_memory(n);
 }
 
-void game_manager_handler::write_packet(TPacketInfo_t* packet_info)
+void game_manager_handler::write_packet(TPacketSendInfo_t* packet_info)
 {
 	DGateServer.push_write_packets(packet_info);
 }
@@ -43,7 +43,6 @@ void game_manager_handler::handle_init()
 {
 	log_info("'%"I64_FMT"u', handle init", get_socket_index());
 	server_info_packet server_info;
-	DGateServer.get_process_info(server_info.m_process_info);
 	DGateServer.get_server_info(server_info.m_server_info);
 	server_info.m_len = sizeof(server_info);
 	send_packet(&server_info);

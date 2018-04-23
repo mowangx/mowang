@@ -23,7 +23,7 @@ void game_server_handler::Setup()
 	TBaseType_t::Setup();
 }
 
-TPacketInfo_t* game_server_handler::create_packet_info()
+TPacketSendInfo_t* game_server_handler::create_packet_info()
 {
 	return DDbServer.allocate_packet_info();
 }
@@ -33,7 +33,7 @@ char* game_server_handler::create_packet(int n)
 	return DDbServer.allocate_memory(n);
 }
 
-void game_server_handler::write_packet(TPacketInfo_t* packet_info)
+void game_server_handler::write_packet(TPacketSendInfo_t* packet_info)
 {
 	DDbServer.push_write_packets(packet_info);
 }

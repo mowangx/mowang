@@ -6,13 +6,28 @@
 #include "rpc_param.h"
 
 #define DRpcCreatePacket \
-rpc_by_name_packet rpc_info; \
-memcpy(rpc_info.m_rpc_name, func_name.c_str(), func_name.length()); \
-int buffer_index = 0;
+rpc_by_name_packet packet; \
+int buffer_index = 0; \
+init_packet(packet, func_name);
 
-#define DRpcSendPacket \
-rpc_info.m_len = (TPacketLen_t)(sizeof(packet_base) + sizeof(rpc_info.m_rpc_name) + buffer_index); \
-m_handler->send_packet(&rpc_info);
+#define DRpcCreateClientPacket \
+transfer_client_packet transfer_packet; \
+rpc_by_name_packet packet; \
+int buffer_index = 0; \
+init_client_packet(transfer_packet, packet, client_id, func_name);
+
+#define DRpcCreateRolePacket \
+transfer_role_packet transfer_packet; \
+role_rpc_by_name_packet packet; \
+int buffer_index = 0; \
+init_role_packet(transfer_packet, packet, server_id, game_server_id, role_id, func_name);
+
+#define DRpcCreateStubPacket \
+std::string real_name = class_name + func_name; \
+transfer_stub_packet transfer_packet; \
+rpc_by_name_packet packet; \
+int buffer_index = 0; \
+init_stub_packet(transfer_packet, packet, server_id, game_server_id, real_name);
 
 class rpc_client
 {	
@@ -24,91 +39,381 @@ public:
 public:
 	void call_remote_func(const std::string& func_name) {
 		DRpcCreatePacket;
-		DRpcSendPacket;
+		send_packet(&packet, buffer_index);
 	}
 
 	template <class T1>
 	void call_remote_func(const std::string& func_name, const T1& p1) {
 		DRpcCreatePacket;
-		rpc_param_fill<T1>::fill_param(p1, rpc_info.m_buffer, buffer_index);
-		DRpcSendPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1);
+		send_packet(&packet, buffer_index);
 	}
 
 	template <class T1, class T2>
 	void call_remote_func(const std::string& func_name, const T1& p1, const T2& p2) {
 		DRpcCreatePacket;
-		rpc_param_fill<T1>::fill_param(p1, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, rpc_info.m_buffer, buffer_index);
-		DRpcSendPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2);
+		send_packet(&packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3>
 	void call_remote_func(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3) {
 		DRpcCreatePacket;
-		rpc_param_fill<T1>::fill_param(p1, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, rpc_info.m_buffer, buffer_index);
-		DRpcSendPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3);
+		send_packet(&packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4>
 	void call_remote_func(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
 		DRpcCreatePacket;
-		rpc_param_fill<T1>::fill_param(p1, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, rpc_info.m_buffer, buffer_index);
-		DRpcSendPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4);
+		send_packet(&packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5>
 	void call_remote_func(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5) {
 		DRpcCreatePacket;
-		rpc_param_fill<T1>::fill_param(p1, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T5>::fill_param(p5, rpc_info.m_buffer, buffer_index);
-		DRpcSendPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5);
+		send_packet(&packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6>
 	void call_remote_func(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6) {
 		DRpcCreatePacket;
-		rpc_param_fill<T1>::fill_param(p1, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T5>::fill_param(p5, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T6>::fill_param(p6, rpc_info.m_buffer, buffer_index);
-		DRpcSendPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6);
+		send_packet(&packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
 	void call_remote_func(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7) {
 		DRpcCreatePacket;
-		rpc_param_fill<T1>::fill_param(p1, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T5>::fill_param(p5, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T6>::fill_param(p6, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T7>::fill_param(p7, rpc_info.m_buffer, buffer_index);
-		DRpcSendPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7);
+		send_packet(&packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
 	void call_remote_func(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
 		DRpcCreatePacket;
-		rpc_param_fill<T1>::fill_param(p1, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T5>::fill_param(p5, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T6>::fill_param(p6, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T7>::fill_param(p7, rpc_info.m_buffer, buffer_index);
-		rpc_param_fill<T8>::fill_param(p8, rpc_info.m_buffer, buffer_index);
-		DRpcSendPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7, p8);
+		send_packet(&packet, buffer_index);
+	}
+
+public:
+	void call_client(TSocketIndex_t client_id, const std::string& func_name) {
+		DRpcCreateClientPacket;
+		send_packet(&transfer_packet, buffer_index);
+	}
+
+	template <class T1>
+	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1) {
+		DRpcCreateClientPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1);
+		send_packet(&transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2>
+	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2) {
+		DRpcCreateClientPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2);
+		send_packet(&transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3>
+	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3) {
+		DRpcCreateClientPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3);
+		send_packet(&transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4>
+	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
+		DRpcCreateClientPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4);
+		send_packet(&transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5>
+	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, 
+		const T5& p5) {
+		DRpcCreateClientPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5);
+		send_packet(&transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6>
+	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, 
+		const T5& p5, const T6& p6) {
+		DRpcCreateClientPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6);
+		send_packet(&transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
+	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, 
+		const T5& p5, const T6& p6, const T7& p7) {
+		DRpcCreateClientPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7);
+		send_packet(&transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
+	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, 
+		const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
+		DRpcCreateClientPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7, p8);
+		send_packet(&transfer_packet, buffer_index);
+	}
+
+public:
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name) {
+		DRpcCreateRolePacket;
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1>
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1) {
+		DRpcCreateRolePacket;
+		fill_packet(packet.m_buffer, buffer_index, p1);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2>
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+		const T2& p2) {
+		DRpcCreateRolePacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3>
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+		const T2& p2, const T3& p3) {
+		DRpcCreateRolePacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4>
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+		const T2& p2, const T3& p3, const T4& p4) {
+		DRpcCreateRolePacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5>
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+		const T2& p2, const T3& p3, const T4& p4, const T5& p5) {
+		DRpcCreateRolePacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6>
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+		const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6) {
+		DRpcCreateRolePacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+		const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7) {
+		DRpcCreateRolePacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+		const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
+		DRpcCreateRolePacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7, p8);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+public:
+	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name) {
+		DRpcCreateStubPacket;
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1>
+	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name,
+		const T1& p1) {
+		DRpcCreateStubPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2>
+	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name,
+		const T1& p1, const T2& p2) {
+		DRpcCreateStubPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3>
+	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name,
+		const T1& p1, const T2& p2, const T3& p3) {
+		DRpcCreateStubPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4>
+	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name,
+		const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
+		DRpcCreateStubPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5>
+	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name,
+		const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5) {
+		DRpcCreateStubPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6>
+	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name,
+		const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6) {
+		DRpcCreateStubPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
+	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name,
+		const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7) {
+		DRpcCreateStubPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
+	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name,
+		const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
+		DRpcCreateStubPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7, p8);
+		send_packet(&packet, &transfer_packet, buffer_index);
+	}
+
+private:
+	template <class T>
+	void init_packet(T& packet, const std::string& func_name) {
+		memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	}
+
+	void init_client_packet(transfer_client_packet& transfer_packet, rpc_by_name_packet& packet, TSocketIndex_t client_id, const std::string& func_name) {
+		transfer_packet.m_client_id = client_id;
+		init_packet(packet, func_name);
+	}
+
+	void init_role_packet(transfer_role_packet& transfer_packet, role_rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, TRoleID_t role_id, const std::string& func_name) {
+		transfer_packet.m_server_id = server_id;
+		transfer_packet.m_game_id = game_id;
+		transfer_packet.m_role_id = role_id;
+		packet.m_role_id = role_id;
+		init_packet(packet, func_name);
+	}
+
+	void init_stub_packet(transfer_stub_packet& transfer_packet, rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, const std::string& func_name) {
+		transfer_packet.m_server_id = server_id;
+		transfer_packet.m_game_id = game_id;
+		init_packet(packet, func_name);
+	}
+
+	template <class T>
+	void send_packet(T* packet, int len) {
+		packet->m_len = TPacketLen_t(sizeof(T) - sizeof(packet->m_buffer) + len);
+		m_handler->send_packet(packet);
+	}
+
+	template <class T1, class T2>
+	void send_packet(T1* packet, T2* transfer_packet, int len) {
+		packet->m_len = TPacketLen_t(sizeof(T1) - sizeof(transfer_packet->m_buffer) + len);
+		memcpy(transfer_packet->m_buffer, packet, packet->get_packet_len());
+		transfer_packet->m_len = TPacketLen_t(sizeof(T2) - sizeof(transfer_packet->m_buffer) + packet->get_packet_len());
+		m_handler->send_packet(transfer_packet);
+	}
+
+private:
+	template <class T1>
+	void fill_packet(char* buffer, int& buffer_index, const T1& p1) {
+		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
+	}
+
+	template <class T1, class T2>
+	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2) {
+		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
+		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
+	}
+
+	template <class T1, class T2, class T3>
+	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3) {
+		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
+		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
+		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4>
+	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
+		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
+		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
+		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
+		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5>
+	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5) {
+		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
+		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
+		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
+		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
+		rpc_param_fill<T5>::fill_param(p5, buffer, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6>
+	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6) {
+		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
+		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
+		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
+		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
+		rpc_param_fill<T5>::fill_param(p5, buffer, buffer_index);
+		rpc_param_fill<T6>::fill_param(p6, buffer, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
+	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7) {
+		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
+		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
+		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
+		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
+		rpc_param_fill<T5>::fill_param(p5, buffer, buffer_index);
+		rpc_param_fill<T6>::fill_param(p6, buffer, buffer_index);
+		rpc_param_fill<T7>::fill_param(p7, buffer, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
+	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
+		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
+		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
+		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
+		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
+		rpc_param_fill<T5>::fill_param(p5, buffer, buffer_index);
+		rpc_param_fill<T6>::fill_param(p6, buffer, buffer_index);
+		rpc_param_fill<T7>::fill_param(p7, buffer, buffer_index);
+		rpc_param_fill<T8>::fill_param(p8, buffer, buffer_index);
+	}
+
+public:
+	const game_handler* get_handler() const {
+		return m_handler;
 	}
 
 private:

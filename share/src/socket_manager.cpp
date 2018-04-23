@@ -79,7 +79,7 @@ uint32 socket_manager::socket_num() const
 	return (uint32)m_sockets.size();
 }
 
-void socket_manager::read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& new_sockets, std::vector<socket_base*>& del_sockets)
+void socket_manager::read_packets(std::vector<TPacketRecvInfo_t*>& packets, std::vector<socket_base*>& new_sockets, std::vector<socket_base*>& del_sockets)
 {
 	auto_lock lock(&m_mutex);
 
@@ -93,7 +93,7 @@ void socket_manager::read_packets(std::vector<TPacketInfo_t*>& packets, std::vec
 	m_wait_delete_sockets.clear();
 }
 
-void socket_manager::finish_read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& sockets)
+void socket_manager::finish_read_packets(std::vector<TPacketRecvInfo_t*>& packets, std::vector<socket_base*>& sockets)
 {
 	auto_lock lock(&m_mutex);
 
@@ -102,13 +102,13 @@ void socket_manager::finish_read_packets(std::vector<TPacketInfo_t*>& packets, s
 	m_delete_sockets.insert(m_delete_sockets.end(), sockets.begin(), sockets.end());
 }
 
-void socket_manager::write_packets(std::vector<TPacketInfo_t*>& packets)
+void socket_manager::write_packets(std::vector<TPacketSendInfo_t*>& packets)
 {
 	auto_lock lock(&m_mutex);
 	m_write_packets.insert(m_write_packets.end(), packets.begin(), packets.end());
 }
 
-void socket_manager::finish_write_packets(std::vector<TPacketInfo_t*>& packets)
+void socket_manager::finish_write_packets(std::vector<TPacketSendInfo_t*>& packets)
 {
 	auto_lock lock(&m_mutex);
 	packets.insert(packets.end(), m_finish_write_packets.begin(), m_finish_write_packets.end());
@@ -136,7 +136,7 @@ bool socket_manager::on_accept(socket_wrapper* listener)
 	log_info("Accept socket! index = '%"I64_FMT"u'", index);
 
 	socket->set_packet_handler(listener->create_handler());
-	socket->get_packet_handler()->set_socket(socket);
+	socket->get_packet_handler()->set_socket_index(index);
 
 	m_new_sockets.push_back(socket);
 
@@ -219,7 +219,7 @@ void socket_manager::handle_socket_unpacket(socket_base* socket)
 	while (NULL != packet) {
 		char* packet_pool = m_mem_pool.allocate(packet->get_packet_len());
 		memcpy(packet_pool, packet, packet->get_packet_len());
-		TPacketInfo_t* packet_info = m_packet_info_pool.allocate();
+		TPacketRecvInfo_t* packet_info = m_packet_info_pool.allocate();
 		packet_info->socket = socket;
 		packet_info->packet = (packet_base*)packet_pool;
 		{
@@ -232,14 +232,14 @@ void socket_manager::handle_socket_unpacket(socket_base* socket)
 
 void socket_manager::handle_write_msg()
 {
-	std::vector<TPacketInfo_t*> packets;
+	std::vector<TPacketSendInfo_t*> packets;
 	{
 		auto_lock lock(&m_mutex);
 		packets.insert(packets.begin(), m_write_packets.begin(), m_write_packets.end());
 		m_write_packets.clear();
 	}
 	for (auto packet_info : packets) {
-		send_packet(packet_info->socket, (char*)packet_info->packet, packet_info->packet->get_packet_len());
+		send_packet(packet_info->socket_index, (char*)packet_info->packet, packet_info->packet->get_packet_len());
 		auto_lock lock(&m_mutex);
 		m_finish_write_packets.push_back(packet_info);
 	}
@@ -282,7 +282,7 @@ void socket_manager::handle_release_socket()
 
 void socket_manager::handle_release_packet()
 {
-	std::vector<TPacketInfo_t*> packets;
+	std::vector<TPacketRecvInfo_t*> packets;
 	{
 		auto_lock lock(&m_mutex);
 		packets.insert(packets.begin(), m_finish_read_packets.begin(), m_finish_read_packets.end());
@@ -354,12 +354,14 @@ void socket_manager::del_socket(socket_base* socket)
 	}
 }
 
-void socket_manager::send_packet(socket_base* socket, char* msg, uint32 len)
+void socket_manager::send_packet(TSocketIndex_t socket_index, char* msg, uint32 len)
 {
-	if (m_sockets.find(socket->get_socket_index()) == m_sockets.end()) {
-		log_error("send packet failed for socket is invalid, socket index = '%"I64_FMT"u'", socket->get_socket_index());
+	auto itr = m_sockets.find(socket_index);
+	if (itr == m_sockets.end()) {
+		log_error("send packet failed for socket is invalid, socket index = '%"I64_FMT"u'", socket_index);
 		return;
 	}
+	socket_base* socket = itr->second;
 	socket->write(msg, len);
 	TSocketEvent_t& writeEvent = socket->get_write_event();
 	event_add(&writeEvent, NULL);

@@ -10,7 +10,7 @@
 #include "singleton.h"
 #include "rpc_param.h"
 
-class rpc_proxy : public singleton<rpc_proxy>
+class rpc_proxy
 {
 public:
 	rpc_proxy();
@@ -18,7 +18,7 @@ public:
 
 public:
 	template <size_t N, class F1, class F2>
-	void register_func(const std::string& func_name, F1 func1, F2 func2) {
+	void register_func(const std::string& func_name, F1 func1, const F2& func2) {
 		typedef typename func_param<F1>::args_type args_type;
 		m_name_2_func[func_name] = [&](char* buffer) {
 			int buffer_index = 0;
@@ -38,16 +38,6 @@ private:
 		return call_helper<sizeof...(T)>::call(f, args);
 	}
 
-	//template<class F, class T>
-	//decltype(auto) call_func(F f, const T& args) {
-	//	return call_func_core(f, args, std::make_index_sequence<std::tuple_size<T>::value>());
-	//}
-
-	//template<class F, class T, std::size_t... Idx>
-	//decltype(auto) call_func_core(F f, const T& args, std::index_sequence<Idx...>) {
-	//	return f(std::get<Idx>(args)...);
-	//}
-
 private:
 	void clean_up();
 
@@ -56,7 +46,90 @@ private:
 	std::map<std::string, std::function<void(char*)>> m_name_2_func;
 };
 
-#define DRpcProxy singleton<rpc_proxy>::get_instance()
+class rpc_stub : public singleton<rpc_stub>
+{
+public:
+	rpc_stub() { 
+		m_proxy = new rpc_proxy();
+	}
+
+	~rpc_stub() {
+		if (NULL != m_proxy) {
+			delete m_proxy;
+		}
+	}
+
+public:
+	template <size_t N, class F1, class F2>
+	void register_func(const std::string& func_name, F1 func1, const F2& func2) {
+		m_proxy->register_func<N>(func_name, func1, func2);
+	}
+
+	void call(uint8 func_index, char* buffer) {
+		m_proxy->call(func_index, buffer);
+	}
+
+	void call(const std::string& func_name, char* buffer) {
+		m_proxy->call(func_name, buffer);
+	}
+
+private:
+	rpc_proxy* m_proxy;
+};
+
+#define DRpcStub singleton<rpc_stub>::get_instance()
+
+class rpc_role : public singleton<rpc_role>
+{
+public:
+	rpc_role() {
+		m_proxys.clear();
+	}
+
+	~rpc_role() {
+		for (auto itr = m_proxys.begin(); itr != m_proxys.end(); ++itr) {
+			rpc_proxy* proxy = itr->second;
+			if (NULL != proxy) {
+				delete proxy;
+			}
+		}
+		m_proxys.clear();
+	}
+
+public:
+	template <size_t N, class F1, class F2>
+	void register_func(TRoleID_t role_id, const std::string& func_name, F1 func1, const F2& func2) {
+		auto itr = m_proxys.find(role_id);
+		if (itr == m_proxys.end()) {
+			rpc_proxy* proxy = new rpc_proxy();
+			m_role_proxys[role_id] = proxy;
+			itr = m_proxys.find(role_id);
+		}
+		rpc_proxy* proxy = itr->second;
+		proxy->register_func<N>(func_name, func1, func2);
+	}
+
+	void call(TRoleID_t role_id, uint8 func_index, char* buffer) {
+		auto itr = m_proxys.find(role_id);
+		if (itr != m_proxys.end()) {
+			rpc_proxy* proxy = itr->second;
+			proxy->call(func_index, buffer);
+		}
+	}
+
+	void call(TRoleID_t role_id, const std::string& func_name, char* buffer) {
+		auto itr = m_proxys.find(role_id);
+		if (itr != m_proxys.end()) {
+			rpc_proxy* proxy = itr->second;
+			proxy->call(func_name, buffer);
+		}
+	}
+
+private:
+	std::map<TRoleID_t, rpc_proxy*> m_proxys;
+};
+
+#define DRpcRole singleton<rpc_role>::get_instance()
 
 #define DRpcBindFunc_0(obj) obj
 #define DRpcBindFunc_1(obj) DRpcBindFunc_0(obj), std::placeholders::_1
@@ -70,11 +143,15 @@ private:
 
 // 参数依次为：
 #define DRegisterRpc(obj, class_name, func_name, args_count) { \
-	DRpcProxy.register_func<args_count>(#func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+	DRpcStub.register_func<args_count>(#func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
 #define DRegisterStubRpc(obj, class_name, func_name, args_count) { \
-	DRpcProxy.register_func<args_count>(#class_name###func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+	DRpcStub.register_func<args_count>(#class_name###func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+}
+
+#define DRegisterRoleRpc(role_id, obj, class_name, func_name, args_count) { \
+	DRpcRole.register_func<args_count>(role_id, #func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
 #endif // !_RPC_PROXY_H_

@@ -34,11 +34,11 @@ void game_manager::run()
 		before_loop_time = DTimeMgr.update();
 
 		// 
-		std::vector<TPacketInfo_t*> packets;
+		std::vector<TPacketRecvInfo_t*> read_packets;
 		std::vector<socket_base*> wait_init_sockets;
 		std::vector<socket_base*> wait_del_sockets;
 
-		DNetMgr.read_packets(packets, wait_init_sockets, wait_del_sockets);
+		DNetMgr.read_packets(read_packets, wait_init_sockets, wait_del_sockets);
 
 		for (auto socket : wait_del_sockets) {
 			socket->get_packet_handler()->handle_close();
@@ -48,19 +48,20 @@ void game_manager::run()
 			socket->get_packet_handler()->handle_init();
 		}
 
-		for (auto packet_info : packets) {
+		for (auto packet_info : read_packets) {
 			packet_info->socket->get_packet_handler()->handle(packet_info->packet);
 		}
 
-		DNetMgr.finish_read_packets(packets, wait_del_sockets);
-		packets.clear();
+		DNetMgr.finish_read_packets(read_packets, wait_del_sockets);
+		read_packets.clear();
 
-		DNetMgr.finish_write_packets(packets);
-		for (auto packet_info : packets) {
+		std::vector<TPacketSendInfo_t*> write_packets;
+		DNetMgr.finish_write_packets(write_packets);
+		for (auto packet_info : write_packets) {
 			m_mem_pool.deallocate((char*)packet_info->packet);
 			m_packet_pool.deallocate(packet_info);
 		}
-		packets.clear();
+		write_packets.clear();
 
 		DNetMgr.write_packets(m_write_packets);
 		m_write_packets.clear();
@@ -72,7 +73,7 @@ void game_manager::run()
 	}
 }
 
-TPacketInfo_t* game_manager::allocate_packet_info()
+TPacketSendInfo_t* game_manager::allocate_packet_info()
 {
 	return m_packet_pool.allocate();
 }
@@ -82,31 +83,32 @@ char* game_manager::allocate_memory(int n)
 	return m_mem_pool.allocate(n);
 }
 
-void game_manager::push_write_packets(TPacketInfo_t* packet_info)
+void game_manager::push_write_packets(TPacketSendInfo_t* packet_info)
 {
 	m_write_packets.push_back(packet_info);
 }
 
 void game_manager::register_handle_info(rpc_client* client, server_info_packet* server_info)
 {
-	m_clients[get_client_key_id(server_info->m_process_info)] = client;
-	TProcessType_t process_type = server_info->m_process_info.process_type;
+	m_clients[get_client_key_id(server_info->m_server_info.process_info)] = client;
+	TProcessType_t process_type = server_info->m_server_info.process_info.process_type;
 	if (process_type == PROCESS_GATE) {
-		m_gates.register_server(server_info->m_process_info.server_id, server_info->m_server_info.ip, server_info->m_server_info.port);
+		m_gates.register_server(server_info->m_server_info);
 	}
 	else if (process_type == PROCESS_GAME) {
-		m_games.register_server(server_info->m_process_info.server_id, server_info->m_server_info.ip, server_info->m_server_info.port);
+		m_games.register_server(server_info->m_server_info);
 	}
 	else if (process_type == PROCESS_DB) {
-		m_dbs.register_server(server_info->m_process_info.server_id, server_info->m_server_info.ip, server_info->m_server_info.port);
+		m_dbs.register_server(server_info->m_server_info);
 	}
 	log_info("register handle info, server id = %d, process type = %d, process id = %d, listen ip = %s, port = %d", 
-		server_info->m_process_info.server_id, (TProcessType_t)server_info->m_process_info.process_type, server_info->m_process_info.process_id, 
-		server_info->m_server_info.ip.data(), server_info->m_server_info.port);
+		server_info->m_server_info.process_info.server_id, (TProcessType_t)server_info->m_server_info.process_info.process_type, 
+		server_info->m_server_info.process_info.process_id, server_info->m_server_info.ip.data(), server_info->m_server_info.port);
 }
 
 void game_manager::query_servers(const game_process_info& process_info, TServerID_t server_id, TProcessType_t process_type)
 {
+	log_info("query servers, server id = %d, process type = %d", server_id, process_type);
 	dynamic_array<game_server_info> servers;
 	if (process_type == PROCESS_GATE) {
 		m_gates.get_servers(server_id, servers);

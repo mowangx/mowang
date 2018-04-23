@@ -13,8 +13,16 @@ class socket_base;
 enum packet_id_type
 {
 	PACKET_ID_SERVER_INFO = 0x01,
-	PACKET_ID_RPC_BY_INDEX = 0xF1,
-	PACKET_ID_RPC_BY_NAME = 0xF2
+
+	PACKET_ID_RPC_BY_INDEX = 0x61,
+	PACKET_ID_RPC_BY_NAME = 0x62,
+
+	PACKET_ID_ROLE_RPC_BY_INDEX = 0x81,
+	PACKET_ID_ROLE_RPC_BY_NAME = 0x81,
+
+	PACKET_ID_TRANSFER_ROLE = 0xF6,
+	PACKET_ID_TRANSFER_STUB = 0xF7,
+	PACKET_ID_TRANSFER_CLIENT = 0xF8,
 };
 
 class packet_base
@@ -59,7 +67,6 @@ public:
 	}
 
 public:
-	game_process_info m_process_info;
 	game_server_info m_server_info;
 };
 
@@ -89,13 +96,88 @@ public:
 	char m_buffer[65000];
 };
 
+class role_rpc_by_index_packet : public packet_base
+{
+public:
+	role_rpc_by_index_packet() : packet_base(PACKET_ID_ROLE_RPC_BY_INDEX) {
+		m_role_id = INVALID_ROLE_ID;
+		m_rpc_index = 0;
+		memset(m_buffer, 0, 65000);
+	}
+
+public:
+	TRoleID_t m_role_id;
+	uint8 m_rpc_index;
+	char m_buffer[65000];
+};
+
+class role_rpc_by_name_packet : public packet_base
+{
+public:
+	role_rpc_by_name_packet() : packet_base(PACKET_ID_ROLE_RPC_BY_NAME) {
+		m_role_id = INVALID_ROLE_ID;
+		memset(m_rpc_name, 0, 100);
+		memset(m_buffer, 0, 65000);
+	}
+
+public:
+	TRoleID_t m_role_id;
+	char m_rpc_name[100];
+	char m_buffer[65000];
+};
+
+class transfer_role_packet : public packet_base
+{
+public:
+	transfer_role_packet() : packet_base(PACKET_ID_TRANSFER_ROLE) {
+		m_server_id = INVALID_SERVER_ID;
+		m_game_id = INVALID_PROCESS_ID;
+		m_role_id = INVALID_ROLE_ID;
+		memset(m_buffer, 0, 65000);
+	}
+
+public:
+	TServerID_t m_server_id;
+	TProcessID_t m_game_id;
+	TRoleID_t m_role_id;
+	char m_buffer[65000];
+};
+
+class transfer_stub_packet : public packet_base
+{
+public:
+	transfer_stub_packet() : packet_base(PACKET_ID_TRANSFER_STUB) {
+		m_server_id = INVALID_SERVER_ID;
+		m_game_id = INVALID_PROCESS_ID;
+		memset(m_buffer, 0, 65000);
+	}
+
+public:
+	TServerID_t m_server_id;
+	TProcessID_t m_game_id;
+	char m_buffer[65000];
+};
+
+class transfer_client_packet : public packet_base
+{
+public:
+	transfer_client_packet() : packet_base(PACKET_ID_TRANSFER_CLIENT) {
+		m_client_id = INVALID_SOCKET_INDEX;
+		memset(m_buffer, 0, 65000);
+	}
+
+public:
+	TSocketIndex_t m_client_id;
+	char m_buffer[65000];
+};
+
 #pragma pack(pop)
 
-typedef struct PacketInfo
+typedef struct PacketRecvInfo
 {
 	packet_base* packet;
 	socket_base* socket;
-	PacketInfo() {
+	PacketRecvInfo() {
 		clean_up();
 	}
 
@@ -104,6 +186,21 @@ typedef struct PacketInfo
 		socket = NULL;
 	}
 
-}TPacketInfo_t;
+}TPacketRecvInfo_t;
+
+typedef struct PacketSendInfo
+{
+	packet_base* packet;
+	TSocketIndex_t socket_index;
+	PacketSendInfo() {
+		clean_up();
+	}
+
+	void clean_up() {
+		packet = NULL;
+		socket_index = INVALID_SOCKET_INDEX;
+	}
+
+}TPacketSendInfo_t;
 
 #endif

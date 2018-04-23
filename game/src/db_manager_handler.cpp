@@ -23,7 +23,7 @@ void db_manager_handler::Setup()
 	TBaseType_t::Setup();
 }
 
-TPacketInfo_t* db_manager_handler::create_packet_info()
+TPacketSendInfo_t* db_manager_handler::create_packet_info()
 {
 	return DGameServer.allocate_packet_info();
 }
@@ -33,7 +33,7 @@ char* db_manager_handler::create_packet(int n)
 	return DGameServer.allocate_memory(n);
 }
 
-void db_manager_handler::write_packet(TPacketInfo_t* packet_info)
+void db_manager_handler::write_packet(TPacketSendInfo_t* packet_info)
 {
 	DGameServer.push_write_packets(packet_info);
 }

@@ -17,11 +17,11 @@ public:
 public:
 	virtual bool handle(packet_base* packet) = 0;
 
-	virtual TPacketInfo_t* create_packet_info() = 0;
+	virtual TPacketSendInfo_t* create_packet_info() = 0;
 	
 	virtual char* create_packet(int n) = 0;
 
-	virtual void write_packet(TPacketInfo_t* packet_info) = 0;
+	virtual void write_packet(TPacketSendInfo_t* packet_info) = 0;
 
 	virtual void  send_packet(packet_base* packet) = 0;
 
@@ -31,17 +31,17 @@ public:
 
 	virtual bool handle_rpc_by_index(packet_base* packet);
 	virtual bool handle_rpc_by_name(packet_base* packet);
+	virtual bool handle_role_rpc_by_index(packet_base* packet);
+	virtual bool handle_role_rpc_by_name(packet_base* packet);
 
 public:
-	void set_socket(socket_base* s);
-	socket_base* get_socket() const;
+	void set_socket_index(TSocketIndex_t socket_index);
+	TSocketIndex_t get_socket_index() const;
 
 	bool is_valid() const;
 
-	TSocketIndex_t get_socket_index() const;
-
 private:
-	socket_base* m_socket;
+	TSocketIndex_t m_socket_index;
 };
 
 typedef bool (game_handler::*packet_handler_func)(packet_base* packet);
@@ -87,8 +87,8 @@ public:
 
 	void send_packet(packet_base* packet) {
 		if (is_valid()) {
-			TPacketInfo_t* packet_info = create_packet_info();
-			packet_info->socket = get_socket();
+			TPacketSendInfo_t* packet_info = create_packet_info();
+			packet_info->socket_index = get_socket_index();
 			packet_info->packet = (packet_base*)create_packet(packet->get_packet_len());
 			memcpy(packet_info->packet, packet, packet->get_packet_len());
 			write_packet(packet_info);
@@ -105,6 +105,8 @@ public:
 	static void Setup() {
 		register_handler((TPacketID_t)PACKET_ID_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_rpc_by_index);
 		register_handler((TPacketID_t)PACKET_ID_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_rpc_by_name);
+		register_handler((TPacketID_t)PACKET_ID_ROLE_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_role_rpc_by_index);
+		register_handler((TPacketID_t)PACKET_ID_ROLE_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_role_rpc_by_name);
 	}
 
 private:

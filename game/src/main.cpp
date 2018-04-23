@@ -10,7 +10,7 @@
 #include "socket_manager.h"
 #include "time_manager.h"
 #include "game_manager_handler.h"
-#include "db_manager_handler.h"
+#include "gate_handler.h"
 
 void work_run(TProcessID_t process_id)
 {
@@ -37,7 +37,7 @@ void net_run(TProcessID_t process_id)
 	}
 
 	TPort_t listen_port = 10200 + process_id;
-	if (!DNetMgr.start_listen<db_manager_handler>(listen_port)) {
+	if (!DNetMgr.start_listen<gate_handler>(listen_port)) {
 		return ;
 	}
 

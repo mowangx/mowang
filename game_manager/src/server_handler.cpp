@@ -24,7 +24,7 @@ void server_handler::Setup()
 	register_handler((TPacketID_t)PACKET_ID_SERVER_INFO, (packet_handler_func)&server_handler::handle_server_info);
 }
 
-TPacketInfo_t* server_handler::create_packet_info()
+TPacketSendInfo_t* server_handler::create_packet_info()
 {
 	return DGameManager.allocate_packet_info();
 }
@@ -34,7 +34,7 @@ char* server_handler::create_packet(int n)
 	return DGameManager.allocate_memory(n);
 }
 
-void server_handler::write_packet(TPacketInfo_t* packet_info)
+void server_handler::write_packet(TPacketSendInfo_t* packet_info)
 {
 	DGameManager.push_write_packets(packet_info);
 }

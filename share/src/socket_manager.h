@@ -35,11 +35,11 @@ public:
 
 	uint32	socket_num() const;
 
-	void	read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& new_sockets, std::vector<socket_base*>& del_sockets);
-	void	finish_read_packets(std::vector<TPacketInfo_t*>& packets, std::vector<socket_base*>& sockets);
+	void	read_packets(std::vector<TPacketRecvInfo_t*>& packets, std::vector<socket_base*>& new_sockets, std::vector<socket_base*>& del_sockets);
+	void	finish_read_packets(std::vector<TPacketRecvInfo_t*>& packets, std::vector<socket_base*>& sockets);
 
-	void	write_packets(std::vector<TPacketInfo_t*>& packets);
-	void	finish_write_packets(std::vector<TPacketInfo_t*>& packets);
+	void	write_packets(std::vector<TPacketSendInfo_t*>& packets);
+	void	finish_write_packets(std::vector<TPacketSendInfo_t*>& packets);
 
 	void	test_get_sockets(std::vector<socket_base*>& sockets);
 
@@ -60,7 +60,7 @@ private:
 	void	add_socket(socket_base* socket);
 	void	del_socket(socket_base* socket);
 
-	void	send_packet(socket_base* socket, char* msg, uint32 len);
+	void	send_packet(TSocketIndex_t socket_index, char* msg, uint32 len);
 
 	TSocketIndex_t gen_socket_index();
 
@@ -77,12 +77,12 @@ private:
 	SocketEventBase_t* m_eventbase;
 	memory_allocator<MAX_PACKET_BUFFER_SIZE, 100> m_packet_buffer_pool;
 	obj_memory_pool<socket_handler, 100> m_socket_handler_pool;
-	obj_memory_pool<TPacketInfo_t, 1000> m_packet_info_pool;
+	obj_memory_pool<TPacketRecvInfo_t, 1000> m_packet_info_pool;
 	memory_pool	m_mem_pool;
-	std::vector<TPacketInfo_t*> m_read_packets;
-	std::vector<TPacketInfo_t*> m_finish_read_packets;
-	std::vector<TPacketInfo_t*> m_write_packets;
-	std::vector<TPacketInfo_t*> m_finish_write_packets;
+	std::vector<TPacketRecvInfo_t*> m_read_packets;
+	std::vector<TPacketRecvInfo_t*> m_finish_read_packets;
+	std::vector<TPacketSendInfo_t*> m_write_packets;
+	std::vector<TPacketSendInfo_t*> m_finish_write_packets;
 	std::vector<socket_base*> m_new_sockets;
 	std::vector<socket_base*> m_wait_init_sockets;
 	std::vector<socket_base*> m_wait_delete_sockets;
@@ -160,7 +160,7 @@ bool socket_manager::start_connect(const char* host, TPort_t port)
 	log_info("connect socket success! index = '%"I64_FMT"u', host = %s, port = %u", index, host, port);
 
 	socket->set_packet_handler(socket->create_handler());
-	socket->get_packet_handler()->set_socket(socket);
+	socket->get_packet_handler()->set_socket_index(index);
 
 	add_socket(socket);
 

@@ -9,8 +9,13 @@
 #include "socket_manager.h"
 #include "game_manager_handler.h"
 #include "game_server_handler.h"
+#include "client_handler.h"
 
+#include "rpc_client.h"
 #include "rpc_proxy.h"
+#include "rpc_wrapper.h"
+
+#include "base_packet.h"
 
 gate_server::gate_server()
 {
@@ -46,17 +51,18 @@ void gate_server::run()
 
 	game_manager_handler::Setup();
 	game_server_handler::Setup();
+	client_handler::Setup();
 	TAppTime_t before_loop_time(0), after_loop_time(0);
 
 	while (true) {
 		before_loop_time = DTimeMgr.update();
 
 		// 
-		std::vector<TPacketInfo_t*> packets;
+		std::vector<TPacketRecvInfo_t*> read_packets;
 		std::vector<socket_base*> wait_init_sockets;
 		std::vector<socket_base*> wait_del_sockets;
 
-		DNetMgr.read_packets(packets, wait_init_sockets, wait_del_sockets);
+		DNetMgr.read_packets(read_packets, wait_init_sockets, wait_del_sockets);
 
 		for (auto socket : wait_del_sockets) {
 			socket->get_packet_handler()->handle_close();
@@ -66,19 +72,20 @@ void gate_server::run()
 			socket->get_packet_handler()->handle_init();
 		}
 
-		for (auto packet_info : packets) {
+		for (auto packet_info : read_packets) {
 			packet_info->socket->get_packet_handler()->handle(packet_info->packet);
 		}
 
-		DNetMgr.finish_read_packets(packets, wait_del_sockets);
-		packets.clear();
+		DNetMgr.finish_read_packets(read_packets, wait_del_sockets);
+		read_packets.clear();
 
-		DNetMgr.finish_write_packets(packets);
-		for (auto packet_info : packets) {
+		std::vector<TPacketSendInfo_t*> write_packets;
+		DNetMgr.finish_write_packets(write_packets);
+		for (auto packet_info : write_packets) {
 			m_mem_pool.deallocate((char*)packet_info->packet);
 			m_packet_pool.deallocate(packet_info);
 		}
-		packets.clear();
+		write_packets.clear();
 
 		DNetMgr.write_packets(m_write_packets);
 		m_write_packets.clear();
@@ -99,11 +106,12 @@ void gate_server::get_process_info(game_process_info& process_info) const
 
 void gate_server::get_server_info(game_server_info& server_info) const
 {
+	get_process_info(server_info.process_info);
 	memcpy(server_info.ip.data(), m_listen_ip.data(), IP_SIZE);
 	server_info.port = m_listen_port;
 }
 
-TPacketInfo_t* gate_server::allocate_packet_info()
+TPacketSendInfo_t* gate_server::allocate_packet_info()
 {
 	return m_packet_pool.allocate();
 }
@@ -113,7 +121,7 @@ char* gate_server::allocate_memory(int n)
 	return m_mem_pool.allocate(n);
 }
 
-void gate_server::push_write_packets(TPacketInfo_t* packet_info)
+void gate_server::push_write_packets(TPacketSendInfo_t* packet_info)
 {
 	m_write_packets.push_back(packet_info);
 }
@@ -130,4 +138,34 @@ void gate_server::on_query_servers(TServerID_t server_id, TProcessType_t process
 			log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
 		}
 	}
+}
+
+void gate_server::transfer_role(TServerID_t server_id, TProcessID_t game_id, TRoleID_t role_id, packet_base* packet)
+{
+	TPacketSendInfo_t* packet_info = allocate_packet_info();
+	packet_info->socket_index = DRpcWrapper.get_socket_index(server_id, game_id);
+	role_rpc_by_name_packet* transfer_packet = (role_rpc_by_name_packet*)allocate_memory(packet->get_packet_len());
+	packet_info->packet = transfer_packet;
+	memcpy(transfer_packet, packet, packet->get_packet_len());
+	push_write_packets(packet_info);
+}
+
+void gate_server::transfer_stub(TServerID_t server_id, TProcessID_t game_id, packet_base* packet)
+{
+	TPacketSendInfo_t* packet_info = allocate_packet_info();
+	packet_info->socket_index = DRpcWrapper.get_socket_index(server_id, game_id);
+	rpc_by_name_packet* transfer_packet = (rpc_by_name_packet*)allocate_memory(packet->get_packet_len());
+	packet_info->packet = transfer_packet;
+	memcpy(transfer_packet, packet, packet->get_packet_len());
+	push_write_packets(packet_info);
+}
+
+void gate_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
+{
+	TPacketSendInfo_t* packet_info = allocate_packet_info();
+	packet_info->socket_index = client_id;
+	packet_base* transfer_packet = (packet_base*)allocate_memory(packet->get_packet_len());
+	packet_info->packet = transfer_packet;
+	memcpy(packet_info->packet, packet, packet->get_packet_len());
+	push_write_packets(packet_info);
 }

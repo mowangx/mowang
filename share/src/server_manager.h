@@ -17,8 +17,8 @@ public:
 	void get_servers(TServerID_t server_id, dynamic_array<game_server_info>& servers);
 
 public:
-	void register_server(TServerID_t server_id, const std::array<char, IP_SIZE>& ip, TPort_t port);
-	void unregister_server(TServerID_t server_id, const std::array<char, IP_SIZE>& ip, TPort_t port);
+	void register_server(const game_server_info& server_info);
+	void unregister_server(const game_server_info& server_info);
 
 private:
 	void clean_up();

@@ -8,10 +8,12 @@
 
 #include "game_enum.h"
 #include "socket_manager.h"
+#include "gate_handler.h"
 #include "game_manager_handler.h"
 #include "db_manager_handler.h"
 
 #include "rpc_proxy.h"
+#include "rpc_client.h"
 
 game_server::game_server()
 {
@@ -53,6 +55,10 @@ void game_server::run()
 	DRegisterRpc(this, game_server, game_rpc_func_2, 2);
 	DRegisterRpc(this, game_server, on_query_servers, 3);
 
+	DRegisterStubRpc(this, game_server, game_rpc_func_1, 3);
+	DRegisterStubRpc(this, game_server, game_rpc_func_2, 2);
+
+	gate_handler::Setup();
 	game_manager_handler::Setup();
 	db_manager_handler::Setup();
 	TAppTime_t before_loop_time(0), after_loop_time(0);
@@ -61,11 +67,11 @@ void game_server::run()
 		before_loop_time = DTimeMgr.update();
 
 		// 
-		std::vector<TPacketInfo_t*> packets;
+		std::vector<TPacketRecvInfo_t*> read_packets;
 		std::vector<socket_base*> wait_init_sockets;
 		std::vector<socket_base*> wait_del_sockets;
 
-		DNetMgr.read_packets(packets, wait_init_sockets, wait_del_sockets);
+		DNetMgr.read_packets(read_packets, wait_init_sockets, wait_del_sockets);
 
 		for (auto socket : wait_del_sockets) {
 			socket->get_packet_handler()->handle_close();
@@ -75,19 +81,20 @@ void game_server::run()
 			socket->get_packet_handler()->handle_init();
 		}
 
-		for (auto packet_info : packets) {
+		for (auto packet_info : read_packets) {
 			packet_info->socket->get_packet_handler()->handle(packet_info->packet);
 		}
 
-		DNetMgr.finish_read_packets(packets, wait_del_sockets);
-		packets.clear();
+		DNetMgr.finish_read_packets(read_packets, wait_del_sockets);
+		read_packets.clear();
 
-		DNetMgr.finish_write_packets(packets);
-		for (auto packet_info : packets) {
+		std::vector<TPacketSendInfo_t*> send_packets;
+		DNetMgr.finish_write_packets(send_packets);
+		for (auto packet_info : send_packets) {
 			m_mem_pool.deallocate((char*)packet_info->packet);
 			m_packet_pool.deallocate(packet_info);
 		}
-		packets.clear();
+		send_packets.clear();
 
 		DNetMgr.write_packets(m_write_packets);
 		m_write_packets.clear();
@@ -99,7 +106,7 @@ void game_server::run()
 	}
 }
 
-void game_server::get_process_info(game_process_info& process_info) const
+void game_server::get_process_info(game_process_info & process_info) const
 {
 	process_info.server_id = m_server_id;
 	process_info.process_type = PROCESS_GAME;
@@ -108,11 +115,12 @@ void game_server::get_process_info(game_process_info& process_info) const
 
 void game_server::get_server_info(game_server_info& server_info) const
 {
-	memcpy(server_info.ip.data(), m_listen_ip.data(), IP_SIZE);
+	get_process_info(server_info.process_info);
 	server_info.port = m_listen_port;
+	memcpy(server_info.ip.data(), m_listen_ip.data(), IP_SIZE);
 }
 
-TPacketInfo_t* game_server::allocate_packet_info()
+TPacketSendInfo_t* game_server::allocate_packet_info()
 {
 	return m_packet_pool.allocate();
 }
@@ -122,9 +130,49 @@ char* game_server::allocate_memory(int n)
 	return m_mem_pool.allocate(n);
 }
 
-void game_server::push_write_packets(TPacketInfo_t* packet_info)
+void game_server::push_write_packets(TPacketSendInfo_t* packet_info)
 {
 	m_write_packets.push_back(packet_info);
+}
+
+resource* game_server::allocate_resource()
+{
+	return m_resource_pool.allocate();
+}
+
+void game_server::deallocate_resource(resource* res)
+{
+	m_resource_pool.deallocate(res);
+}
+
+city* game_server::allocate_city()
+{
+	return m_city_pool.allocate();
+}
+
+void game_server::deallocate_city(city* c)
+{
+	m_city_pool.deallocate(c);
+}
+
+npc* game_server::allocate_npc()
+{
+	return m_npc_pool.allocate();
+}
+
+void game_server::deallocate_npc(npc* p)
+{
+	m_npc_pool.deallocate(p);
+}
+
+farmland * game_server::allocate_farmland()
+{
+	return m_farmland_pool.allocate();
+}
+
+void game_server::deallocate_farmland(farmland * f)
+{
+	m_farmland_pool.deallocate(f);
 }
 
 void game_server::game_rpc_func_1(const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3)
@@ -148,5 +196,15 @@ void game_server::on_query_servers(TServerID_t server_id, TProcessType_t process
 		else {
 			log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
 		}
+	}
+}
+
+void game_server::create_entity(uint8 e_type)
+{
+	entity* e = NULL;
+	if (e_type == ENTITY_ROLL_STUB) {
+	}
+	if (NULL != e) {
+		e->init();
 	}
 }

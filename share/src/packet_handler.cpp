@@ -4,7 +4,7 @@
 #include "socket.h"
 #include "rpc_proxy.h"
 
-game_handler::game_handler() : m_socket(NULL)
+game_handler::game_handler() : m_socket_index(INVALID_SOCKET_INDEX)
 {
 
 }
@@ -16,42 +16,48 @@ void game_handler::handle_init()
 
 void game_handler::handle_close()
 {
-	m_socket = NULL;
+	m_socket_index = INVALID_SOCKET_INDEX;
 }
 
 bool game_handler::handle_rpc_by_index(packet_base* packet)
 {
 	rpc_by_index_packet* rpc_info = (rpc_by_index_packet*)packet;
-	DRpcProxy.call(rpc_info->m_rpc_index, rpc_info->m_buffer);
+	DRpcStub.call(rpc_info->m_rpc_index, rpc_info->m_buffer);
 	return true;
 }
 
 bool game_handler::handle_rpc_by_name(packet_base* packet)
 {
 	rpc_by_name_packet* rpc_info = (rpc_by_name_packet*)packet;
-	DRpcProxy.call(rpc_info->m_rpc_name, rpc_info->m_buffer);
+	DRpcStub.call(rpc_info->m_rpc_name, rpc_info->m_buffer);
 	return true;
 }
 
-void game_handler::set_socket(socket_base* socket)
+bool game_handler::handle_role_rpc_by_index(packet_base * packet)
 {
-	m_socket = socket;
+	role_rpc_by_index_packet* rpc_info = (role_rpc_by_index_packet*)packet;
+	DRpcRole.call(rpc_info->m_role_id, rpc_info->m_rpc_index, rpc_info->m_buffer);
+	return true;
 }
 
-socket_base* game_handler::get_socket() const
+bool game_handler::handle_role_rpc_by_name(packet_base * packet)
 {
-	return m_socket;
+	role_rpc_by_name_packet* rpc_info = (role_rpc_by_name_packet*)packet;
+	DRpcRole.call(rpc_info->m_role_id, rpc_info->m_rpc_name, rpc_info->m_buffer);
+	return true;
 }
 
-bool game_handler::is_valid() const
+void game_handler::set_socket_index(TSocketIndex_t socket_index)
 {
-	return NULL != m_socket;
+	m_socket_index = socket_index;
 }
 
 TSocketIndex_t game_handler::get_socket_index() const
 {
-	if (NULL != m_socket) {
-		return m_socket->get_socket_index();
-	}
-	return 0;
+	return m_socket_index;
+}
+
+bool game_handler::is_valid() const
+{
+	return INVALID_SOCKET_INDEX != m_socket_index;
 }

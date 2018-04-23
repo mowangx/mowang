@@ -27,9 +27,9 @@ public:
 	void get_server_info(game_server_info& server_info) const;
 
 public:
-	TPacketInfo_t * allocate_packet_info();
+	TPacketSendInfo_t * allocate_packet_info();
 	char* allocate_memory(int n);
-	void push_write_packets(TPacketInfo_t* packet_info);
+	void push_write_packets(TPacketSendInfo_t* packet_info);
 
 private:
 	TServerID_t m_server_id;
@@ -37,9 +37,9 @@ private:
 	std::array<char, IP_SIZE> m_listen_ip;
 	TPort_t m_listen_port;
 	db_conn * m_db;
-	obj_memory_pool<TPacketInfo_t, 1000> m_packet_pool;
+	obj_memory_pool<TPacketSendInfo_t, 1000> m_packet_pool;
 	memory_pool m_mem_pool;
-	std::vector<TPacketInfo_t*> m_write_packets;
+	std::vector<TPacketSendInfo_t*> m_write_packets;
 };
 
 #define DDbServer singleton<db_server>::get_instance()

@@ -23,9 +23,9 @@ public:
 	void run();
 
 public:
-	TPacketInfo_t * allocate_packet_info();
+	TPacketSendInfo_t * allocate_packet_info();
 	char* allocate_memory(int n);
-	void push_write_packets(TPacketInfo_t* packet_info);
+	void push_write_packets(TPacketSendInfo_t* packet_info);
 
 public:
 	void register_handle_info(rpc_client* client, server_info_packet* server_info);
@@ -38,9 +38,9 @@ private:
 	uint64 get_client_key_id(const game_process_info& process_info);
 
 private:
-	obj_memory_pool<TPacketInfo_t, 1000> m_packet_pool;
+	obj_memory_pool<TPacketSendInfo_t, 1000> m_packet_pool;
 	memory_pool m_mem_pool;
-	std::vector<TPacketInfo_t*> m_write_packets;
+	std::vector<TPacketSendInfo_t*> m_write_packets;
 	std::map<uint64, rpc_client*> m_clients;
 	server_manager m_gates;
 	server_manager m_games;

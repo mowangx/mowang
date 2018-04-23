@@ -16,7 +16,7 @@
 void socket_base::clean_up()
 {
 	reset();
-	m_index = INVALID_UNIQUE_INDEX;
+	m_index = INVALID_SOCKET_INDEX;
 	m_unpacket_num = 0;
 	m_last_unpacket_time = time_manager::SysNowTime();
 	m_active_flag = true;

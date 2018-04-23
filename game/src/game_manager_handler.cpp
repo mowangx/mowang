@@ -24,7 +24,7 @@ void game_manager_handler::Setup()
 	TBaseType_t::Setup();
 }
 
-TPacketInfo_t* game_manager_handler::create_packet_info()
+TPacketSendInfo_t* game_manager_handler::create_packet_info()
 {
 	return DGameServer.allocate_packet_info();
 }
@@ -34,7 +34,7 @@ char* game_manager_handler::create_packet(int n)
 	return DGameServer.allocate_memory(n);
 }
 
-void game_manager_handler::write_packet(TPacketInfo_t* packet_info)
+void game_manager_handler::write_packet(TPacketSendInfo_t* packet_info)
 {
 	DGameServer.push_write_packets(packet_info);
 }
@@ -43,7 +43,6 @@ void game_manager_handler::handle_init()
 {
 	log_info("'%"I64_FMT"u', handle init", get_socket_index());
 	server_info_packet server_info;
-	DGameServer.get_process_info(server_info.m_process_info);
 	DGameServer.get_server_info(server_info.m_server_info);
 	server_info.m_len = sizeof(server_info);
 	send_packet(&server_info);
@@ -51,6 +50,8 @@ void game_manager_handler::handle_init()
 	game_process_info process_info;
 	DGameServer.get_process_info(process_info);
 	m_rpc_client->call_remote_func("query_servers", process_info, (TServerID_t)100, (TProcessType_t)PROCESS_DB);
+
+	log_info("game manager handler connect sucess! query servers");
 }
 
 void game_manager_handler::handle_close()
