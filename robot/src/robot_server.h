@@ -22,9 +22,9 @@ public:
 	bool init(TProcessID_t process_id);
 
 public:
-	TPacketInfo_t * allocate_packet_info();
+	TPacketSendInfo_t * allocate_packet_info();
 	char* allocate_memory(int n);
-	void push_write_packets(TPacketInfo_t* packet_info);
+	void push_write_packets(TPacketSendInfo_t* packet_info);
 
 public:
 	void run();
@@ -37,9 +37,9 @@ public:
 	void robot_rpc_func_2(TSocketIndex_t client_id, uint8 p1, const std::array<char, 33>& p2);
 
 private:
-	obj_memory_pool<TPacketInfo_t, 1000> m_packet_pool;
+	obj_memory_pool<TPacketSendInfo_t, 1000> m_packet_pool;
 	memory_pool m_mem_pool;
-	std::vector<TPacketInfo_t*> m_write_packets;
+	std::vector<TPacketSendInfo_t*> m_write_packets;
 	std::unordered_map<TSocketIndex_t, rpc_client*> m_gates;
 };
 

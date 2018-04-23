@@ -24,7 +24,7 @@ void gate_handler::Setup()
 	TBaseType_t::Setup();
 }
 
-TPacketInfo_t* gate_handler::create_packet_info()
+TPacketSendInfo_t* gate_handler::create_packet_info()
 {
 	return DRobotServer.allocate_packet_info();
 }
@@ -34,7 +34,7 @@ char* gate_handler::create_packet(int n)
 	return DRobotServer.allocate_memory(n);
 }
 
-void gate_handler::write_packet(TPacketInfo_t* packet_info)
+void gate_handler::write_packet(TPacketSendInfo_t* packet_info)
 {
 	DRobotServer.push_write_packets(packet_info);
 }
