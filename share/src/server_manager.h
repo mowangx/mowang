@@ -18,7 +18,7 @@ public:
 
 public:
 	void register_server(const game_server_info& server_info);
-	void unregister_server(const game_server_info& server_info);
+	void unregister_server(TServerID_t server_id, TProcessType_t process_type, TProcessID_t process_id);
 
 private:
 	void clean_up();

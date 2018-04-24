@@ -40,6 +40,13 @@ public:
 	void transfer_role(TServerID_t server_id, TProcessID_t game_id, TRoleID_t role_id, packet_base* packet);
 	void transfer_stub(TServerID_t server_id, TProcessID_t game_id, packet_base* packet);
 	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
+	void transfer_server(TSocketIndex_t client_id, packet_base* packet);
+
+public:
+	void login_server(TSocketIndex_t client_id, TServerID_t server_id, TPlatformID_t platform_id, const TUserID_t& user_id);
+
+private:
+	TSocketIndex_t get_server_socket_index(TSocketIndex_t client_id) const;
 
 private:
 	TServerID_t m_server_id;
@@ -49,6 +56,7 @@ private:
 	obj_memory_pool<TPacketSendInfo_t, 1000> m_packet_pool;
 	memory_pool m_mem_pool;
 	std::vector<TPacketSendInfo_t*> m_write_packets;
+	std::unordered_map<TSocketIndex_t, game_process_info> m_client_2_process;
 };
 
 #define DGateServer singleton<gate_server>::get_instance()

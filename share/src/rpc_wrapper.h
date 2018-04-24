@@ -8,6 +8,7 @@
 #include "base_packet.h"
 #include "server_manager.h"
 #include "rpc_client.h"
+#include "game_enum.h"
 
 class rpc_wrapper : public singleton<rpc_wrapper>
 {
@@ -24,6 +25,11 @@ class rpc_wrapper : public singleton<rpc_wrapper>
 public:
 	rpc_wrapper();
 	~rpc_wrapper();
+
+public:
+	void init(game_process_type process_type) {
+		m_process_type = process_type;
+	}
 
 public:
 	template <typename F, typename... T>
@@ -259,19 +265,20 @@ public:
 
 public:
 	void register_handle_info(rpc_client* client, server_info_packet* packet);
+	void unregister_handle_info(TSocketIndex_t socket_index);
 
 public:
 	TSocketIndex_t get_socket_index(TServerID_t server_id, TProcessID_t process_id) const;
-
-private:
+	TProcessID_t get_random_process_id(TServerID_t server_id) const;
 	rpc_client* get_client(TServerID_t server_id, TProcessID_t process_id) const;
 	rpc_client* get_random_client(TServerID_t server_id) const;
 	uint32 get_client_key_id(TServerID_t server_id, TProcessID_t process_id) const;
 
 private:
-	std::map<uint32, rpc_client*> m_clients;
-	std::map<uint32, std::vector<rpc_client_wrapper_info*>> m_client_wrappers;
-	server_manager m_gates;
+	game_process_type m_process_type;
+	std::map<uint32, rpc_client*> m_server_process_2_clients;
+	std::map<TServerID_t, std::vector<rpc_client_wrapper_info*>> m_server_2_clients;
+	server_manager m_server_manager;
 };
 
 #define DRpcWrapper singleton<rpc_wrapper>::get_instance()

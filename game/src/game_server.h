@@ -53,7 +53,14 @@ public:
 	void game_rpc_func_1(const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3);
 	void game_rpc_func_2(uint8 p1, const std::array<char, 33>& p2);
 	void on_query_servers(TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
+	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
 	void create_entity(uint8 e_type);
+
+public:
+	void login_server(TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id);
+
+private:
+	TRoleID_t get_role_id_by_client_id(TSocketIndex_t client_id) const;
 
 private:
 	TServerID_t m_server_id;
@@ -67,6 +74,7 @@ private:
 	obj_memory_pool<farmland, 1024> m_farmland_pool;
 	memory_pool m_mem_pool;
 	std::vector<TPacketSendInfo_t*> m_write_packets;
+	std::unordered_map<TSocketIndex_t, TRoleID_t> m_client_id_2_role_id;
 };
 
 #define DGameServer singleton<game_server>::get_instance()

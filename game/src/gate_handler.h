@@ -27,6 +27,8 @@ public:
 
 	bool handle_server_info(packet_base* packet);
 
+	bool handle_transfer_client(packet_base* packet);
+
 private:
 	rpc_client * m_rpc_client;
 };

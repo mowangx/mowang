@@ -26,6 +26,10 @@ public:
 	virtual void handle_init() override;
 	virtual void handle_close() override;
 
+	bool handle_login(packet_base* packet);
+	bool handle_transfer_server_by_index(packet_base* packet);
+	bool handle_transfer_server_by_name(packet_base* packet);
+
 private:
 	rpc_client * m_rpc_client;
 };

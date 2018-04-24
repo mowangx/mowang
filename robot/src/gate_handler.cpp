@@ -54,6 +54,18 @@ void gate_handler::handle_init()
 	memset(p2_2.data(), 0, 33);
 	memcpy(p2_2.data(), "mowang", 6);
 	m_rpc_client->call_remote_func("game_rpc_func_2", p2_1, p2_2);
+
+	login_packet login_info;
+	login_info.m_platform_id = 99;
+	login_info.m_server_id = 100;
+	memset(login_info.m_user_id.data(), 0, USER_ID_LEN);
+	memcpy(login_info.m_user_id.data(), "xiedi", 6);
+	login_info.m_len = sizeof(login_info);
+	TPacketSendInfo_t* packet_info = create_packet_info();
+	packet_info->socket_index = get_socket_index();
+	packet_info->packet = (packet_base*)create_packet(login_info.get_packet_len());
+	memcpy(packet_info->packet, &login_info, sizeof(login_packet));
+	write_packet(packet_info);
 }
 
 void gate_handler::handle_close()

@@ -10,6 +10,11 @@ rpc_by_name_packet packet; \
 int buffer_index = 0; \
 init_packet(packet, func_name);
 
+#define DRpcCreateServerPacket \
+transfer_server_by_name_packet packet; \
+int buffer_index = 0; \
+init_packet(packet, func_name);
+
 #define DRpcCreateClientPacket \
 transfer_client_packet transfer_packet; \
 rpc_by_name_packet packet; \
@@ -94,6 +99,72 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
 	void call_remote_func(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
 		DRpcCreatePacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7, p8);
+		send_packet(&packet, buffer_index);
+	}
+
+public:
+	void call_server(const std::string& func_name) {
+		DRpcCreateServerPacket;
+		send_packet(&packet, buffer_index);
+	}
+
+	template <class T1>
+	void call_server(const std::string& func_name, const T1& p1) {
+		DRpcCreateServerPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1);
+		send_packet(&packet, buffer_index);
+	}
+
+	template <class T1, class T2>
+	void call_server(const std::string& func_name, const T1& p1, const T2& p2) {
+		DRpcCreateServerPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2);
+		send_packet(&packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3>
+	void call_server(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3) {
+		DRpcCreateServerPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3);
+		send_packet(&packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4>
+	void call_server(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
+		DRpcCreateServerPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4);
+		send_packet(&packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5>
+	void call_server(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
+		const T5& p5) {
+		DRpcCreateServerPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5);
+		send_packet(&packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6>
+	void call_server(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
+		const T5& p5, const T6& p6) {
+		DRpcCreateServerPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6);
+		send_packet(&packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
+	void call_server(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
+		const T5& p5, const T6& p6, const T7& p7) {
+		DRpcCreateServerPacket;
+		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7);
+		send_packet(&packet, buffer_index);
+	}
+
+	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
+	void call_server(const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
+		const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
+		DRpcCreateServerPacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7, p8);
 		send_packet(&packet, buffer_index);
 	}

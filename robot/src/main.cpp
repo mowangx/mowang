@@ -40,8 +40,8 @@ void net_run(TProcessID_t process_id)
 		DNetMgr.update(0);
 		DNetMgr.test_kick();
 
-		if (DNetMgr.socket_num() < 1000) {
-			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", 10201)) {
+		if (DNetMgr.socket_num() < 100) {
+			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", 10301)) {
 				log_info("connect server failed");
 				break;
 			}

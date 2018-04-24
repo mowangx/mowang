@@ -23,6 +23,7 @@ void gate_handler::Setup()
 {
 	TBaseType_t::Setup();
 	register_handler((TPacketID_t)PACKET_ID_SERVER_INFO, (packet_handler_func)&gate_handler::handle_server_info);
+	register_handler((TPacketID_t)PACKET_ID_TRANSFER_CLIENT, (packet_handler_func)&gate_handler::handle_transfer_client);
 }
 
 TPacketSendInfo_t* gate_handler::create_packet_info()
@@ -77,5 +78,12 @@ bool gate_handler::handle_server_info(packet_base * packet)
 	DRpcWrapper.call_stub(mailbox, "game_server", "game_rpc_func_1", p1, p2, p3);
 
 	DRpcWrapper.call_stub(mailbox, "game_server", "game_rpc_func_2", p2_1, p2_2);
+	return true;
+}
+
+bool gate_handler::handle_transfer_client(packet_base * packet)
+{
+	transfer_client_packet* transfer_info = (transfer_client_packet*)packet;
+	DGameServer.transfer_client(transfer_info->m_client_id, (packet_base*)transfer_info->m_buffer);
 	return true;
 }

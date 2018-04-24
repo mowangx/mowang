@@ -105,7 +105,7 @@ public:
 		auto itr = m_proxys.find(role_id);
 		if (itr == m_proxys.end()) {
 			rpc_proxy* proxy = new rpc_proxy();
-			m_role_proxys[role_id] = proxy;
+			m_proxys[role_id] = proxy;
 			itr = m_proxys.find(role_id);
 		}
 		rpc_proxy* proxy = itr->second;

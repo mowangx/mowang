@@ -54,6 +54,7 @@ void game_server::run()
 	DRegisterRpc(this, game_server, game_rpc_func_1, 3);
 	DRegisterRpc(this, game_server, game_rpc_func_2, 2);
 	DRegisterRpc(this, game_server, on_query_servers, 3);
+	DRegisterRpc(this, game_server, login_server, 3)
 
 	DRegisterStubRpc(this, game_server, game_rpc_func_1, 3);
 	DRegisterStubRpc(this, game_server, game_rpc_func_2, 2);
@@ -199,6 +200,19 @@ void game_server::on_query_servers(TServerID_t server_id, TProcessType_t process
 	}
 }
 
+void game_server::transfer_client(TSocketIndex_t client_id, packet_base * packet)
+{
+	TPacketID_t packet_id = packet->get_packet_id();
+	if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_NAME) {
+		transfer_server_by_name_packet* rpc_info = (transfer_server_by_name_packet*)packet;
+		DRpcRole.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_name, rpc_info->m_buffer);
+	}
+	else if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_INDEX) {
+		transfer_server_by_index_packet* rpc_info = (transfer_server_by_index_packet*)packet;
+		DRpcRole.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_index, rpc_info->m_buffer);
+	}
+}
+
 void game_server::create_entity(uint8 e_type)
 {
 	entity* e = NULL;
@@ -207,4 +221,22 @@ void game_server::create_entity(uint8 e_type)
 	if (NULL != e) {
 		e->init();
 	}
+}
+
+void game_server::login_server(TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id)
+{
+	// send msg to db manager to query role id from db by platform id and user id
+	static TRoleID_t role_id = 1;
+	m_client_id_2_role_id[client_id] = role_id;
+	++role_id;
+	log_info("login server, client id = '%"I64_FMT"u', platform id = %u, user id = %s", client_id, platform_id, user_id.data());
+}
+
+TRoleID_t game_server::get_role_id_by_client_id(TSocketIndex_t client_id) const
+{
+	auto itr = m_client_id_2_role_id.find(client_id);
+	if (itr != m_client_id_2_role_id.end()) {
+		return itr->second;
+	}
+	return INVALID_ROLE_ID;
 }

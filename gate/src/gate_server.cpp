@@ -169,3 +169,39 @@ void gate_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 	memcpy(packet_info->packet, packet, packet->get_packet_len());
 	push_write_packets(packet_info);
 }
+
+void gate_server::transfer_server(TSocketIndex_t client_id, packet_base * packet)
+{
+	TPacketSendInfo_t* packet_info = allocate_packet_info();
+	packet_info->socket_index = get_server_socket_index(client_id);
+	TPacketLen_t len = (TPacketLen_t)(sizeof(transfer_client_packet) - 65000 + packet->get_packet_len());
+	transfer_client_packet* transfer_packet = (transfer_client_packet*)allocate_memory(len);
+	packet_info->packet = transfer_packet;
+	transfer_packet->m_client_id = client_id;
+	memcpy(transfer_packet->m_buffer, packet, packet->get_packet_len());
+	push_write_packets(packet_info);
+}
+
+void gate_server::login_server(TSocketIndex_t client_id, TServerID_t server_id, TPlatformID_t platform_id, const TUserID_t& user_id)
+{
+	game_process_info process_info;
+	process_info.server_id = server_id;
+	process_info.process_type = PROCESS_GAME;
+	process_info.process_id = DRpcWrapper.get_random_process_id(server_id);
+	m_client_2_process[client_id] = process_info;
+	rpc_client* rpc = DRpcWrapper.get_client(server_id, process_info.process_id);
+	if (NULL != rpc) {
+		rpc->call_remote_func("login_server", client_id, platform_id, user_id);
+		log_info("login server, client id = '%"I64_FMT"u', user id = %s, game id = %u", client_id, user_id.data(), process_info.process_id);
+	}
+}
+
+TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t client_id) const
+{
+	auto itr = m_client_2_process.find(client_id);
+	if (itr != m_client_2_process.end()) {
+		return INVALID_SOCKET_INDEX;
+	}
+	const game_process_info& process_info = itr->second;
+	return DRpcWrapper.get_socket_index(process_info.server_id, process_info.process_id);
+}

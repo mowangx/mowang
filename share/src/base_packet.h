@@ -14,15 +14,19 @@ enum packet_id_type
 {
 	PACKET_ID_SERVER_INFO = 0x01,
 
+	PACKET_ID_LOGIN = 0x10,
+
 	PACKET_ID_RPC_BY_INDEX = 0x61,
 	PACKET_ID_RPC_BY_NAME = 0x62,
 
 	PACKET_ID_ROLE_RPC_BY_INDEX = 0x81,
 	PACKET_ID_ROLE_RPC_BY_NAME = 0x81,
 
-	PACKET_ID_TRANSFER_ROLE = 0xF6,
-	PACKET_ID_TRANSFER_STUB = 0xF7,
-	PACKET_ID_TRANSFER_CLIENT = 0xF8,
+	PACKET_ID_TRANSFER_ROLE = 0xF5,
+	PACKET_ID_TRANSFER_STUB = 0xF6,
+	PACKET_ID_TRANSFER_CLIENT = 0xF7,
+	PACKET_ID_TRANSFER_SERVER_BY_INDEX = 0xF8,
+	PACKET_ID_TRANSFER_SERVER_BY_NAME = 0xF9,
 };
 
 class packet_base
@@ -68,6 +72,21 @@ public:
 
 public:
 	game_server_info m_server_info;
+};
+
+class login_packet : public packet_base
+{
+public:
+	login_packet() : packet_base(PACKET_ID_LOGIN) {
+		m_platform_id = INVALID_PLATFORM_ID;
+		m_server_id = INVALID_SERVER_ID;
+		memset(m_user_id.data(), 0, USER_ID_LEN);
+	}
+
+public:
+	TPlatformID_t m_platform_id;
+	TServerID_t m_server_id;
+	TUserID_t m_user_id;
 };
 
 class rpc_by_index_packet : public packet_base
@@ -168,6 +187,32 @@ public:
 
 public:
 	TSocketIndex_t m_client_id;
+	char m_buffer[65000];
+};
+
+class transfer_server_by_index_packet : public packet_base
+{
+public:
+	transfer_server_by_index_packet() : packet_base(PACKET_ID_TRANSFER_SERVER_BY_INDEX) {
+		m_rpc_index = 0;
+		memset(m_buffer, 0, 65000);
+	}
+
+public:
+	uint8 m_rpc_index;
+	char m_buffer[65000];
+};
+
+class transfer_server_by_name_packet : public packet_base
+{
+public:
+	transfer_server_by_name_packet() : packet_base(PACKET_ID_TRANSFER_SERVER_BY_NAME) {
+		memset(m_rpc_name, 0, 100);
+		memset(m_buffer, 0, 65000);
+	}
+
+public:
+	char m_rpc_name[100];
 	char m_buffer[65000];
 };
 
