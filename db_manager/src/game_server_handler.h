@@ -21,13 +21,11 @@ private:
 	virtual TPacketSendInfo_t* create_packet_info() override;
 	virtual char* create_packet(int n) override;
 	virtual void write_packet(TPacketSendInfo_t* packet_info) override;
+	virtual const game_server_info& get_server_info() const override;
+	virtual void register_client() override;
 
 public:
 	virtual void handle_init() override;
-	virtual void handle_close() override;
-
-private:
-	rpc_client * m_rpc_client;
 };
 
 #endif // !_GAME_SERVER_HANDLER_H_

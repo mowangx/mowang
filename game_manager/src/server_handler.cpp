@@ -12,16 +12,12 @@ server_handler::server_handler() : packet_handler<server_handler>()
 
 server_handler::~server_handler()
 {
-	if (NULL != m_rpc_client) {
-		delete m_rpc_client;
-		m_rpc_client = NULL;
-	}
+
 }
 
 void server_handler::Setup()
 {
 	TBaseType_t::Setup();
-	register_handler((TPacketID_t)PACKET_ID_SERVER_INFO, (packet_handler_func)&server_handler::handle_server_info);
 }
 
 TPacketSendInfo_t* server_handler::create_packet_info()
@@ -39,14 +35,12 @@ void server_handler::write_packet(TPacketSendInfo_t* packet_info)
 	DGameManager.push_write_packets(packet_info);
 }
 
-void server_handler::handle_close()
+const game_server_info & server_handler::get_server_info() const
 {
-	log_info("'%"I64_FMT"u', handle close", get_socket_index());
-	TBaseType_t::handle_close();
+	return DGameManager.get_server_info();
 }
 
-bool server_handler::handle_server_info(packet_base* packet)
+void server_handler::register_client()
 {
-	DGameManager.register_handle_info(m_rpc_client, (server_info_packet*)packet);
-	return true;
+	DGameManager.register_client(m_rpc_client);
 }

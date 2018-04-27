@@ -14,6 +14,7 @@
 #include "farmland.h"
 #include "npc.h"
 #include "city.h"
+#include "role.h"
 #include "server_manager.h"
 
 class rpc_client;
@@ -29,8 +30,7 @@ public:
 	void run();
 
 public:
-	void get_process_info(game_process_info& process_info) const;
-	void get_server_info(game_server_info& server_info) const;
+	const game_server_info& get_server_info() const;
 
 public:
 	TPacketSendInfo_t * allocate_packet_info();
@@ -50,23 +50,25 @@ public:
 	void deallocate_farmland(farmland* f);
 
 public:
-	void game_rpc_func_1(const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3);
-	void game_rpc_func_2(uint8 p1, const std::array<char, 33>& p2);
-	void on_query_servers(TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
-	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
-	void create_entity(uint8 e_type);
+	void register_client(rpc_client* client);
 
 public:
-	void login_server(TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id);
+	void register_server(TSocketIndex_t socket_index, const game_server_info& server_info);
+	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TProcessID_t gate_id, TPlatformID_t platform_id, TUserID_t user_id);
+	void game_rpc_func(TSocketIndex_t socket_index, TServerID_t server_id);
+	void game_rpc_func_1(TSocketIndex_t socket_index, const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3);
+	void game_rpc_func_2(TSocketIndex_t socket_index, uint8 p1, const std::array<char, 33>& p2);
+	void on_query_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
+
+public:
+	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
+	void create_entity(uint8 e_type);
 
 private:
 	TRoleID_t get_role_id_by_client_id(TSocketIndex_t client_id) const;
 
 private:
-	TServerID_t m_server_id;
-	TProcessID_t m_process_id;
-	std::array<char, IP_SIZE> m_listen_ip;
-	TPort_t m_listen_port;
+	game_server_info m_server_info;
 	obj_memory_pool<TPacketSendInfo_t, 1000> m_packet_pool;
 	obj_memory_pool<resource, 65536> m_resource_pool;
 	obj_memory_pool<city, 1024> m_city_pool;
@@ -75,6 +77,8 @@ private:
 	memory_pool m_mem_pool;
 	std::vector<TPacketSendInfo_t*> m_write_packets;
 	std::unordered_map<TSocketIndex_t, TRoleID_t> m_client_id_2_role_id;
+	std::map<TSocketIndex_t, rpc_client*> m_clients;
+	std::vector<role*> m_roles;
 };
 
 #define DGameServer singleton<game_server>::get_instance()

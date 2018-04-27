@@ -12,12 +12,10 @@
 #include "dynamic_array.h"
 #include "game_enum.h"
 
+#include "rpc_client.h"
+
 db_server::db_server()
 {
-	m_server_id = INVALID_SERVER_ID;
-	m_process_id = INVALID_PROCESS_ID;
-	memset(m_listen_ip.data(), 0, IP_SIZE);
-	m_listen_port = 0;
 	m_db = NULL;
 }
 
@@ -38,14 +36,12 @@ bool db_server::init(TProcessID_t process_id)
 
 	//return m_db->init("127.0.0.1", 3306, "root", "123456", "test");
 
-	m_process_id = process_id;
-
-	m_server_id = 100;
-
+	m_server_info.process_info.server_id = 100;
+	m_server_info.process_info.process_type = PROCESS_DB;
+	m_server_info.process_info.process_id = process_id;
 	char* ip = "127.0.0.1";
-	memcpy(m_listen_ip.data(), ip, strlen(ip));
-
-	m_listen_port = 10100 + process_id;
+	memcpy(m_server_info.ip.data(), ip, strlen(ip));
+	m_server_info.port = 10100 + process_id;
 
 	return true;
 }
@@ -104,18 +100,9 @@ void db_server::run()
 	}
 }
 
-void db_server::get_process_info(game_process_info& process_info) const
+const game_server_info& db_server::get_server_info() const
 {
-	process_info.server_id = m_server_id;
-	process_info.process_type = PROCESS_DB;
-	process_info.process_id = m_process_id;
-}
-
-void db_server::get_server_info(game_server_info& server_info) const
-{
-	get_process_info(server_info.process_info);
-	memcpy(server_info.ip.data(), m_listen_ip.data(), IP_SIZE);
-	server_info.port = m_listen_port;
+	return m_server_info;
 }
 
 TPacketSendInfo_t* db_server::allocate_packet_info()
@@ -131,4 +118,9 @@ char* db_server::allocate_memory(int n)
 void db_server::push_write_packets(TPacketSendInfo_t* packet_info)
 {
 	m_write_packets.push_back(packet_info);
+}
+
+void db_server::register_client(rpc_client * client)
+{
+	m_clients[client->get_handler()->get_socket_index()] = client;
 }

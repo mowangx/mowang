@@ -13,16 +13,12 @@ game_server_handler::game_server_handler() : packet_handler<game_server_handler>
 
 game_server_handler::~game_server_handler()
 {
-	if (NULL != m_rpc_client) {
-		delete m_rpc_client;
-		m_rpc_client = NULL;
-	}
+	
 }
 
 void game_server_handler::Setup()
 {
 	TBaseType_t::Setup();
-	register_handler((TPacketID_t)PACKET_ID_SERVER_INFO, (packet_handler_func)&game_server_handler::handle_server_info);
 	register_handler((TPacketID_t)PACKET_ID_TRANSFER_ROLE, (packet_handler_func)&game_server_handler::handle_transfer_role);
 	register_handler((TPacketID_t)PACKET_ID_TRANSFER_STUB, (packet_handler_func)&game_server_handler::handle_transfer_stub);
 	register_handler((TPacketID_t)PACKET_ID_TRANSFER_CLIENT, (packet_handler_func)&game_server_handler::handle_transfer_client);
@@ -43,25 +39,14 @@ void game_server_handler::write_packet(TPacketSendInfo_t* packet_info)
 	DGateServer.push_write_packets(packet_info);
 }
 
-void game_server_handler::handle_init()
+const game_server_info & game_server_handler::get_server_info() const
 {
-	log_info("'%"I64_FMT"u', handle init", get_socket_index());
-	server_info_packet server_info;
-	DGateServer.get_server_info(server_info.m_server_info);
-	server_info.m_len = sizeof(server_info);
-	send_packet(&server_info);
+	return DGateServer.get_server_info();
 }
 
-void game_server_handler::handle_close()
+void game_server_handler::register_client()
 {
-	log_info("'%"I64_FMT"u', handle close", get_socket_index());
-	TBaseType_t::handle_close();
-}
-
-bool game_server_handler::handle_server_info(packet_base * packet)
-{
-	DRpcWrapper.register_handle_info(m_rpc_client, (server_info_packet*)packet);
-	return true;
+	return DGateServer.register_client(m_rpc_client);
 }
 
 bool game_server_handler::handle_transfer_role(packet_base * packet)

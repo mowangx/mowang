@@ -28,7 +28,7 @@ protected:
 
 private:
 	singleton(const singleton&) {}
-	singleton operator = (const singleton&) {}
+	singleton& operator = (const singleton&) {}
 
 private:
 	static T* m_instance;

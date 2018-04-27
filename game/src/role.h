@@ -17,11 +17,14 @@ public:
 	virtual ~role();
 
 public:
-	void login(TPlatformID_t platform_id, const TUserID_t& user_id);
-
-public:
+	bool init() override;
 	void update(TGameTime_t diff);
 
+public:
+	void login(TPlatformID_t platform_id, const TUserID_t& user_id);
+	void login_with_index(TSocketIndex_t socket_index, TPlatformID_t platform_id, const TUserID_t& user_id);
+
+public:
 	void add_city(const game_pos& pos, TLevel_t lvl);
 	void del_city(const game_pos& pos);
 
@@ -41,6 +44,10 @@ public:
 	void set_game_id(TProcessID_t game_id);
 	void set_client_id(TSocketIndex_t client_id);
 	void set_role_id(TRoleID_t role_id);
+
+public:
+	const proxy_info& get_proxy_info() const;
+	const mailbox_info& get_mailbox_info() const;
 
 private:
 	void clean_up();

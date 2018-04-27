@@ -12,10 +12,7 @@ db_manager_handler::db_manager_handler() : packet_handler<db_manager_handler>()
 
 db_manager_handler::~db_manager_handler()
 {
-	if (NULL != m_rpc_client) {
-		delete m_rpc_client;
-		m_rpc_client = NULL;
-	}
+	
 }
 
 void db_manager_handler::Setup()
@@ -38,8 +35,12 @@ void db_manager_handler::write_packet(TPacketSendInfo_t* packet_info)
 	DGameServer.push_write_packets(packet_info);
 }
 
-void db_manager_handler::handle_close()
+const game_server_info & db_manager_handler::get_server_info() const
 {
-	log_info("'%"I64_FMT"u', handle close", get_socket_index());
-	TBaseType_t::handle_close();
+	return DGameServer.get_server_info();
+}
+
+void db_manager_handler::register_client()
+{
+	DGameServer.register_client(m_rpc_client);
 }

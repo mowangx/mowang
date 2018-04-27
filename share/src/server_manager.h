@@ -14,7 +14,7 @@ public:
 	~server_manager();
 
 public:
-	void get_servers(TServerID_t server_id, dynamic_array<game_server_info>& servers);
+	void get_servers(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers);
 
 public:
 	void register_server(const game_server_info& server_info);

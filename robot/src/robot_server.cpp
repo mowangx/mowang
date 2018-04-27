@@ -4,7 +4,10 @@
 #include "time_manager.h"
 #include "socket_manager.h"
 #include "gate_handler.h"
+
 #include "rpc_client.h"
+#include "rpc_proxy.h"
+#include "rpc_wrapper.h"
 
 robot_server::robot_server()
 {
@@ -36,6 +39,8 @@ void robot_server::push_write_packets(TPacketSendInfo_t* packet_info)
 
 void robot_server::run()
 {
+	DRegisterClientRpc(this, robot_server, robot_rpc_func_1, 4);
+	DRegisterClientRpc(this, robot_server, robot_rpc_func_2, 3);
 	gate_handler::Setup();
 	TAppTime_t before_loop_time(0), after_loop_time(0);
 
@@ -80,30 +85,27 @@ void robot_server::run()
 		m_write_packets.clear();
 
 		after_loop_time = DTimeMgr.update();
-		log_info("loop time: %d, read packet num = %d, write packet num = %d", (after_loop_time - before_loop_time), read_packet_num, write_packet_num);
+		//log_info("loop time: %d, read packet num = %d, write packet num = %d", (after_loop_time - before_loop_time), read_packet_num, write_packet_num);
 		if ((after_loop_time - before_loop_time) < PER_FRAME_TIME) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(PER_FRAME_TIME + before_loop_time - after_loop_time));
 		}
 	}
 }
 
-void robot_server::register_gate(TSocketIndex_t client_id, rpc_client * rpc)
+void robot_server::register_client(rpc_client * rpc)
 {
-	m_gates[client_id] = rpc;
+	m_rpc_client = rpc;
 }
 
 void robot_server::robot_rpc_func_1(TSocketIndex_t client_id, const dynamic_string & p1, uint16 p2, const std::array<char, 127>& p3)
 {
 	log_info("robot rpc func 1, p1 = %s, p2 = %d, p3 = %s", p1.data(), p2, p3.data());
-	uint8 p2_1 = 99;
-	std::array<char, 33> p2_2;
-	memset(p2_2.data(), 0, 33);
-	memcpy(p2_2.data(), "mowang", 6);
-	auto itr = m_gates.find(client_id);
-	if (itr != m_gates.end()) {
-		rpc_client* rpc = itr->second;
-		rpc->call_remote_func("game_rpc_func_2", p2_1, p2_2);
-	}
+
+	TPlatformID_t platform_id = 88;
+	TUserID_t user_id;
+	memset(user_id.data(), 0, USER_ID_LEN);
+	memcpy(user_id.data(), "mowang", 6);
+	m_rpc_client->call_server("login", platform_id, user_id);
 }
 
 void robot_server::robot_rpc_func_2(TSocketIndex_t client_id, uint8 p1, const std::array<char, 33>& p2)

@@ -12,10 +12,7 @@ game_server_handler::game_server_handler() : packet_handler<game_server_handler>
 
 game_server_handler::~game_server_handler()
 {
-	if (NULL != m_rpc_client) {
-		delete m_rpc_client;
-		m_rpc_client = NULL;
-	}
+
 }
 
 void game_server_handler::Setup()
@@ -38,8 +35,21 @@ void game_server_handler::write_packet(TPacketSendInfo_t* packet_info)
 	DDbServer.push_write_packets(packet_info);
 }
 
+const game_server_info & game_server_handler::get_server_info() const
+{
+	return DDbServer.get_server_info();
+}
+
+void game_server_handler::register_client()
+{
+	DDbServer.register_client(m_rpc_client);
+}
+
 void game_server_handler::handle_init()
 {
+	log_info("'%"I64_FMT"u', game connect success, handle init", get_socket_index());
+	TBaseType_t::handle_init();
+
 	dynamic_string p1("xiedi");
 	uint16 p2 = 65500;
 	std::array<char, 127> p3;
@@ -52,10 +62,4 @@ void game_server_handler::handle_init()
 	memset(p2_2.data(), 0, 33);
 	memcpy(p2_2.data(), "mowang", 6);
 	m_rpc_client->call_remote_func("game_rpc_func_2", p2_1, p2_2);
-}
-
-void game_server_handler::handle_close()
-{
-	log_info("'%"I64_FMT"u', handle close", get_socket_index());
-	TBaseType_t::handle_close();
 }

@@ -2,6 +2,7 @@
 #include "role.h"
 #include "game_server.h"
 #include "city.h"
+#include "rpc_proxy.h"
 
 role::role()
 {
@@ -19,10 +20,12 @@ role::~role()
 	m_cities.clear();
 }
 
-void role::login(TPlatformID_t platform_id, const TUserID_t & user_id)
+bool role::init()
 {
-	m_platform_id = platform_id;
-	m_user_id = user_id;
+	DRegisterServerRpc(this, role, login_with_index, 3);
+	DRegisterStubRpc(this, role, login, 2);
+	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, login, 2);
+	return true;
 }
 
 void role::update(TGameTime_t diff)
@@ -30,6 +33,20 @@ void role::update(TGameTime_t diff)
 	for (auto c : m_cities) {
 		c->update(diff);
 	}
+}
+
+void role::login(TPlatformID_t platform_id, const TUserID_t & user_id)
+{
+	log_info("role login, platform id = %u, user id = %s", platform_id, user_id.data());
+	m_platform_id = platform_id;
+	m_user_id = user_id;
+}
+
+void role::login_with_index(TSocketIndex_t socket_index, TPlatformID_t platform_id, const TUserID_t & user_id)
+{
+	log_info("role login, platform id = %u, user id = %s", platform_id, user_id.data());
+	m_platform_id = platform_id;
+	m_user_id = user_id;
 }
 
 void role::add_city(const game_pos & pos, TLevel_t lvl)
@@ -110,6 +127,16 @@ void role::set_client_id(TSocketIndex_t client_id)
 void role::set_role_id(TRoleID_t role_id)
 {
 	m_mailbox_info.role_id = role_id;
+}
+
+const proxy_info & role::get_proxy_info() const
+{
+	return m_proxy_info;
+}
+
+const mailbox_info & role::get_mailbox_info() const
+{
+	return m_mailbox_info;
 }
 
 void role::clean_up()

@@ -7,6 +7,7 @@
 #include "game_enum.h"
 #include "rpc_client.h"
 #include "rpc_proxy.h"
+#include "rpc_wrapper.h"
 
 game_manager::game_manager()
 {
@@ -20,12 +21,19 @@ game_manager::~game_manager()
 
 bool game_manager::init(TProcessID_t process_id)
 {
+	m_server_info.process_info.server_id = 100;
+	m_server_info.process_info.process_type = PROCESS_GAME_MANAGER;
+	m_server_info.process_info.process_id = process_id;
+	char* ip = "127.0.0.1";
+	memcpy(m_server_info.ip.data(), ip, strlen(ip));
+	m_server_info.port = 10000;
 	return true;
 }
 
 void game_manager::run()
 {
-	DRegisterRpc(this, game_manager, query_servers, 3);
+	DRegisterServerRpc(this, game_manager, register_server, 2)
+	DRegisterServerRpc(this, game_manager, query_servers, 3);
 
 	server_handler::Setup();
 	TAppTime_t before_loop_time(0), after_loop_time(0);
@@ -73,6 +81,11 @@ void game_manager::run()
 	}
 }
 
+const game_server_info & game_manager::get_server_info() const
+{
+	return m_server_info;
+}
+
 TPacketSendInfo_t* game_manager::allocate_packet_info()
 {
 	return m_packet_pool.allocate();
@@ -88,57 +101,38 @@ void game_manager::push_write_packets(TPacketSendInfo_t* packet_info)
 	m_write_packets.push_back(packet_info);
 }
 
-void game_manager::register_handle_info(rpc_client* client, server_info_packet* server_info)
+void game_manager::register_client(rpc_client* client)
 {
-	m_clients[get_client_key_id(server_info->m_server_info.process_info)] = client;
-	TProcessType_t process_type = server_info->m_server_info.process_info.process_type;
-	if (process_type == PROCESS_GATE) {
-		m_gates.register_server(server_info->m_server_info);
-	}
-	else if (process_type == PROCESS_GAME) {
-		m_games.register_server(server_info->m_server_info);
-	}
-	else if (process_type == PROCESS_DB) {
-		m_dbs.register_server(server_info->m_server_info);
-	}
-	log_info("register handle info, server id = %d, process type = %d, process id = %d, listen ip = %s, port = %d", 
-		server_info->m_server_info.process_info.server_id, (TProcessType_t)server_info->m_server_info.process_info.process_type, 
-		server_info->m_server_info.process_info.process_id, server_info->m_server_info.ip.data(), server_info->m_server_info.port);
+	m_clients[client->get_handler()->get_socket_index()] = client;
 }
 
-void game_manager::query_servers(const game_process_info& process_info, TServerID_t server_id, TProcessType_t process_type)
+void game_manager::register_server(TSocketIndex_t socket_index, const game_server_info& server_info)
+{
+	auto itr = m_clients.find(socket_index);
+	if (itr != m_clients.end()) {
+		DRpcWrapper.register_handler_info(itr->second, server_info);
+	}
+	log_info("register handle info, server id = %d, process type = %d, process id = %d, listen ip = %s, port = %d",
+		server_info.process_info.server_id, (TProcessType_t)server_info.process_info.process_type, server_info.process_info.process_id, 
+		server_info.ip.data(), server_info.port);
+}
+
+void game_manager::query_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type)
 {
 	log_info("query servers, server id = %d, process type = %d", server_id, process_type);
 	dynamic_array<game_server_info> servers;
-	if (process_type == PROCESS_GATE) {
-		m_gates.get_servers(server_id, servers);
-	}
-	else if (process_type == PROCESS_GAME) {
-		m_games.get_servers(server_id, servers);
-	}
-	else if (process_type == PROCESS_DB) {
-		m_dbs.get_servers(server_id, servers);
-	}
-	rpc_client* rpc = get_client(process_info);
+	DRpcWrapper.get_server_infos(server_id, process_type, servers);
+	rpc_client* rpc = get_client(socket_index);
 	if (NULL != rpc) {
 		rpc->call_remote_func("on_query_servers", server_id, process_type, servers);
 	}
 }
 
-rpc_client* game_manager::get_client(const game_process_info& process_info)
+rpc_client* game_manager::get_client(TSocketIndex_t socket_index)
 {
-	uint64 key_id = get_client_key_id(process_info);
-	auto itr = m_clients.find(key_id);
+	auto itr = m_clients.find(socket_index);
 	if (itr != m_clients.end()) {
 		return itr->second;
 	}
 	return NULL;
-}
-
-uint64 game_manager::get_client_key_id(const game_process_info& process_info)
-{
-	uint64 key_id = process_info.server_id;
-	key_id = (key_id << (sizeof(process_info.process_type) * 8)) + process_info.process_type;
-	key_id = (key_id << (sizeof(process_info.process_id) * 8)) + process_info.process_id;
-	return key_id;
 }

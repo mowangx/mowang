@@ -13,10 +13,7 @@ gate_handler::gate_handler() : packet_handler<gate_handler>()
 
 gate_handler::~gate_handler()
 {
-	if (NULL != m_rpc_client) {
-		delete m_rpc_client;
-		m_rpc_client = NULL;
-	}
+
 }
 
 void gate_handler::Setup()
@@ -39,37 +36,44 @@ void gate_handler::write_packet(TPacketSendInfo_t* packet_info)
 	DRobotServer.push_write_packets(packet_info);
 }
 
+const game_server_info & gate_handler::get_server_info() const
+{
+	return game_server_info();
+}
+
+void gate_handler::register_client()
+{
+}
+
 void gate_handler::handle_init()
 {
-	log_info("'%"I64_FMT"u', handle init", get_socket_index());
-	dynamic_string p1("xiedi");
-	uint16 p2 = 65500;
-	std::array<char, 127> p3;
-	memset(p3.data(), 0, 127);
-	memcpy(p3.data(), "hello world", 11);
-	m_rpc_client->call_remote_func("game_rpc_func_1", p1, p2, p3);
+	log_info("'%"I64_FMT"u', gate connect success, handle init", get_socket_index());
+	DRobotServer.register_client(m_rpc_client);
 
-	uint8 p2_1 = 99;
-	std::array<char, 33> p2_2;
-	memset(p2_2.data(), 0, 33);
-	memcpy(p2_2.data(), "mowang", 6);
-	m_rpc_client->call_remote_func("game_rpc_func_2", p2_1, p2_2);
-
-	login_packet login_info;
-	login_info.m_platform_id = 99;
-	login_info.m_server_id = 100;
-	memset(login_info.m_user_id.data(), 0, USER_ID_LEN);
-	memcpy(login_info.m_user_id.data(), "xiedi", 6);
-	login_info.m_len = sizeof(login_info);
-	TPacketSendInfo_t* packet_info = create_packet_info();
-	packet_info->socket_index = get_socket_index();
-	packet_info->packet = (packet_base*)create_packet(login_info.get_packet_len());
-	memcpy(packet_info->packet, &login_info, sizeof(login_packet));
-	write_packet(packet_info);
+	TPlatformID_t platform_id = 99;
+	TServerID_t server_id = 100;
+	TUserID_t user_id;
+	memset(user_id.data(), 0, USER_ID_LEN);
+	memcpy(user_id.data(), "xiedi", 5);
+	m_rpc_client->call_remote_func("login_server", platform_id, server_id, user_id);
 }
 
 void gate_handler::handle_close()
 {
-	log_info("'%"I64_FMT"u', handle close", get_socket_index());
+	log_info("'%"I64_FMT"u', gate disconnect, handle close", get_socket_index());
 	TBaseType_t::handle_close();
+}
+
+bool gate_handler::handle_rpc_by_index(packet_base * packet)
+{
+	rpc_by_index_packet* rpc_info = (rpc_by_index_packet*)packet;
+	DRpcStub.call(rpc_info->m_rpc_index, rpc_info->m_buffer);
+	return true;
+}
+
+bool gate_handler::handle_rpc_by_name(packet_base * packet)
+{
+	rpc_by_name_packet* rpc_info = (rpc_by_name_packet*)packet;
+	DRpcStub.call(rpc_info->m_rpc_name, rpc_info->m_buffer);
+	return true;
 }

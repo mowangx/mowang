@@ -13,10 +13,7 @@ game_manager_handler::game_manager_handler() : packet_handler<game_manager_handl
 
 game_manager_handler::~game_manager_handler()
 {
-	if (NULL != m_rpc_client) {
-		delete m_rpc_client;
-		m_rpc_client = NULL;
-	}
+
 }
 
 void game_manager_handler::Setup()
@@ -39,21 +36,18 @@ void game_manager_handler::write_packet(TPacketSendInfo_t* packet_info)
 	DGateServer.push_write_packets(packet_info);
 }
 
-void game_manager_handler::handle_init()
+const game_server_info & game_manager_handler::get_server_info() const
 {
-	log_info("'%"I64_FMT"u', handle init", get_socket_index());
-	server_info_packet server_info;
-	DGateServer.get_server_info(server_info.m_server_info);
-	server_info.m_len = sizeof(server_info);
-	send_packet(&server_info);
-
-	game_process_info process_info;
-	DGateServer.get_process_info(process_info);
-	m_rpc_client->call_remote_func("query_servers", process_info, (TServerID_t)100, (TProcessType_t)PROCESS_GAME);
+	return DGateServer.get_server_info();
 }
 
-void game_manager_handler::handle_close()
+void game_manager_handler::register_client()
 {
-	log_info("'%"I64_FMT"u', handle close", get_socket_index());
-	TBaseType_t::handle_close();
+	DGateServer.register_client(m_rpc_client);
+}
+
+void game_manager_handler::handle_init()
+{
+	TBaseType_t::handle_init();
+	m_rpc_client->call_remote_func("query_servers", (TServerID_t)100, (TProcessType_t)PROCESS_GAME);
 }

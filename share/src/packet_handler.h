@@ -8,11 +8,13 @@
 #include "log.h"
 
 class socket_base;
+class rpc_client;
 
 class game_handler
 {
 public:
 	game_handler();
+	virtual ~game_handler();
 
 public:
 	virtual bool handle(packet_base* packet) = 0;
@@ -24,6 +26,10 @@ public:
 	virtual void write_packet(TPacketSendInfo_t* packet_info) = 0;
 
 	virtual void  send_packet(packet_base* packet) = 0;
+
+	virtual const game_server_info& get_server_info() const = 0;
+
+	virtual void register_client() = 0;
 
 	virtual void handle_init();
 
@@ -40,8 +46,9 @@ public:
 
 	bool is_valid() const;
 
-private:
+protected:
 	TSocketIndex_t m_socket_index;
+	rpc_client* m_rpc_client;
 };
 
 typedef bool (game_handler::*packet_handler_func)(packet_base* packet);

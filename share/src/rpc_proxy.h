@@ -14,32 +14,42 @@ class rpc_proxy
 {
 public:
 	rpc_proxy();
-	rpc_proxy(const rpc_proxy& rhs);
 	~rpc_proxy();
 
-	rpc_proxy operator = (const rpc_proxy& rhs);
+private:
+	rpc_proxy(const rpc_proxy&) {}
+	rpc_proxy& operator = (const rpc_proxy&) {}
 
 public:
 	template <size_t N, class F1, class F2>
 	void register_func(const std::string& func_name, F1 func1, const F2& func2) {
 		typedef typename func_param<F1>::args_type args_type;
-		m_name_2_func[func_name] = [&](char* buffer) {
+		m_name_2_func.insert(std::make_pair(func_name, [func2](char* buffer) {
 			int buffer_index = 0;
 			args_type args_real;
 			rpc_param<N, N>::convert(args_real, buffer, buffer_index);
-			call_func(func2, args_real);
-		};
+			call_helper<N>::call(func2, args_real);
+		}));
 	}
 
-	void call(uint8 func_index, char* buffer);
-	void call(const std::string& func_name, char* buffer);
-
-private:
-	template <typename F, typename... T>
-	auto call_func(F f, std::tuple<T...>& args) -> decltype(call_helper<sizeof...(T)>::call(f, args))
-	{
-		return call_helper<sizeof...(T)>::call(f, args);
+	template <size_t N, class F1, class F2>
+	void register_func_with_index(const std::string& func_name, F1 func1, const F2& func2) {
+		typedef typename func_param<F1>::args_type args_type;
+		m_name_2_func_with_index.insert(std::make_pair(func_name, [func2](char* buffer, TSocketIndex_t socket_index) {
+			int buffer_index = 0;
+			args_type args_real;
+			std::get<0>(args_real) = socket_index;
+			rpc_param<N-1, N>::convert(args_real, buffer, buffer_index);
+			call_helper<N>::call(func2, args_real);
+		}));
 	}
+
+public:
+	void call(uint8 func_index, char* buffer) const;
+	void call(const std::string& func_name, char* buffer) const;
+
+	void call_with_index(uint8 func_index, char* buffer, TSocketIndex_t socket_index) const;
+	void call_with_index(const std::string& func_name, char* buffer, TSocketIndex_t socket_index) const;
 
 private:
 	void clean_up();
@@ -47,20 +57,14 @@ private:
 private:
 	std::map<uint8, std::string> m_index_2_name;
 	std::map<std::string, std::function<void(char*)>> m_name_2_func;
+	std::map<std::string, std::function<void(char*, TSocketIndex_t)>> m_name_2_func_with_index;
 };
 
 class rpc_stub : public singleton<rpc_stub>
 {
 public:
-	rpc_stub() { 
-		m_proxy = new rpc_proxy();
-	}
-
-	~rpc_stub() {
-		if (NULL != m_proxy) {
-			delete m_proxy;
-		}
-	}
+	rpc_stub();
+	~rpc_stub();
 
 public:
 	template <size_t N, class F1, class F2>
@@ -68,16 +72,19 @@ public:
 		m_proxy->register_func<N>(func_name, func1, func2);
 	}
 
-	void call(uint8 func_index, char* buffer) {
-		m_proxy->call(func_index, buffer);
+	template <size_t N, class F1, class F2>
+	void register_func_with_index(const std::string& func_name, F1 func1, const F2& func2) {
+		m_proxy->register_func_with_index<N>(func_name, func1, func2);
 	}
 
-	void call(const std::string& func_name, char* buffer) {
-		m_proxy->call(func_name, buffer);
-	}
+	void call(uint8 func_index, char* buffer);
+	void call(const std::string& func_name, char* buffer);
+
+	void call_with_index(uint8 func_index, char* buffer, TSocketIndex_t socket_index);
+	void call_with_index(const std::string& func_name, char* buffer, TSocketIndex_t socket_index);
 
 private:
-	rpc_proxy* m_proxy;
+	rpc_proxy * m_proxy;
 };
 
 #define DRpcStub singleton<rpc_stub>::get_instance()
@@ -85,48 +92,29 @@ private:
 class rpc_role : public singleton<rpc_role>
 {
 public:
-	rpc_role() {
-		m_proxys.clear();
-	}
-
-	~rpc_role() {
-		for (auto itr = m_proxys.begin(); itr != m_proxys.end(); ++itr) {
-			rpc_proxy* proxy = itr->second;
-			if (NULL != proxy) {
-				delete proxy;
-			}
-		}
-		m_proxys.clear();
-	}
+	rpc_role();
+	~rpc_role();
 
 public:
 	template <size_t N, class F1, class F2>
 	void register_func(TRoleID_t role_id, const std::string& func_name, F1 func1, const F2& func2) {
+		rpc_proxy* proxy = NULL;
 		auto itr = m_proxys.find(role_id);
-		if (itr == m_proxys.end()) {
-			rpc_proxy* proxy = new rpc_proxy();
-			m_proxys[role_id] = proxy;
-			itr = m_proxys.find(role_id);
+		if (itr != m_proxys.end()) {
+			proxy = itr->second;
 		}
-		rpc_proxy* proxy = itr->second;
+		else {
+			proxy = new rpc_proxy();
+			m_proxys[role_id] = proxy;
+		}
 		proxy->register_func<N>(func_name, func1, func2);
 	}
 
-	void call(TRoleID_t role_id, uint8 func_index, char* buffer) {
-		auto itr = m_proxys.find(role_id);
-		if (itr != m_proxys.end()) {
-			rpc_proxy* proxy = itr->second;
-			proxy->call(func_index, buffer);
-		}
-	}
+	void call(TRoleID_t role_id, uint8 func_index, char* buffer);
+	void call(TRoleID_t role_id, const std::string& func_name, char* buffer);
 
-	void call(TRoleID_t role_id, const std::string& func_name, char* buffer) {
-		auto itr = m_proxys.find(role_id);
-		if (itr != m_proxys.end()) {
-			rpc_proxy* proxy = itr->second;
-			proxy->call(func_name, buffer);
-		}
-	}
+private:
+	rpc_proxy * get_proxy(TRoleID_t role_id) const;
 
 private:
 	std::map<TRoleID_t, rpc_proxy*> m_proxys;
@@ -145,12 +133,16 @@ private:
 #define DRpcBindFunc_8(obj) DRpcBindFunc_7(obj), std::placeholders::_8
 
 // 参数依次为：
-#define DRegisterRpc(obj, class_name, func_name, args_count) { \
+#define DRegisterClientRpc(obj, class_name, func_name, args_count) { \
 	DRpcStub.register_func<args_count>(#func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
+#define DRegisterServerRpc(obj, class_name, func_name, args_count) { \
+	DRpcStub.register_func_with_index<args_count>(#func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+}
+
 #define DRegisterStubRpc(obj, class_name, func_name, args_count) { \
-	DRpcStub.register_func<args_count>(#class_name###func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+	DRpcStub.register_func_with_index<args_count>(#class_name###func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
 #define DRegisterRoleRpc(role_id, obj, class_name, func_name, args_count) { \

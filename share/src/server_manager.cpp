@@ -13,7 +13,7 @@ server_manager::~server_manager()
 	clean_up();
 }
 
-void server_manager::get_servers(TServerID_t server_id, dynamic_array<game_server_info>& servers)
+void server_manager::get_servers(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers)
 {
 	auto server_itr = m_servers.find(server_id);
 	if (server_itr == m_servers.end()) {
@@ -21,7 +21,9 @@ void server_manager::get_servers(TServerID_t server_id, dynamic_array<game_serve
 	}
 	std::vector<game_server_info>& cur_servers = server_itr->second;
 	for (auto server_info : cur_servers) {
-		servers.push_back(server_info);
+		if (server_info.process_info.process_type == process_type) {
+			servers.push_back(server_info);
+		}
 	}
 }
 

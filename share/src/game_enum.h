@@ -8,7 +8,7 @@ enum game_process_type
 	PROCESS_GATE = 1,
 	PROCESS_GAME,
 	PROCESS_DB,
-	PROCESS_DB_MANAGER,
+	PROCESS_GAME_MANAGER,
 };
 
 enum entity_type

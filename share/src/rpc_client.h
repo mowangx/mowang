@@ -172,35 +172,35 @@ public:
 public:
 	void call_client(TSocketIndex_t client_id, const std::string& func_name) {
 		DRpcCreateClientPacket;
-		send_packet(&transfer_packet, buffer_index);
+		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1>
 	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1) {
 		DRpcCreateClientPacket;
 		fill_packet(packet.m_buffer, buffer_index, p1);
-		send_packet(&transfer_packet, buffer_index);
+		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1, class T2>
 	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2) {
 		DRpcCreateClientPacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2);
-		send_packet(&transfer_packet, buffer_index);
+		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3>
 	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3) {
 		DRpcCreateClientPacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3);
-		send_packet(&transfer_packet, buffer_index);
+		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4>
 	void call_client(TSocketIndex_t client_id, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
 		DRpcCreateClientPacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4);
-		send_packet(&transfer_packet, buffer_index);
+		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5>
@@ -208,7 +208,7 @@ public:
 		const T5& p5) {
 		DRpcCreateClientPacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5);
-		send_packet(&transfer_packet, buffer_index);
+		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6>
@@ -216,7 +216,7 @@ public:
 		const T5& p5, const T6& p6) {
 		DRpcCreateClientPacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6);
-		send_packet(&transfer_packet, buffer_index);
+		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
@@ -224,7 +224,7 @@ public:
 		const T5& p5, const T6& p6, const T7& p7) {
 		DRpcCreateClientPacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7);
-		send_packet(&transfer_packet, buffer_index);
+		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
@@ -232,7 +232,7 @@ public:
 		const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
 		DRpcCreateClientPacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7, p8);
-		send_packet(&transfer_packet, buffer_index);
+		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 public:

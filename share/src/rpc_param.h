@@ -118,7 +118,7 @@ template <size_t N>
 struct call_helper
 {
 	template <typename Functor, typename... ArgsT, typename... ArgsF>
-	static auto call(Functor f, std::tuple<ArgsT...>& args_t, ArgsF&&... args_f) -> decltype(call_helper<N - 1>::call( f, args_t, std::get<N - 1>(args_t), std::forward<ArgsF>(args_f)...)) {
+	static auto call(const Functor& f, std::tuple<ArgsT...>& args_t, ArgsF&&... args_f) -> decltype(call_helper<N - 1>::call(f, args_t, std::get<N - 1>(args_t), std::forward<ArgsF>(args_f)...)) {
 		return call_helper<N - 1>::call(f, args_t, std::get<N - 1>(args_t), std::forward<ArgsF>(args_f)...);
 	}
 };
@@ -127,7 +127,7 @@ template <>
 struct call_helper<0>
 {
 	template <typename Functor, typename... ArgsT, typename... ArgsF>
-	static auto call(Functor f, std::tuple<ArgsT...>&, ArgsF&&... args_f) -> decltype(f(std::forward<ArgsF>(args_f)...)) {
+	static auto call(const Functor& f, std::tuple<ArgsT...>&, ArgsF&&... args_f) -> decltype(f(std::forward<ArgsF>(args_f)...)) {
 		return f(std::forward<ArgsF>(args_f)...);
 	}
 };

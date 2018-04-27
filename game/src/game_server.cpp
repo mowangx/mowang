@@ -14,14 +14,11 @@
 
 #include "rpc_proxy.h"
 #include "rpc_client.h"
+#include "rpc_wrapper.h"
 
 game_server::game_server()
 {
 	m_write_packets.clear();
-	m_server_id = INVALID_SERVER_ID;
-	m_process_id = INVALID_PROCESS_ID;
-	memset(m_listen_ip.data(), 0, IP_SIZE);
-	m_listen_port = 0;
 }
 
 game_server::~game_server()
@@ -37,28 +34,30 @@ bool game_server::init(TProcessID_t process_id)
 	}
 	log_info("load config success");
 
-	m_process_id = process_id;
-
-	m_server_id = 100;
-	
+	m_server_info.process_info.server_id = 100;
+	m_server_info.process_info.process_type = PROCESS_GAME;
+	m_server_info.process_info.process_id = process_id;
 	char* ip = "127.0.0.1";
-	memcpy(m_listen_ip.data(), ip, strlen(ip));
+	memcpy(m_server_info.ip.data(), ip, strlen(ip));
+	m_server_info.port = 10200 + process_id;
 
-	m_listen_port = 10200 + m_process_id;
+	DRegisterServerRpc(this, game_server, game_rpc_func, 2);
+	DRegisterStubRpc(this, game_server, game_rpc_func, 2);
+
+	DRegisterServerRpc(this, game_server, register_server, 2);
+	DRegisterServerRpc(this, game_server, on_query_servers, 4);
+	DRegisterServerRpc(this, game_server, login_server, 5);
+	DRegisterServerRpc(this, game_server, game_rpc_func_1, 4);
+	DRegisterServerRpc(this, game_server, game_rpc_func_2, 3);
+
+	DRegisterStubRpc(this, game_server, game_rpc_func_1, 4);
+	DRegisterStubRpc(this, game_server, game_rpc_func_2, 3);
 
 	return true;
 }
 
 void game_server::run()
 {
-	DRegisterRpc(this, game_server, game_rpc_func_1, 3);
-	DRegisterRpc(this, game_server, game_rpc_func_2, 2);
-	DRegisterRpc(this, game_server, on_query_servers, 3);
-	DRegisterRpc(this, game_server, login_server, 3)
-
-	DRegisterStubRpc(this, game_server, game_rpc_func_1, 3);
-	DRegisterStubRpc(this, game_server, game_rpc_func_2, 2);
-
 	gate_handler::Setup();
 	game_manager_handler::Setup();
 	db_manager_handler::Setup();
@@ -107,18 +106,9 @@ void game_server::run()
 	}
 }
 
-void game_server::get_process_info(game_process_info & process_info) const
+const game_server_info& game_server::get_server_info() const
 {
-	process_info.server_id = m_server_id;
-	process_info.process_type = PROCESS_GAME;
-	process_info.process_id = m_process_id;
-}
-
-void game_server::get_server_info(game_server_info& server_info) const
-{
-	get_process_info(server_info.process_info);
-	server_info.port = m_listen_port;
-	memcpy(server_info.ip.data(), m_listen_ip.data(), IP_SIZE);
+	return m_server_info;
 }
 
 TPacketSendInfo_t* game_server::allocate_packet_info()
@@ -176,17 +166,86 @@ void game_server::deallocate_farmland(farmland * f)
 	m_farmland_pool.deallocate(f);
 }
 
-void game_server::game_rpc_func_1(const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3)
+void game_server::register_client(rpc_client * client)
+{
+	m_clients[client->get_handler()->get_socket_index()] = client;
+}
+
+void game_server::register_server(TSocketIndex_t socket_index, const game_server_info& server_info)
+{
+	auto itr = m_clients.find(socket_index);
+	if (itr != m_clients.end()) {
+		DRpcWrapper.register_handler_info(itr->second, server_info);
+	}
+
+	dynamic_string p1("xiedi");
+	uint16 p2 = 65500;
+	std::array<char, 127> p3;
+	memset(p3.data(), 0, 127);
+	memcpy(p3.data(), "hello world", 11);
+
+	uint8 p2_1 = 99;
+	std::array<char, 33> p2_2;
+	memset(p2_2.data(), 0, 33);
+	memcpy(p2_2.data(), "mowang", 6);
+
+	game_process_info process_info;
+	process_info.server_id = 100;
+	process_info.process_type = PROCESS_GAME;
+	process_info.process_id = 1;
+
+	DRpcWrapper.call_stub(process_info, "game_server", "game_rpc_func_1", p1, p2, p3);
+
+	DRpcWrapper.call_stub(process_info, "game_server", "game_rpc_func_2", p2_1, p2_2);
+}
+
+void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TProcessID_t gate_id, TPlatformID_t platform_id, TUserID_t user_id)
+{
+	// send msg to db manager to query role id from db by platform id and user id
+	static TRoleID_t role_id = 1;
+	++role_id;
+	role* p = new role();
+	p->set_server_id(100);
+	p->set_game_id(m_server_info.process_info.process_id);
+	p->set_client_id(client_id);
+	p->set_gate_id(gate_id);
+	p->set_role_id(role_id);
+	p->init();
+	m_client_id_2_role_id[client_id] = role_id;
+	m_roles.push_back(p);
+
+	dynamic_string p1("xiedi");
+	TServerID_t server_id = 100;
+	std::array<char, 127> p3;
+	memset(p3.data(), 0, 127);
+	memcpy(p3.data(), "hello world", 11);
+	DRpcWrapper.call_client(p->get_proxy_info(), "robot_rpc_func_1", client_id, p1, server_id, p3);
+
+	uint8 p2_1 = 99;
+	std::array<char, 33> p2_2;
+	memset(p2_2.data(), 0, 33);
+	memcpy(p2_2.data(), "mowang", 6);
+	DRpcWrapper.call_client(p->get_proxy_info(), "robot_rpc_func_2", client_id, p2_1, p2_2);
+
+	log_info("login server, client id = '%"I64_FMT"u', platform id = %u, user id = %s", client_id, platform_id, user_id.data());
+}
+
+void game_server::game_rpc_func(TSocketIndex_t socket_index, TServerID_t server_id)
+{
+	log_info("game rpc func, server id = %u", server_id);
+}
+
+void game_server::game_rpc_func_1(TSocketIndex_t socket_index, const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3)
 {
 	log_info("game rpc func 1, p1 = %s, p2 = %d, p3 = %s", p1.data(), p2, p3.data());
 }
 
-void game_server::game_rpc_func_2(uint8 p1, const std::array<char, 33>& p2)
+void game_server::game_rpc_func_2(TSocketIndex_t socket_index, uint8 p1, const std::array<char, 33>& p2)
 {
 	log_info("game rpc func 2, p1 = %d, p2 = %s", p1, p2.data());
 }
 
-void game_server::on_query_servers(TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
+void game_server::on_query_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
 {
 	log_info("on_query_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
 	for (int i = 0; i < servers.size(); ++i) {
@@ -221,15 +280,6 @@ void game_server::create_entity(uint8 e_type)
 	if (NULL != e) {
 		e->init();
 	}
-}
-
-void game_server::login_server(TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id)
-{
-	// send msg to db manager to query role id from db by platform id and user id
-	static TRoleID_t role_id = 1;
-	m_client_id_2_role_id[client_id] = role_id;
-	++role_id;
-	log_info("login server, client id = '%"I64_FMT"u', platform id = %u, user id = %s", client_id, platform_id, user_id.data());
 }
 
 TRoleID_t game_server::get_role_id_by_client_id(TSocketIndex_t client_id) const
