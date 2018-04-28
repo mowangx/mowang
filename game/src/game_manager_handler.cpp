@@ -50,9 +50,3 @@ void game_manager_handler::unregister_client()
 {
 	DGameServer.unregister_client(get_socket_index());
 }
-
-void game_manager_handler::handle_init()
-{
-	TBaseType_t::handle_init();
-	m_rpc_client->call_remote_func("query_servers", (TServerID_t)100, (TProcessType_t)PROCESS_DB);
-}

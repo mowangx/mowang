@@ -29,6 +29,8 @@ static const uint32 MAX_TECHNOLOGY_NUM = 20;	// 科技类型数量
 
 static const uint32 USER_ID_LEN = 64;	// 用户ID长度
 
+static const uint32 MAX_PROCESS_TYPE_NUM = 4; // 进程类型数量
+
 typedef uint32 TTime_t;					// 系统时间
 typedef uint32 TAppTime_t;				// 程序运行的毫秒数
 
@@ -56,6 +58,9 @@ const TProcessType_t INVALID_PROCESS_TYPE = 0;
 
 typedef uint16 TProcessID_t;			// 进程id
 const TProcessID_t INVALID_PROCESS_ID = 0;
+
+typedef sint16 TProcessNum_t;			// 进程数量
+const TProcessNum_t INVALID_PROCESS_NUM = 0;
 
 typedef uint8 TAttrType_t;				// 属性类型
 const TAttrType_t INVALID_ATTR_TYPE = 0;

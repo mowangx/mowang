@@ -46,6 +46,10 @@ public:
 public:
 	void register_server(TSocketIndex_t socket_index, const game_server_info& server_info);
 
+protected:
+	virtual void on_connect(TSocketIndex_t socket_index);
+	virtual void on_disconnect(TSocketIndex_t socket_index);
+
 public:
 	rpc_client* get_client(TSocketIndex_t socket_index);
 

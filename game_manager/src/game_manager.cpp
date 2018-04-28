@@ -7,6 +7,9 @@
 
 game_manager::game_manager() : service(PROCESS_GAME_MANAGER)
 {
+	for (int i = 0; i < MAX_PROCESS_TYPE_NUM; ++i) {
+		m_process_num[i] = 0;
+	}
 }
 
 game_manager::~game_manager()
@@ -28,29 +31,84 @@ bool game_manager::init(TProcessID_t process_id)
 	server_handler::Setup();
 
 	DRegisterServerRpc(this, game_manager, register_server, 2);
-	DRegisterServerRpc(this, game_manager, query_servers, 3);
 	
 	return true;
 }
 
-void game_manager::register_server(TSocketIndex_t socket_index, const game_server_info& server_info)
+bool game_manager::check_all_process_start() const
 {
-	auto itr = m_clients.find(socket_index);
-	if (itr != m_clients.end()) {
-		DRpcWrapper.register_handler_info(itr->second, server_info);
+	if (m_process_num[PROCESS_DB] < 2) {
+		return false;
 	}
-	log_info("register handle info, server id = %d, process type = %d, process id = %d, listen ip = %s, port = %d",
-		server_info.process_info.server_id, (TProcessType_t)server_info.process_info.process_type, server_info.process_info.process_id, 
-		server_info.ip.data(), server_info.port);
+	if (m_process_num[PROCESS_GAME] < 3) {
+		return false;
+	}
+	if (m_process_num[PROCESS_GATE] < 3) {
+		return false;
+	}
+	return true;
 }
 
-void game_manager::query_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type)
+void game_manager::broadcast_dbs() const
 {
-	log_info("query servers, server id = %d, process type = %d", server_id, process_type);
-	dynamic_array<game_server_info> servers;
-	DRpcWrapper.get_server_infos(server_id, process_type, servers);
-	rpc_client* rpc = get_client(socket_index);
-	if (NULL != rpc) {
-		rpc->call_remote_func("on_query_servers", server_id, process_type, servers);
+	dynamic_array<game_server_info> db_servers;
+	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, PROCESS_DB, db_servers);
+
+	dynamic_array<game_server_info> game_servers;
+	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, PROCESS_GAME, game_servers);
+	for (int i = 0; i < game_servers.size(); ++i) {
+		const game_server_info& server_info = game_servers[i];
+		rpc_client* rpc = DRpcWrapper.get_client(server_info.process_info.server_id, server_info.process_info.process_id);
+		if (NULL != rpc) {
+			rpc->call_remote_func("on_query_servers", m_server_info.process_info.server_id, PROCESS_DB, db_servers);
+		}
 	}
+}
+
+void game_manager::broadcast_db(const game_server_info & server_info) const
+{
+}
+
+void game_manager::broadcast_games() const
+{
+	dynamic_array<game_server_info> game_servers;
+	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, PROCESS_GAME, game_servers);
+
+	dynamic_array<game_server_info> gate_servers;
+	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, PROCESS_GATE, game_servers);
+	for (int i = 0; i < gate_servers.size(); ++i) {
+		const game_server_info& server_info = gate_servers[i];
+		rpc_client* rpc = DRpcWrapper.get_client(server_info.process_info.server_id, server_info.process_info.process_id);
+		if (NULL != rpc) {
+			rpc->call_remote_func("on_query_servers", m_server_info.process_info.server_id, PROCESS_GAME, game_servers);
+		}
+	}
+}
+
+void game_manager::broadcast_game(const game_server_info & server_info) const
+{
+}
+
+void game_manager::on_connect(TSocketIndex_t socket_index)
+{
+	TServerID_t server_id = INVALID_SERVER_ID;
+	TProcessType_t process_type = INVALID_PROCESS_TYPE;
+	TProcessID_t process_id = INVALID_PROCESS_ID;
+	DRpcWrapper.get_server_simple_info_by_socket_index(server_id, process_type, process_id, socket_index);
+	m_process_num[process_type] += 1;
+	log_info("on connect, process type = %d, process num = %d", process_type, m_process_num[process_type]);
+	if (check_all_process_start()) {
+		broadcast_dbs();
+		broadcast_games();
+	}
+}
+
+void game_manager::on_disconnect(TSocketIndex_t socket_index)
+{
+	TServerID_t server_id = INVALID_SERVER_ID;
+	TProcessType_t process_type = INVALID_PROCESS_TYPE;
+	TProcessID_t process_id = INVALID_PROCESS_ID;
+	DRpcWrapper.get_server_simple_info_by_socket_index(server_id, process_type, process_id, socket_index);
+	m_process_num[process_type] -= 1;
+	log_info("on disconnect, process type = %d, process num = %d", process_type, m_process_num[process_type]);
 }

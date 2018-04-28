@@ -23,9 +23,6 @@ private:
 	virtual const game_server_info& get_server_info() const override;
 	virtual void register_client() override;
 	virtual void unregister_client() override;
-
-public:
-	virtual void handle_init() override;
 };
 
 #endif // !_GAME_MANAGER_HANDLER_H_

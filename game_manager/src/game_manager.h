@@ -16,9 +16,20 @@ public:
 public:
 	bool init(TProcessID_t process_id);
 
-public:
-	void register_server(TSocketIndex_t socket_index, const game_server_info& server_info);
-	void query_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type);
+private:
+	bool check_all_process_start() const;
+
+	void broadcast_dbs() const;
+	void broadcast_db(const game_server_info& server_info) const;
+	void broadcast_games() const;
+	void broadcast_game(const game_server_info& server_info) const;
+
+private:
+	virtual void on_connect(TSocketIndex_t socket_index) override;
+	virtual void on_disconnect(TSocketIndex_t socket_index) override;
+
+private:
+	TProcessNum_t m_process_num[MAX_PROCESS_TYPE_NUM];
 };
 
 #define DGameManager singleton<game_manager>::get_instance()

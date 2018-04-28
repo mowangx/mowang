@@ -100,6 +100,7 @@ void service::register_client(rpc_client * client)
 
 void service::unregister_client(TSocketIndex_t socket_index)
 {
+	on_disconnect(socket_index);
 	TServerID_t server_id = INVALID_SERVER_ID;
 	TProcessType_t process_type = INVALID_PROCESS_TYPE;
 	TProcessID_t process_id = INVALID_PROCESS_ID;
@@ -121,7 +122,16 @@ void service::register_server(TSocketIndex_t socket_index, const game_server_inf
 	auto itr = m_clients.find(socket_index);
 	if (itr != m_clients.end()) {
 		DRpcWrapper.register_handler_info(itr->second, server_info);
+		on_connect(socket_index);
 	}
+}
+
+void service::on_connect(TSocketIndex_t socket_index)
+{
+}
+
+void service::on_disconnect(TSocketIndex_t socket_index)
+{
 }
 
 rpc_client* service::get_client(TSocketIndex_t socket_index)
