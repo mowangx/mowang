@@ -30,6 +30,7 @@ public:
 	virtual const game_server_info& get_server_info() const = 0;
 
 	virtual void register_client() = 0;
+	virtual void unregister_client() = 0;
 
 	virtual void handle_init();
 

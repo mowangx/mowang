@@ -190,6 +190,7 @@
     <ClInclude Include="src\rpc_proxy.h" />
     <ClInclude Include="src\rpc_wrapper.h" />
     <ClInclude Include="src\server_manager.h" />
+    <ClInclude Include="src\service.h" />
     <ClInclude Include="src\singleton.h" />
     <ClInclude Include="src\socket.h" />
     <ClInclude Include="src\socket_api.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="src\rpc_proxy.cpp" />
     <ClCompile Include="src\rpc_wrapper.cpp" />
     <ClCompile Include="src\server_manager.cpp" />
+    <ClCompile Include="src\service.cpp" />
     <ClCompile Include="src\socket.cpp" />
     <ClCompile Include="src\socket_api.cpp" />
     <ClCompile Include="src\socket_handler.cpp" />

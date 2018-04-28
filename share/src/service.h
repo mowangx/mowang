@@ -1,0 +1,56 @@
+
+#ifndef _SERVICE_H_
+#define _SERVICE_H_
+
+#include <vector>
+#include <unordered_map>
+
+#include "base_util.h"
+#include "game_enum.h"
+#include "base_packet.h"
+#include "memory_pool.h"
+
+class rpc_client;
+
+class service
+{
+public:
+	service(game_process_type process_type);
+	~service();
+
+public:
+	virtual bool init(TProcessID_t process_id);
+	virtual void run();
+
+protected:
+	virtual void do_loop(TGameTime_t diff);
+
+public:
+	const game_server_info& get_server_info() const;
+
+public:
+	TPacketSendInfo_t * allocate_packet_info();
+	char* allocate_memory(int n);
+	void push_write_packets(TPacketSendInfo_t* packet_info);
+
+public:
+	void register_client(rpc_client* client);
+	void unregister_client(TSocketIndex_t socket_index);
+
+public:
+	void register_server(TSocketIndex_t socket_index, const game_server_info& server_info);
+
+public:
+	rpc_client* get_client(TSocketIndex_t socket_index);
+
+protected:
+	game_server_info m_server_info;
+	obj_memory_pool<TPacketSendInfo_t, 1000> m_packet_pool;
+	memory_pool m_mem_pool;
+	std::vector<TPacketSendInfo_t*> m_write_packets;
+	std::unordered_map<TSocketIndex_t, rpc_client*> m_clients;
+
+};
+
+#endif // !_SERVICE_H_
+

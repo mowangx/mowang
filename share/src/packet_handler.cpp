@@ -4,6 +4,7 @@
 #include "socket.h"
 #include "rpc_proxy.h"
 #include "rpc_client.h"
+#include "rpc_wrapper.h"
 
 game_handler::game_handler() : m_socket_index(INVALID_SOCKET_INDEX), m_rpc_client(NULL)
 {
@@ -28,6 +29,8 @@ void game_handler::handle_init()
 void game_handler::handle_close()
 {
 	log_info("disconnect, handle close, socket index = '%"I64_FMT"u'", m_socket_index);
+	unregister_client();
+	DRpcWrapper.unregister_handler_info(m_socket_index);
 	m_socket_index = INVALID_SOCKET_INDEX;
 }
 

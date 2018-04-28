@@ -38,11 +38,17 @@ void gate_handler::write_packet(TPacketSendInfo_t* packet_info)
 
 const game_server_info & gate_handler::get_server_info() const
 {
-	return game_server_info();
+	return DRobotServer.get_server_info();
 }
 
 void gate_handler::register_client()
 {
+	DRobotServer.register_client(m_rpc_client);
+}
+
+void gate_handler::unregister_client()
+{
+	DRobotServer.unregister_client(get_socket_index());
 }
 
 void gate_handler::handle_init()

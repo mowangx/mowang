@@ -45,6 +45,11 @@ void game_server_handler::register_client()
 	DDbServer.register_client(m_rpc_client);
 }
 
+void game_server_handler::unregister_client()
+{
+	DDbServer.unregister_client(get_socket_index());
+}
+
 void game_server_handler::handle_init()
 {
 	log_info("'%"I64_FMT"u', game connect success, handle init", get_socket_index());

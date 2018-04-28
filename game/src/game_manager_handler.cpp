@@ -46,6 +46,11 @@ void game_manager_handler::register_client()
 	DGameServer.register_client(m_rpc_client);
 }
 
+void game_manager_handler::unregister_client()
+{
+	DGameServer.unregister_client(get_socket_index());
+}
+
 void game_manager_handler::handle_init()
 {
 	TBaseType_t::handle_init();

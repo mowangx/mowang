@@ -47,6 +47,11 @@ void gate_handler::register_client()
 	DGameServer.register_client(m_rpc_client);
 }
 
+void gate_handler::unregister_client()
+{
+	DGameServer.unregister_client(get_socket_index());
+}
+
 bool gate_handler::handle_transfer_client(packet_base * packet)
 {
 	transfer_client_packet* transfer_info = (transfer_client_packet*)packet;

@@ -22,6 +22,7 @@ private:
 	virtual void write_packet(TPacketSendInfo_t* packet_info) override;
 	virtual const game_server_info& get_server_info() const override;
 	virtual void register_client() override;
+	virtual void unregister_client() override;
 };
 
 #endif // !_SERVER_HANDLER_H_

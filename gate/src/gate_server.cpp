@@ -1,23 +1,16 @@
 
 #include "gate_server.h"
 #include "log.h"
-#include "socket.h"
-
-#include "time_manager.h"
-
 #include "game_enum.h"
 #include "socket_manager.h"
 #include "game_manager_handler.h"
 #include "game_server_handler.h"
 #include "client_handler.h"
-
 #include "rpc_client.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
 
-#include "base_packet.h"
-
-gate_server::gate_server()
+gate_server::gate_server() : service(PROCESS_GATE)
 {
 	m_write_packets.clear();
 }
@@ -29,17 +22,15 @@ gate_server::~gate_server()
 
 bool gate_server::init(TProcessID_t process_id)
 {
+	if (!TBaseType_t::init(process_id)) {
+		return false;
+	}
+
 	m_server_info.process_info.server_id = 100;
-	m_server_info.process_info.process_type = PROCESS_GATE;
-	m_server_info.process_info.process_id = process_id;
 	char* ip = "127.0.0.1";
 	memcpy(m_server_info.ip.data(), ip, strlen(ip));
 	m_server_info.port = 10300 + process_id;
-	return true;
-}
 
-void gate_server::run()
-{
 	DRegisterServerRpc(this, gate_server, on_query_servers, 4);
 	DRegisterServerRpc(this, gate_server, login_server, 4);
 	DRegisterServerRpc(this, gate_server, register_server, 2);
@@ -47,74 +38,8 @@ void gate_server::run()
 	game_manager_handler::Setup();
 	game_server_handler::Setup();
 	client_handler::Setup();
-	TAppTime_t before_loop_time(0), after_loop_time(0);
 
-	while (true) {
-		before_loop_time = DTimeMgr.update();
-
-		// 
-		std::vector<TPacketRecvInfo_t*> read_packets;
-		std::vector<socket_base*> wait_init_sockets;
-		std::vector<socket_base*> wait_del_sockets;
-
-		DNetMgr.read_packets(read_packets, wait_init_sockets, wait_del_sockets);
-
-		for (auto socket : wait_del_sockets) {
-			socket->get_packet_handler()->handle_close();
-		}
-
-		for (auto socket : wait_init_sockets) {
-			socket->get_packet_handler()->handle_init();
-		}
-
-		for (auto packet_info : read_packets) {
-			packet_info->socket->get_packet_handler()->handle(packet_info->packet);
-		}
-
-		DNetMgr.finish_read_packets(read_packets, wait_del_sockets);
-		read_packets.clear();
-
-		std::vector<TPacketSendInfo_t*> write_packets;
-		DNetMgr.finish_write_packets(write_packets);
-		for (auto packet_info : write_packets) {
-			m_mem_pool.deallocate((char*)packet_info->packet);
-			m_packet_pool.deallocate(packet_info);
-		}
-		write_packets.clear();
-
-		DNetMgr.write_packets(m_write_packets);
-		m_write_packets.clear();
-
-		after_loop_time = DTimeMgr.update();
-		if ((after_loop_time - before_loop_time) < PER_FRAME_TIME) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(PER_FRAME_TIME + before_loop_time - after_loop_time));
-		}
-	}
-}
-
-const game_server_info& gate_server::get_server_info() const
-{
-	return m_server_info;
-}
-
-TPacketSendInfo_t* gate_server::allocate_packet_info()
-{
-	return m_packet_pool.allocate();
-}
-
-char* gate_server::allocate_memory(int n)
-{
-	return m_mem_pool.allocate(n);
-}
-
-void gate_server::push_write_packets(TPacketSendInfo_t* packet_info)
-{
-	m_write_packets.push_back(packet_info);
-}
-
-void gate_server::register_client(rpc_client * client)
-{
-	m_clients[client->get_handler()->get_socket_index()] = client;
+	return true;
 }
 
 void gate_server::register_server(TSocketIndex_t socket_index, const game_server_info& server_info)
@@ -131,13 +56,7 @@ void gate_server::on_query_servers(TSocketIndex_t socket_index, TServerID_t serv
 {
 	log_info("on_query_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
 	for (int i = 0; i < servers.size(); ++i) {
-		const game_server_info& server_info = servers[i];
-		if (DNetMgr.start_connect<game_server_handler>(server_info.ip.data(), server_info.port)) {
-			log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
-		}
-		else {
-			log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
-		}
+		on_game_connect(servers[i]);
 	}
 }
 
@@ -152,6 +71,20 @@ void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platfo
 	rpc_client* rpc = DRpcWrapper.get_client(process_info.server_id, process_info.process_id);
 	if (NULL != rpc) {
 		rpc->call_remote_func("login_server", socket_index, m_server_info.process_info.process_id, platform_id, user_id);
+	}
+}
+
+void gate_server::on_game_lose(TServerID_t server_id, TProcessID_t game_id)
+{
+}
+
+void gate_server::on_game_connect(const game_server_info & server_info)
+{
+	if (DNetMgr.start_connect<game_server_handler>(server_info.ip.data(), server_info.port)) {
+		log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+	}
+	else {
+		log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
 	}
 }
 

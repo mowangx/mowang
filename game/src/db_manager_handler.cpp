@@ -44,3 +44,8 @@ void db_manager_handler::register_client()
 {
 	DGameServer.register_client(m_rpc_client);
 }
+
+void db_manager_handler::unregister_client()
+{
+	DGameServer.unregister_client(get_socket_index());
+}

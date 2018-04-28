@@ -3,6 +3,7 @@
 #include "game_server.h"
 #include "city.h"
 #include "rpc_proxy.h"
+#include "rpc_wrapper.h"
 
 role::role()
 {
@@ -40,6 +41,11 @@ void role::login(TPlatformID_t platform_id, const TUserID_t & user_id)
 	log_info("role login, platform id = %u, user id = %s", platform_id, user_id.data());
 	m_platform_id = platform_id;
 	m_user_id = user_id;
+	uint8 p2_1 = 99;
+	std::array<char, 33> p2_2;
+	memset(p2_2.data(), 0, 33);
+	memcpy(p2_2.data(), "mowang", 6);
+	DRpcWrapper.call_client(get_proxy_info(), "robot_rpc_func_2", m_proxy_info.client_id, p2_1, p2_2);
 }
 
 void role::login_with_index(TSocketIndex_t socket_index, TPlatformID_t platform_id, const TUserID_t & user_id)

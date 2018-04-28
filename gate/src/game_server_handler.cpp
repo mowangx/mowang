@@ -49,6 +49,11 @@ void game_server_handler::register_client()
 	return DGateServer.register_client(m_rpc_client);
 }
 
+void game_server_handler::unregister_client()
+{
+	DGateServer.unregister_client(get_socket_index());
+}
+
 bool game_server_handler::handle_transfer_role(packet_base * packet)
 {
 	transfer_role_packet* rpc_info = (transfer_role_packet*)packet;

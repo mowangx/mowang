@@ -48,6 +48,11 @@ void client_handler::register_client()
 	DGateServer.register_client(m_rpc_client);
 }
 
+void client_handler::unregister_client()
+{
+	DGateServer.unregister_client(get_socket_index());
+}
+
 bool client_handler::handle_transfer_server_by_index(packet_base * packet)
 {
 	DGateServer.transfer_server(get_socket_index(), packet);
