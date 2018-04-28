@@ -34,6 +34,14 @@ struct game_server_info
 		memset(ip.data(), 0, IP_SIZE);
 	}
 
+	game_server_info(const game_server_info& rhs) {
+		process_info.server_id = rhs.process_info.server_id;
+		process_info.process_type = rhs.process_info.process_type;
+		process_info.process_id = rhs.process_info.process_id;
+		port = rhs.port;
+		memcpy(ip.data(), rhs.ip.data(), IP_SIZE);
+	}
+
 	game_server_info(TServerID_t _server_id, TProcessType_t _process_type, TProcessID_t _process_id, TPort_t _port, const std::array<char, IP_SIZE>& _ip) {
 		process_info.server_id = _server_id;
 		process_info.process_type = _process_type;

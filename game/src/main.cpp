@@ -32,17 +32,9 @@ void log_run()
 
 void net_run(TProcessID_t process_id)
 {
-	if (!DNetMgr.init()) {
-		return ;
-	}
-
 	TPort_t listen_port = 10200 + process_id;
 	if (!DNetMgr.start_listen<gate_handler>(listen_port)) {
 		return ;
-	}
-
-	if (!DNetMgr.start_connect<game_manager_handler>("127.0.0.1", 10000)) {
-		return;
 	}
 
 	log_info("init socket manager success");
@@ -58,7 +50,7 @@ int main(int argc, char* argv[])
 {
 	if (argc < 2) {
 		std::cout << "argv is less than 2" << std::endl;
-		return false;
+		return 0;
 	}
 
 	TProcessID_t process_id = atoi(argv[1]);
@@ -68,6 +60,11 @@ int main(int argc, char* argv[])
 	std::string module_name = "game";
 	DLogMgr.init(module_name + argv[1]);
 	gxSetDumpHandler(module_name);
+
+	if (!DNetMgr.init()) {
+		log_error("init socket manager failed");
+		return 0;
+	}
 
 	std::thread log_thread(log_run);
 	std::thread net_thread(net_run, std::ref(process_id));

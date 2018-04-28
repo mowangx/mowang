@@ -73,19 +73,12 @@ void log_run()
 
 void net_run(TProcessID_t process_id)
 {
-	if (!DNetMgr.init()) {
-		return;
-	}
-	log_info("init socket manager success");
-
 	TPort_t listen_port = 10100 + process_id;
 	if (!DNetMgr.start_listen<game_server_handler>(listen_port)) {
 		return;
 	}
 
-	if (!DNetMgr.start_connect<game_manager_handler>("127.0.0.1", 10000)) {
-		return;
-	}
+	log_info("init socket manager success");
 
 	while (true) {
 		DNetMgr.update(0);
@@ -114,6 +107,11 @@ int main(int argc, char* argv[])
 	std::string module_name = "db_manager";
 	DLogMgr.init(module_name + argv[1]);
 	gxSetDumpHandler(module_name);
+
+	if (!DNetMgr.init()) {
+		log_error("init socket manager failed");
+		return 0;
+	}
 
 	std::thread log_thread(log_run);
 	std::thread net_thread(net_run, std::ref(process_id));

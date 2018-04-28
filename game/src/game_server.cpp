@@ -1,14 +1,9 @@
 
 #include "game_server.h"
-
-#include "log.h"
 #include "tbl_test.h"
-#include "game_enum.h"
 #include "gate_handler.h"
 #include "game_manager_handler.h"
 #include "db_manager_handler.h"
-#include "socket_manager.h"
-
 #include "rpc_proxy.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
@@ -55,6 +50,8 @@ bool game_server::init(TProcessID_t process_id)
 
 	DRegisterStubRpc(this, game_server, game_rpc_func_1, 4);
 	DRegisterStubRpc(this, game_server, game_rpc_func_2, 3);
+
+	connect_server<game_manager_handler>("127.0.0.1", 10000);
 
 	return true;
 }

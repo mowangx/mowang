@@ -30,15 +30,10 @@ void log_run()
 
 void net_run(TProcessID_t process_id)
 {
-	if (!DNetMgr.init()) {
-		return;
-	}
-
 	log_info("init socket manager success");
-
 	while (true) {
 		DNetMgr.update(0);
-		DNetMgr.test_kick();
+		//DNetMgr.test_kick();
 
 		if (DNetMgr.socket_num() < 100) {
 			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", 10301)) {
@@ -55,7 +50,7 @@ int main(int argc, char* argv[])
 {
 	if (argc < 2) {
 		std::cout << "argv is less than 2" << std::endl;
-		return false;
+		return 0;
 	}
 
 	TProcessID_t process_id = atoi(argv[1]);
@@ -65,6 +60,11 @@ int main(int argc, char* argv[])
 	std::string module_name = "robot";
 	DLogMgr.init(module_name + argv[1]);
 	gxSetDumpHandler(module_name);
+
+	if (!DNetMgr.init()) {
+		log_error("init socket manager failed");
+		return 0;
+	}
 
 	std::thread log_thread(log_run);
 	std::thread net_thread(net_run, std::ref(process_id));

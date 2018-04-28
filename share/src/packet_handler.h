@@ -32,6 +32,8 @@ public:
 	virtual void register_client() = 0;
 	virtual void unregister_client() = 0;
 
+	virtual bool need_register_server() const { return true;  }
+
 	virtual void handle_init();
 
 	virtual void handle_close();

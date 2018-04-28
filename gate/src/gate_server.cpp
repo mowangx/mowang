@@ -1,8 +1,5 @@
 
 #include "gate_server.h"
-#include "log.h"
-#include "game_enum.h"
-#include "socket_manager.h"
 #include "game_manager_handler.h"
 #include "game_server_handler.h"
 #include "client_handler.h"
@@ -38,6 +35,8 @@ bool gate_server::init(TProcessID_t process_id)
 	game_manager_handler::Setup();
 	game_server_handler::Setup();
 	client_handler::Setup();
+
+	connect_server<game_manager_handler>("127.0.0.1", 10000);
 
 	return true;
 }

@@ -23,7 +23,9 @@ void game_handler::handle_init()
 {
 	log_info("connect success, handle init, socket index = '%"I64_FMT"u'", m_socket_index);
 	register_client();
-	m_rpc_client->call_remote_func("register_server", get_server_info());
+	if (need_register_server()) {
+		m_rpc_client->call_remote_func("register_server", get_server_info());
+	}
 }
 
 void game_handler::handle_close()

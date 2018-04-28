@@ -27,11 +27,6 @@ public:
 	~rpc_wrapper();
 
 public:
-	void init(game_process_type process_type) {
-		m_process_type = process_type;
-	}
-
-public:
 	template <typename F, typename... T>
 	void call_client(const proxy_info& proxy, const std::string& func_name, std::tuple<T...>& args) {
 		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
@@ -268,7 +263,9 @@ public:
 	void unregister_handler_info(TSocketIndex_t socket_index);
 
 public:
-	void get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers);
+	void get_server_info(TServerID_t server_id, TProcessID_t process_id, game_server_info& server_info) const;
+	void get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const;
+	void get_server_simple_info_by_socket_index(TServerID_t& server_id, TProcessType_t& process_type, TProcessID_t& process_id, TSocketIndex_t socket_index) const;
 	TSocketIndex_t get_socket_index(TServerID_t server_id, TProcessID_t process_id) const;
 	TProcessID_t get_random_process_id(TServerID_t server_id, TProcessType_t process_type) const;
 	rpc_client* get_client(TServerID_t server_id, TProcessID_t process_id) const;
@@ -277,7 +274,6 @@ public:
 	uint32 get_key_id_by_process_type(TServerID_t server_id, TProcessType_t process_type) const;
 
 private:
-	game_process_type m_process_type;
 	std::map<uint32, rpc_client*> m_server_process_id_2_clients;
 	std::map<uint32, std::vector<rpc_client_wrapper_info*>> m_server_process_type_2_clients;
 	server_manager m_server_manager;

@@ -1,8 +1,6 @@
 
 #include "db_server.h"
-
 #include "mysql_conn.h"
-#include "game_enum.h"
 #include "game_manager_handler.h"
 #include "game_server_handler.h"
 
@@ -39,6 +37,8 @@ bool db_server::init(TProcessID_t process_id)
 
 	game_server_handler::Setup();
 	game_manager_handler::Setup();
+
+	connect_server<game_manager_handler>("127.0.0.1", 10000);
 
 	return true;
 }

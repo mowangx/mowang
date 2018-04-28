@@ -1,8 +1,6 @@
 
 #include "game_manager.h"
-#include "log.h"
 #include "server_handler.h"
-#include "game_enum.h"
 #include "rpc_client.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"

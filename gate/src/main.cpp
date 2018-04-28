@@ -32,16 +32,8 @@ void log_run()
 
 void net_run(TProcessID_t process_id)
 {
-	if (!DNetMgr.init()) {
-		return;
-	}
-
 	TPort_t listen_port = 10300 + process_id;
 	if (!DNetMgr.start_listen<client_handler>(listen_port)) {
-		return;
-	}
-
-	if (!DNetMgr.start_connect<game_manager_handler>("127.0.0.1", 10000)) {
 		return;
 	}
 
@@ -67,6 +59,11 @@ int main(int argc, char* argv[])
 	std::string module_name = "gate";
 	DLogMgr.init(module_name + argv[1]);
 	gxSetDumpHandler(module_name);
+
+	if (!DNetMgr.init()) {
+		log_error("init socket manager failed");
+		return 0;
+	}
 
 	std::thread log_thread(log_run);
 	std::thread net_thread(net_run, std::ref(process_id));

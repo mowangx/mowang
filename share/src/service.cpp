@@ -7,6 +7,7 @@
 
 service::service(game_process_type process_type)
 {
+	m_disconnect_server_infos.clear();
 	m_write_packets.clear();
 	m_clients.clear();
 	m_server_info.process_info.process_type = process_type;
@@ -99,6 +100,16 @@ void service::register_client(rpc_client * client)
 
 void service::unregister_client(TSocketIndex_t socket_index)
 {
+	TServerID_t server_id = INVALID_SERVER_ID;
+	TProcessType_t process_type = INVALID_PROCESS_TYPE;
+	TProcessID_t process_id = INVALID_PROCESS_ID;
+	DRpcWrapper.get_server_simple_info_by_socket_index(server_id, process_type, process_id, socket_index);
+	if (process_type == PROCESS_GAME_MANAGER) {
+		game_server_info server_info;
+		DRpcWrapper.get_server_info(server_id, process_id, server_info);
+		m_disconnect_server_infos.push_back(server_info);
+	}
+
 	auto itr = m_clients.find(socket_index);
 	if (itr != m_clients.end()) {
 		m_clients.erase(itr);

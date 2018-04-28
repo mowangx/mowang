@@ -53,24 +53,51 @@ void rpc_wrapper::unregister_handler_info(TSocketIndex_t socket_index)
 		std::vector<rpc_client_wrapper_info*>& wrappers = itr->second;
 		for (auto wrapper_itr = wrappers.begin(); wrapper_itr != wrappers.end(); ++wrapper_itr) {
 			rpc_client_wrapper_info* wrapper_info = *wrapper_itr;
-			if (NULL != wrapper_info && NULL != wrapper_info->rpc && NULL != wrapper_info->rpc->get_handler() && 
-				wrapper_info->rpc->get_handler()->get_socket_index() == socket_index) {
-				uint32 key_id = itr->first;
-				server_id = (TServerID_t)(key_id >> (sizeof(TProcessType_t) * 8));
-				process_type = (TProcessType_t)(key_id & 0xFF);
-				process_id = wrapper_info->process_id;
-				wrappers.erase(wrapper_itr);
-				break;
+			if (NULL == wrapper_info || NULL == wrapper_info->rpc || NULL == wrapper_info->rpc->get_handler() || 
+				wrapper_info->rpc->get_handler()->get_socket_index() != socket_index) {
+				continue;
 			}
+
+			uint32 key_id = itr->first;
+			server_id = (TServerID_t)(key_id >> (sizeof(TProcessType_t) * 8));
+			process_type = (TProcessType_t)(key_id & 0xFF);
+			process_id = wrapper_info->process_id;
+			wrappers.erase(wrapper_itr);
+			break;
 		}
 	}
 
 	m_server_manager.unregister_server(server_id, process_type, process_id);
 }
 
-void rpc_wrapper::get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers)
+void rpc_wrapper::get_server_info(TServerID_t server_id, TProcessID_t process_id, game_server_info & server_info) const
 {
-	m_server_manager.get_servers(server_id, process_type, servers);
+	m_server_manager.get_server_info(server_id, process_id, server_info);
+}
+
+void rpc_wrapper::get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const
+{
+	m_server_manager.get_server_infos(server_id, process_type, servers);
+}
+
+void rpc_wrapper::get_server_simple_info_by_socket_index(TServerID_t& server_id, TProcessType_t& process_type, TProcessID_t& process_id, TSocketIndex_t socket_index) const
+{
+	for (auto itr = m_server_process_type_2_clients.begin(); itr != m_server_process_type_2_clients.end(); ++itr) {
+		const std::vector<rpc_client_wrapper_info*>& wrappers = itr->second;
+		for (auto wrapper_itr = wrappers.begin(); wrapper_itr != wrappers.end(); ++wrapper_itr) {
+			rpc_client_wrapper_info* wrapper_info = *wrapper_itr;
+			if (NULL == wrapper_info || NULL == wrapper_info->rpc || NULL == wrapper_info->rpc->get_handler() ||
+				wrapper_info->rpc->get_handler()->get_socket_index() != socket_index) {
+				continue;
+			}
+
+			uint32 key_id = itr->first;
+			server_id = (TServerID_t)(key_id >> (sizeof(TProcessType_t) * 8));
+			process_type = (TProcessType_t)(key_id & 0xFF);
+			process_id = wrapper_info->process_id;
+			break;
+		}
+	}
 }
 
 TSocketIndex_t rpc_wrapper::get_socket_index(TServerID_t server_id, TProcessID_t process_id) const

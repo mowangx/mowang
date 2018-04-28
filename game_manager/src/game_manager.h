@@ -5,8 +5,6 @@
 #include "singleton.h"
 #include "service.h"
 
-class rpc_client;
-
 class game_manager : public service, public singleton<game_manager>
 {
 	typedef service TBaseType_t;

@@ -13,13 +13,31 @@ server_manager::~server_manager()
 	clean_up();
 }
 
-void server_manager::get_servers(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers)
+void server_manager::get_server_info(TServerID_t server_id, TProcessID_t process_id, game_server_info & server_info) const
 {
 	auto server_itr = m_servers.find(server_id);
 	if (server_itr == m_servers.end()) {
 		return;
 	}
-	std::vector<game_server_info>& cur_servers = server_itr->second;
+
+	const std::vector<game_server_info>& cur_servers = server_itr->second;
+	for (auto cur_server_info : cur_servers) {
+		if (cur_server_info.process_info.process_id != process_id) {
+			continue;
+		}
+		server_info = cur_server_info;
+		return;
+	}
+}
+
+void server_manager::get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const
+{
+	auto server_itr = m_servers.find(server_id);
+	if (server_itr == m_servers.end()) {
+		return;
+	}
+
+	const std::vector<game_server_info>& cur_servers = server_itr->second;
 	for (auto server_info : cur_servers) {
 		if (server_info.process_info.process_type == process_type) {
 			servers.push_back(server_info);
