@@ -29,7 +29,7 @@ public:
 public:
 	template <typename F, typename... T>
 	void call_client(const proxy_info& proxy, const std::string& func_name, std::tuple<T...>& args) {
-		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, args);
 		}
@@ -37,7 +37,7 @@ public:
 
 	template <class T1>
 	void call_client(const proxy_info& proxy, const std::string& func_name, const T1& p1) {
-		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, p1);
 		}
@@ -45,7 +45,7 @@ public:
 
 	template <class T1, class T2>
 	void call_client(const proxy_info& proxy, const std::string& func_name, const T1& p1, const T2& p2) {
-		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, p1, p2);
 		}
@@ -53,7 +53,7 @@ public:
 
 	template <class T1, class T2, class T3>
 	void call_client(const proxy_info& proxy, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3) {
-		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, p1, p2, p3);
 		}
@@ -61,7 +61,7 @@ public:
 
 	template <class T1, class T2, class T3, class T4>
 	void call_client(const proxy_info& proxy, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
-		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, p1, p2, p3, p4);
 		}
@@ -70,7 +70,7 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5>
 	void call_client(const proxy_info& proxy, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
 		const T5& p5) {
-		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, p1, p2, p3, p4, p5);
 		}
@@ -79,7 +79,7 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5, class T6>
 	void call_client(const proxy_info& proxy, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
 		const T5& p5, const T6& p6) {
-		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, p1, p2, p3, p4, p5, p6);
 		}
@@ -88,7 +88,7 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
 	void call_client(const proxy_info& proxy, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
 		const T5& p5, const T6& p6, const T7& p7) {
-		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, p1, p2, p3, p4, p5, p6, p7);
 		}
@@ -97,7 +97,7 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
 	void call_client(const proxy_info& proxy, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
 		const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
-		rpc_client* rpc = get_client(proxy.server_id, proxy.gate_id);
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, p1, p2, p3, p4, p5, p6, p7, p8);
 		}
@@ -263,19 +263,20 @@ public:
 	void unregister_handler_info(TSocketIndex_t socket_index);
 
 public:
-	void get_server_info(TServerID_t server_id, TProcessID_t process_id, game_server_info& server_info) const;
+	void get_server_info(const game_process_info& process_info, game_server_info& server_info) const;
 	void get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const;
-	void get_server_simple_info_by_socket_index(TServerID_t& server_id, TProcessType_t& process_type, TProcessID_t& process_id, TSocketIndex_t socket_index) const;
-	TSocketIndex_t get_socket_index(TServerID_t server_id, TProcessID_t process_id) const;
+	void get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const;
+	TSocketIndex_t get_socket_index(const game_process_info& process_info) const;
 	TProcessID_t get_random_process_id(TServerID_t server_id, TProcessType_t process_type) const;
-	rpc_client* get_client(TServerID_t server_id, TProcessID_t process_id) const;
+	rpc_client* get_client(const game_process_info& process_info) const;
 	rpc_client* get_random_client(TServerID_t server_id, TProcessType_t process_type) const;
-	uint32 get_key_id_by_process_id(TServerID_t server_id, TProcessID_t process_id) const;
-	uint32 get_key_id_by_process_type(TServerID_t server_id, TProcessType_t process_type) const;
+	uint64 get_key_id_by_process_id(const game_process_info& process_info) const;
+	uint64 get_key_id_by_process_type(TServerID_t server_id, TProcessType_t process_type) const;
+	void parse_key_id_by_process_id(game_process_info& process_info, uint64 key_id) const;
 
 private:
-	std::map<uint32, rpc_client*> m_server_process_id_2_clients;
-	std::map<uint32, std::vector<rpc_client_wrapper_info*>> m_server_process_type_2_clients;
+	std::map<uint64, rpc_client*> m_server_process_id_2_clients;
+	std::map<uint64, std::vector<rpc_client_wrapper_info*>> m_server_process_type_2_clients;
 	server_manager m_server_manager;
 };
 

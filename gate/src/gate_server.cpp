@@ -67,7 +67,7 @@ void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platfo
 	process_info.process_id = DRpcWrapper.get_random_process_id(process_info.server_id, process_info.process_type);
 	m_client_2_process[socket_index] = process_info;
 	log_info("login server, client id = '%"I64_FMT"u', user id = %s, game id = %u", socket_index, user_id.data(), process_info.process_id);
-	rpc_client* rpc = DRpcWrapper.get_client(process_info.server_id, process_info.process_id);
+	rpc_client* rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
 		rpc->call_remote_func("login_server", socket_index, m_server_info.process_info.process_id, platform_id, user_id);
 	}
@@ -90,7 +90,7 @@ void gate_server::on_game_connect(const game_server_info & server_info)
 void gate_server::transfer_role(TServerID_t server_id, TProcessID_t game_id, TRoleID_t role_id, packet_base* packet)
 {
 	TPacketSendInfo_t* packet_info = allocate_packet_info();
-	packet_info->socket_index = DRpcWrapper.get_socket_index(server_id, game_id);
+	packet_info->socket_index = DRpcWrapper.get_socket_index(game_process_info(server_id, PROCESS_GAME, game_id));
 	role_rpc_by_name_packet* transfer_packet = (role_rpc_by_name_packet*)allocate_memory(packet->get_packet_len());
 	packet_info->packet = transfer_packet;
 	memcpy(transfer_packet, packet, packet->get_packet_len());
@@ -100,7 +100,7 @@ void gate_server::transfer_role(TServerID_t server_id, TProcessID_t game_id, TRo
 void gate_server::transfer_stub(TServerID_t server_id, TProcessID_t game_id, packet_base* packet)
 {
 	TPacketSendInfo_t* packet_info = allocate_packet_info();
-	packet_info->socket_index = DRpcWrapper.get_socket_index(server_id, game_id);
+	packet_info->socket_index = DRpcWrapper.get_socket_index(game_process_info(server_id, PROCESS_GAME, game_id));
 	rpc_by_name_packet* transfer_packet = (rpc_by_name_packet*)allocate_memory(packet->get_packet_len());
 	packet_info->packet = transfer_packet;
 	memcpy(transfer_packet, packet, packet->get_packet_len());
@@ -138,6 +138,5 @@ TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t client_id) co
 	if (itr == m_client_2_process.end()) {
 		return INVALID_SOCKET_INDEX;
 	}
-	const game_process_info& process_info = itr->second;
-	return DRpcWrapper.get_socket_index(process_info.server_id, process_info.process_id);
+	return DRpcWrapper.get_socket_index(itr->second);
 }

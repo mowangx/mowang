@@ -13,20 +13,21 @@ rpc_wrapper::~rpc_wrapper()
 void rpc_wrapper::register_handler_info(rpc_client* client, const game_server_info& server_info)
 {
 	const game_process_info& process_info = server_info.process_info;
-
-	m_server_process_id_2_clients[get_key_id_by_process_id(process_info.server_id, process_info.process_id)] = client;
+	uint64 key_id = get_key_id_by_process_id(process_info);
+	m_server_process_id_2_clients[key_id] = client;
 
 	rpc_client_wrapper_info* wrapper_info = new rpc_client_wrapper_info();
 	wrapper_info->rpc = client;
 	wrapper_info->process_id = process_info.process_id;
-	auto itr = m_server_process_type_2_clients.find(get_key_id_by_process_type(process_info.server_id, process_info.process_type));
+	key_id = get_key_id_by_process_type(process_info.server_id, process_info.process_type);
+	auto itr = m_server_process_type_2_clients.find(key_id);
 	if (itr != m_server_process_type_2_clients.end()) {
 		itr->second.push_back(wrapper_info);
 	}
 	else {
 		std::vector<rpc_client_wrapper_info*> rpc_wrappers;
 		rpc_wrappers.push_back(wrapper_info);
-		m_server_process_type_2_clients[get_key_id_by_process_type(process_info.server_id, process_info.process_type)] = rpc_wrappers;
+		m_server_process_type_2_clients[key_id] = rpc_wrappers;
 	}
 	
 	m_server_manager.register_server(server_info);
@@ -45,34 +46,29 @@ void rpc_wrapper::unregister_handler_info(TSocketIndex_t socket_index)
 		}
 	}
 
-	TServerID_t server_id = INVALID_SERVER_ID;
-	TProcessType_t process_type = INVALID_PROCESS_TYPE;
-	TProcessID_t process_id = INVALID_PROCESS_ID;
+	game_process_info process_info;
 
 	for (auto itr = m_server_process_type_2_clients.begin(); itr != m_server_process_type_2_clients.end(); ++itr) {
 		std::vector<rpc_client_wrapper_info*>& wrappers = itr->second;
 		for (auto wrapper_itr = wrappers.begin(); wrapper_itr != wrappers.end(); ++wrapper_itr) {
 			rpc_client_wrapper_info* wrapper_info = *wrapper_itr;
-			if (NULL == wrapper_info || NULL == wrapper_info->rpc || NULL == wrapper_info->rpc->get_handler() || 
-				wrapper_info->rpc->get_handler()->get_socket_index() != socket_index) {
+			if (wrapper_info->rpc->get_handler()->get_socket_index() != socket_index) {
 				continue;
 			}
 
-			uint32 key_id = itr->first;
-			server_id = (TServerID_t)(key_id >> (sizeof(TProcessType_t) * 8));
-			process_type = (TProcessType_t)(key_id & 0xFF);
-			process_id = wrapper_info->process_id;
+			parse_key_id_by_process_id(process_info, itr->first);
+			delete wrapper_info;
 			wrappers.erase(wrapper_itr);
 			break;
 		}
 	}
 
-	m_server_manager.unregister_server(server_id, process_type, process_id);
+	m_server_manager.unregister_server(process_info);
 }
 
-void rpc_wrapper::get_server_info(TServerID_t server_id, TProcessID_t process_id, game_server_info & server_info) const
+void rpc_wrapper::get_server_info(const game_process_info& process_info, game_server_info & server_info) const
 {
-	m_server_manager.get_server_info(server_id, process_id, server_info);
+	m_server_manager.get_server_info(process_info, server_info);
 }
 
 void rpc_wrapper::get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const
@@ -80,29 +76,22 @@ void rpc_wrapper::get_server_infos(TServerID_t server_id, TProcessType_t process
 	m_server_manager.get_server_infos(server_id, process_type, servers);
 }
 
-void rpc_wrapper::get_server_simple_info_by_socket_index(TServerID_t& server_id, TProcessType_t& process_type, TProcessID_t& process_id, TSocketIndex_t socket_index) const
+void rpc_wrapper::get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const
 {
-	for (auto itr = m_server_process_type_2_clients.begin(); itr != m_server_process_type_2_clients.end(); ++itr) {
-		const std::vector<rpc_client_wrapper_info*>& wrappers = itr->second;
-		for (auto wrapper_itr = wrappers.begin(); wrapper_itr != wrappers.end(); ++wrapper_itr) {
-			rpc_client_wrapper_info* wrapper_info = *wrapper_itr;
-			if (NULL == wrapper_info || NULL == wrapper_info->rpc || NULL == wrapper_info->rpc->get_handler() ||
-				wrapper_info->rpc->get_handler()->get_socket_index() != socket_index) {
-				continue;
-			}
-
-			uint32 key_id = itr->first;
-			server_id = (TServerID_t)(key_id >> (sizeof(TProcessType_t) * 8));
-			process_type = (TProcessType_t)(key_id & 0xFF);
-			process_id = wrapper_info->process_id;
-			break;
+	for (auto itr = m_server_process_id_2_clients.begin(); itr != m_server_process_id_2_clients.end(); ++itr) {
+		const rpc_client* rpc = itr->second;
+		if (rpc->get_handler()->get_socket_index() != socket_index) {
+			continue;
 		}
+
+		parse_key_id_by_process_id(process_info, itr->first);
+		break;
 	}
 }
 
-TSocketIndex_t rpc_wrapper::get_socket_index(TServerID_t server_id, TProcessID_t process_id) const
+TSocketIndex_t rpc_wrapper::get_socket_index(const game_process_info& process_info) const
 {
-	rpc_client* rpc = get_client(server_id, process_id);
+	rpc_client* rpc = get_client(process_info);
 	if (NULL == rpc) {
 		return INVALID_SOCKET_INDEX;
 	}
@@ -117,16 +106,16 @@ TProcessID_t rpc_wrapper::get_random_process_id(TServerID_t server_id, TProcessT
 {
 	auto itr = m_server_process_type_2_clients.find(get_key_id_by_process_type(server_id, process_type));
 	if (itr == m_server_process_type_2_clients.end()) {
-		return NULL;
+		return INVALID_PROCESS_ID;
 	}
 	const std::vector<rpc_client_wrapper_info*>& rpc_wrappers = itr->second;
 	int wrapper_index = DGameRandom.get_rand<int>(0, (int)(rpc_wrappers.size() - 1));
 	return rpc_wrappers[wrapper_index]->process_id;
 }
 
-rpc_client * rpc_wrapper::get_client(TServerID_t server_id, TProcessID_t process_id) const
+rpc_client* rpc_wrapper::get_client(const game_process_info& process_info) const
 {
-	auto itr = m_server_process_id_2_clients.find(get_key_id_by_process_id(server_id, process_id));
+	auto itr = m_server_process_id_2_clients.find(get_key_id_by_process_id(process_info));
 	if (itr == m_server_process_id_2_clients.end()) {
 		return NULL;
 	}
@@ -144,14 +133,25 @@ rpc_client* rpc_wrapper::get_random_client(TServerID_t server_id, TProcessType_t
 	return rpc_wrappers[wrapper_index]->rpc;
 }
 
-uint32 rpc_wrapper::get_key_id_by_process_id(TServerID_t server_id, TProcessID_t process_id) const
+uint64 rpc_wrapper::get_key_id_by_process_id(const game_process_info& process_info) const
 {
-	uint32 key_id = server_id;
-	return ((key_id << sizeof(process_id) * 8) + process_id);
+	uint64 key_id = process_info.server_id;
+	key_id = (key_id << (sizeof(process_info.process_type) * 8)) + process_info.process_type;
+	key_id = (key_id << (sizeof(process_info.process_id) * 8)) + process_info.process_id;
+	return key_id;
 }
 
-uint32 rpc_wrapper::get_key_id_by_process_type(TServerID_t server_id, TProcessType_t process_type) const
+uint64 rpc_wrapper::get_key_id_by_process_type(TServerID_t server_id, TProcessType_t process_type) const
 {
-	uint32 key_id = server_id;
-	return ((key_id << sizeof(process_type) * 8) + process_type);
+	uint64 key_id = server_id;
+	return ((key_id << (sizeof(process_type) * 8)) + process_type);
+}
+
+void rpc_wrapper::parse_key_id_by_process_id(game_process_info& process_info, uint64 key_id) const
+{
+	process_info.process_id = (TProcessID_t)(key_id & 0xFFFF);
+	key_id = (key_id >> (sizeof(TProcessID_t) * 8));
+	process_info.process_type = (TProcessType_t)(key_id & 0xFF);
+	key_id = (key_id >> (sizeof(TProcessType_t) * 8));
+	process_info.server_id = (TServerID_t)(key_id & 0xFFFF);
 }

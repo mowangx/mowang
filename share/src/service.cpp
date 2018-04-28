@@ -101,13 +101,11 @@ void service::register_client(rpc_client * client)
 void service::unregister_client(TSocketIndex_t socket_index)
 {
 	on_disconnect(socket_index);
-	TServerID_t server_id = INVALID_SERVER_ID;
-	TProcessType_t process_type = INVALID_PROCESS_TYPE;
-	TProcessID_t process_id = INVALID_PROCESS_ID;
-	DRpcWrapper.get_server_simple_info_by_socket_index(server_id, process_type, process_id, socket_index);
-	if (process_type == PROCESS_GAME_MANAGER) {
+	game_process_info process_info;
+	DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index);
+	if (process_info.process_type == PROCESS_GAME_MANAGER) {
 		game_server_info server_info;
-		DRpcWrapper.get_server_info(server_id, process_id, server_info);
+		DRpcWrapper.get_server_info(process_info, server_info);
 		m_disconnect_server_infos.push_back(server_info);
 	}
 

@@ -14,12 +14,12 @@ public:
 	~server_manager();
 
 public:
-	void get_server_info(TServerID_t server_id, TProcessID_t process_id, game_server_info& server_info) const;
+	void get_server_info(const game_process_info& process_info, game_server_info& server_info) const;
 	void get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const;
 
 public:
 	void register_server(const game_server_info& server_info);
-	void unregister_server(TServerID_t server_id, TProcessType_t process_type, TProcessID_t process_id);
+	void unregister_server(const game_process_info& process_info);
 
 private:
 	void clean_up();

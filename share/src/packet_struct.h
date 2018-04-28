@@ -16,6 +16,12 @@ struct game_process_info
 		clean_up();
 	}
 
+	game_process_info(TServerID_t _server_id, TProcessType_t _process_type, TProcessID_t _process_id) {
+		server_id = _server_id;
+		process_type = _process_type;
+		process_id = _process_id;
+	}
+
 	void clean_up() {
 		server_id = INVALID_SERVER_ID;
 		process_type = INVALID_PROCESS_TYPE;
