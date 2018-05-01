@@ -91,7 +91,10 @@ void service::try_reconnect_server()
 	if (m_disconnect_server_infos.empty() || DTimeMgr.now_sys_time() < m_next_reconnect_time) {
 		return;
 	}
-	
+
+	if (m_reconnect_interval_time < 2) {
+		m_reconnect_interval_time = 1 + m_server_info.process_info.process_id;
+	}
 	m_reconnect_interval_time <<= 1;
 	if (m_reconnect_interval_time > 128) {
 		m_reconnect_interval_time = 128;
@@ -122,7 +125,7 @@ void service::try_reconnect_server()
 	}
 
 	if (m_disconnect_server_infos.empty()) {
-		m_reconnect_interval_time = 1;
+		m_reconnect_interval_time = 1 + m_server_info.process_info.process_id;
 	}
 }
 
