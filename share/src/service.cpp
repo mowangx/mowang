@@ -7,6 +7,8 @@
 
 service::service(game_process_type process_type)
 {
+	m_reconnect_interval_time = 1;
+	m_next_reconnect_time = INVALID_GAME_TIME;
 	m_wait_kick_sockets.clear();
 	m_write_packets.clear();
 	m_disconnect_server_infos.clear();
@@ -67,6 +69,61 @@ void service::do_loop(TGameTime_t diff)
 
 	DNetMgr.swap_login_2_net(m_write_packets, read_packets, m_wait_kick_sockets, del_sockets);
 	m_write_packets.clear();
+
+	try_reconnect_server();
+}
+
+bool service::connect_game_manager(const char * ip, TPort_t port)
+{
+	return true;
+}
+
+void service::connect_game_manager_loop(const char * ip, TPort_t port)
+{
+	while (!connect_game_manager(ip, port)) {
+		log_error("connect game manager failed, ip = %s, port = %u", ip, port);
+		std::this_thread::sleep_for(std::chrono::seconds(2));
+	}
+}
+
+void service::try_reconnect_server()
+{
+	if (m_disconnect_server_infos.empty() || DTimeMgr.now_sys_time() < m_next_reconnect_time) {
+		return;
+	}
+	
+	m_reconnect_interval_time <<= 1;
+	if (m_reconnect_interval_time > 128) {
+		m_reconnect_interval_time = 128;
+	}
+	m_next_reconnect_time = DTimeMgr.now_sys_time() + m_reconnect_interval_time;
+
+	std::vector<game_server_info> del_server_info;
+
+	for (auto itr = m_disconnect_server_infos.begin(); itr != m_disconnect_server_infos.end(); ++itr) {
+		const game_server_info& server_info = *itr;
+		if (connect_game_manager(server_info.ip.data(), server_info.port)) {
+			del_server_info.push_back(server_info);
+		}
+		else {
+			log_error("connect game manager failed, ip = %s, port = %u", server_info.ip.data(), server_info.port);
+		}
+	}
+
+	if (del_server_info.empty()) {
+		return;
+	}
+	
+	for (auto del_itr = del_server_info.begin(); del_itr != del_server_info.end(); ++del_itr) {
+		auto itr = std::find(m_disconnect_server_infos.begin(), m_disconnect_server_infos.end(), *del_itr);
+		if (itr != m_disconnect_server_infos.end()) {
+			m_disconnect_server_infos.erase(itr);
+		}
+	}
+
+	if (m_disconnect_server_infos.empty()) {
+		m_reconnect_interval_time = 1;
+	}
 }
 
 const game_server_info & service::get_server_info() const
@@ -102,6 +159,7 @@ void service::register_client(rpc_client * client)
 void service::unregister_client(TSocketIndex_t socket_index)
 {
 	on_disconnect(socket_index);
+
 	game_process_info process_info;
 	DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index);
 	if (process_info.process_type == PROCESS_GAME_MANAGER) {

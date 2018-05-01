@@ -3,6 +3,8 @@
 #include "mysql_conn.h"
 #include "game_manager_handler.h"
 #include "game_server_handler.h"
+#include "socket_manager.h"
+#include "rpc_proxy.h"
 
 db_server::db_server() : service(PROCESS_DB)
 {
@@ -38,7 +40,14 @@ bool db_server::init(TProcessID_t process_id)
 	game_server_handler::Setup();
 	game_manager_handler::Setup();
 
-	connect_server<game_manager_handler>("127.0.0.1", 10000);
+	DRegisterServerRpc(this, db_server, register_server, 2);
+
+	connect_game_manager_loop("127.0.0.1", 10000);
 
 	return true;
+}
+
+bool db_server::connect_game_manager(const char * ip, TPort_t port)
+{
+	return DNetMgr.start_connect<game_manager_handler>(ip, port);
 }

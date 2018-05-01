@@ -3,9 +3,11 @@
 #define _SERVICE_H_
 
 #include <vector>
+#include <unordered_map>
 
+#include "service_interface.h"
 #include "game_enum.h"
-#include "socket_manager.h"
+#include "memory_pool.h"
 
 class rpc_client;
 
@@ -20,16 +22,12 @@ public:
 	virtual void run();
 
 protected:
-	template <class T>
-	void connect_server(const char* ip, TPort_t port) {
-		while (!DNetMgr.start_connect<T>(ip, port)) {
-			log_error("can't connect game manager");
-			std::this_thread::sleep_for(std::chrono::seconds(2));
-		}
-	}
-
-protected:
 	virtual void do_loop(TGameTime_t diff);
+	virtual bool connect_game_manager(const char* ip, TPort_t port);
+	void connect_game_manager_loop(const char* ip, TPort_t port);
+
+private:
+	void try_reconnect_server();
 
 public:
 	virtual const game_server_info& get_server_info() const override;
@@ -56,6 +54,8 @@ public:
 	rpc_client* get_client(TSocketIndex_t socket_index);
 
 protected:
+	TGameTime_t m_reconnect_interval_time;
+	TGameTime_t m_next_reconnect_time;
 	game_server_info m_server_info;
 	obj_memory_pool<TPacketSendInfo_t, 1000> m_packet_pool;
 	memory_pool m_mem_pool;

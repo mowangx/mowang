@@ -23,6 +23,8 @@ public:
 
 public:
 	virtual bool init(TProcessID_t process_id) override;
+private:
+	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 
 public:
 	resource * allocate_resource();
@@ -38,7 +40,7 @@ public:
 	void deallocate_farmland(farmland* f);
 
 public:
-	void register_server(TSocketIndex_t socket_index, const game_server_info& server_info);
+	virtual void register_server(TSocketIndex_t socket_index, const game_server_info& server_info) override;
 	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TProcessID_t gate_id, TPlatformID_t platform_id, TUserID_t user_id);
 	void game_rpc_func(TSocketIndex_t socket_index, TServerID_t server_id);
 	void game_rpc_func_1(TSocketIndex_t socket_index, const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3);

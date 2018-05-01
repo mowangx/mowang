@@ -16,9 +16,10 @@ public:
 
 public:
 	bool init(TProcessID_t process_id);
+private:
+	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 
 public:
-	void register_server(TSocketIndex_t socket_index, const game_server_info& server_info);
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
 	void login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const TUserID_t& user_id);
 

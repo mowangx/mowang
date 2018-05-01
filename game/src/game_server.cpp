@@ -7,6 +7,7 @@
 #include "rpc_proxy.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
+#include "socket_manager.h"
 
 game_server::game_server() :service(PROCESS_GAME)
 {
@@ -51,9 +52,14 @@ bool game_server::init(TProcessID_t process_id)
 	DRegisterStubRpc(this, game_server, game_rpc_func_1, 4);
 	DRegisterStubRpc(this, game_server, game_rpc_func_2, 3);
 
-	connect_server<game_manager_handler>("127.0.0.1", 10000);
+	connect_game_manager_loop("127.0.0.1", 10000);
 
 	return true;
+}
+
+bool game_server::connect_game_manager(const char * ip, TPort_t port)
+{
+	return DNetMgr.start_connect<game_manager_handler>(ip, port);
 }
 
 resource* game_server::allocate_resource()
@@ -98,10 +104,7 @@ void game_server::deallocate_farmland(farmland * f)
 
 void game_server::register_server(TSocketIndex_t socket_index, const game_server_info& server_info)
 {
-	auto itr = m_clients.find(socket_index);
-	if (itr != m_clients.end()) {
-		DRpcWrapper.register_handler_info(itr->second, server_info);
-	}
+	TBaseType_t::register_server(socket_index, server_info);
 
 	dynamic_string p1("xiedi");
 	uint16 p2 = 65500;

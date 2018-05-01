@@ -6,6 +6,7 @@
 #include "rpc_client.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
+#include "socket_manager.h"
 
 gate_server::gate_server() : service(PROCESS_GATE)
 {
@@ -36,19 +37,14 @@ bool gate_server::init(TProcessID_t process_id)
 	game_server_handler::Setup();
 	client_handler::Setup();
 
-	connect_server<game_manager_handler>("127.0.0.1", 10000);
+	connect_game_manager_loop("127.0.0.1", 10000);
 
 	return true;
 }
 
-void gate_server::register_server(TSocketIndex_t socket_index, const game_server_info& server_info)
+bool gate_server::connect_game_manager(const char * ip, TPort_t port)
 {
-	log_info("register_server, server id = %u, process type = %u, process id = %u, ip = %s, port = %u", server_info.process_info.server_id,
-		server_info.process_info.process_type, server_info.process_info.process_id, server_info.ip.data(), server_info.port);
-	auto itr = m_clients.find(socket_index);
-	if (itr != m_clients.end()) {
-		DRpcWrapper.register_handler_info(itr->second, server_info);
-	}
+	return DNetMgr.start_connect<game_manager_handler>(ip, port);
 }
 
 void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)

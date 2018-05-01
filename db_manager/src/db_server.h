@@ -18,6 +18,8 @@ public:
 
 public:
 	bool init(TProcessID_t process_id);
+private:
+	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 
 private:
 	db_conn * m_db;
