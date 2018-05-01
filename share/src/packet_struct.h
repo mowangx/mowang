@@ -59,8 +59,7 @@ struct game_server_info
 	bool operator == (const game_server_info& rhs) const {
 		return process_info.server_id == rhs.process_info.server_id 
 			&& process_info.process_type == rhs.process_info.process_type 
-			&& process_info.process_id == rhs.process_info.process_id 
-			&& port == rhs.port;
+			&& process_info.process_id == rhs.process_info.process_id;
 	}
 };
 

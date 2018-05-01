@@ -13,16 +13,8 @@ public:
 	game_manager_handler();
 	~game_manager_handler();
 
-public:
-	static void Setup();
-
 private:
-	virtual TPacketSendInfo_t* create_packet_info() override;
-	virtual char* create_packet(int n) override;
-	virtual void write_packet(TPacketSendInfo_t* packet_info) override;
-	virtual const game_server_info& get_server_info() const override;
-	virtual void register_client() override;
-	virtual void unregister_client() override;
+	virtual service_interface* get_service() const override;
 };
 
 #endif // !_GAME_MANAGER_HANDLER_H_

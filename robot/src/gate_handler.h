@@ -14,26 +14,18 @@ public:
 	gate_handler();
 	~gate_handler();
 
-public:
-	static void Setup();
-
 private:
-	virtual TPacketSendInfo_t* create_packet_info() override;
-	virtual char* create_packet(int n) override;
-	virtual void write_packet(TPacketSendInfo_t* packet_info) override;
-	virtual const game_server_info& get_server_info() const override;
-	virtual void register_client() override;
-	virtual void unregister_client() override;
+	virtual service_interface* get_service() const override;
 	virtual bool need_register_server() const override {
 		return false; 
 	}
 
 public:
-	virtual void handle_init() override;
+	virtual void handle_init() const override;
 	virtual void handle_close() override;
 
-	virtual bool handle_rpc_by_index(packet_base* packet);
-	virtual bool handle_rpc_by_name(packet_base* packet);
+	virtual bool handle_rpc_by_index(packet_base* packet) const override;
+	virtual bool handle_rpc_by_name(packet_base* packet) const override;
 };
 
 

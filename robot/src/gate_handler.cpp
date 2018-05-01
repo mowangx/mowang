@@ -16,42 +16,12 @@ gate_handler::~gate_handler()
 
 }
 
-void gate_handler::Setup()
+service_interface * gate_handler::get_service() const
 {
-	TBaseType_t::Setup();
+	return singleton<robot_server>::get_instance_ptr();
 }
 
-TPacketSendInfo_t* gate_handler::create_packet_info()
-{
-	return DRobotServer.allocate_packet_info();
-}
-
-char* gate_handler::create_packet(int n)
-{
-	return DRobotServer.allocate_memory(n);
-}
-
-void gate_handler::write_packet(TPacketSendInfo_t* packet_info)
-{
-	DRobotServer.push_write_packets(packet_info);
-}
-
-const game_server_info & gate_handler::get_server_info() const
-{
-	return DRobotServer.get_server_info();
-}
-
-void gate_handler::register_client()
-{
-	DRobotServer.register_client(m_rpc_client);
-}
-
-void gate_handler::unregister_client()
-{
-	DRobotServer.unregister_client(get_socket_index());
-}
-
-void gate_handler::handle_init()
+void gate_handler::handle_init() const
 {
 	log_info("'%"I64_FMT"u', gate connect success, handle init", get_socket_index());
 	DRobotServer.register_client(m_rpc_client);
@@ -70,14 +40,14 @@ void gate_handler::handle_close()
 	TBaseType_t::handle_close();
 }
 
-bool gate_handler::handle_rpc_by_index(packet_base * packet)
+bool gate_handler::handle_rpc_by_index(packet_base * packet)const
 {
 	rpc_by_index_packet* rpc_info = (rpc_by_index_packet*)packet;
 	DRpcStub.call(rpc_info->m_rpc_index, rpc_info->m_buffer);
 	return true;
 }
 
-bool gate_handler::handle_rpc_by_name(packet_base * packet)
+bool gate_handler::handle_rpc_by_name(packet_base * packet)const
 {
 	rpc_by_name_packet* rpc_info = (rpc_by_name_packet*)packet;
 	DRpcStub.call(rpc_info->m_rpc_name, rpc_info->m_buffer);

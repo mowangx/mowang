@@ -7,8 +7,9 @@
 
 service::service(game_process_type process_type)
 {
-	m_disconnect_server_infos.clear();
+	m_wait_kick_sockets.clear();
 	m_write_packets.clear();
+	m_disconnect_server_infos.clear();
 	m_clients.clear();
 	m_server_info.process_info.process_type = process_type;
 }
@@ -41,35 +42,30 @@ void service::do_loop(TGameTime_t diff)
 {
 	// 
 	std::vector<TPacketRecvInfo_t*> read_packets;
-	std::vector<socket_base*> wait_init_sockets;
-	std::vector<socket_base*> wait_del_sockets;
+	std::vector<TPacketSendInfo_t*> finish_write_packets;
+	std::vector<socket_base*> add_sockets;
+	std::vector<socket_base*> del_sockets;
 
-	DNetMgr.read_packets(read_packets, wait_init_sockets, wait_del_sockets);
-
-	for (auto socket : wait_del_sockets) {
-		socket->get_packet_handler()->handle_close();
-	}
-
-	for (auto socket : wait_init_sockets) {
-		socket->get_packet_handler()->handle_init();
-	}
+	DNetMgr.swap_net_2_logic(read_packets, finish_write_packets, add_sockets, del_sockets);
 
 	for (auto packet_info : read_packets) {
 		packet_info->socket->get_packet_handler()->handle(packet_info->packet);
 	}
 
-	DNetMgr.finish_read_packets(read_packets, wait_del_sockets);
-	read_packets.clear();
-
-	std::vector<TPacketSendInfo_t*> send_packets;
-	DNetMgr.finish_write_packets(send_packets);
-	for (auto packet_info : send_packets) {
+	for (auto packet_info : finish_write_packets) {
 		m_mem_pool.deallocate((char*)packet_info->packet);
 		m_packet_pool.deallocate(packet_info);
 	}
-	send_packets.clear();
 
-	DNetMgr.write_packets(m_write_packets);
+	for (auto socket : add_sockets) {
+		socket->get_packet_handler()->handle_init();
+	}
+
+	for (auto socket : del_sockets) {
+		socket->get_packet_handler()->handle_close();
+	}
+
+	DNetMgr.swap_login_2_net(m_write_packets, read_packets, m_wait_kick_sockets, del_sockets);
 	m_write_packets.clear();
 }
 
@@ -91,6 +87,11 @@ char * service::allocate_memory(int n)
 void service::push_write_packets(TPacketSendInfo_t * packet_info)
 {
 	m_write_packets.push_back(packet_info);
+}
+
+void service::kick_socket(TSocketIndex_t socket_index)
+{
+	m_wait_kick_sockets.push_back(socket_index);
 }
 
 void service::register_client(rpc_client * client)

@@ -10,8 +10,12 @@ class singleton
 public:
 	static T& get_instance()
 	{
+		return *(get_instance_ptr());
+	}
+
+	static T* get_instance_ptr() {
 		if (NULL != m_instance) {
-			return *m_instance;
+			return m_instance;
 		}
 
 		m_mutex.lock();
@@ -20,7 +24,7 @@ public:
 			m_instance = new T();
 		}
 		m_mutex.unlock();
-		return *m_instance;
+		return m_instance;
 	}
 
 protected:

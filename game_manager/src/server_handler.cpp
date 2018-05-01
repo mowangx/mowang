@@ -15,37 +15,7 @@ server_handler::~server_handler()
 
 }
 
-void server_handler::Setup()
+service_interface * server_handler::get_service() const
 {
-	TBaseType_t::Setup();
-}
-
-TPacketSendInfo_t* server_handler::create_packet_info()
-{
-	return DGameManager.allocate_packet_info();
-}
-
-char* server_handler::create_packet(int n)
-{
-	return DGameManager.allocate_memory(n);
-}
-
-void server_handler::write_packet(TPacketSendInfo_t* packet_info)
-{
-	DGameManager.push_write_packets(packet_info);
-}
-
-const game_server_info & server_handler::get_server_info() const
-{
-	return DGameManager.get_server_info();
-}
-
-void server_handler::register_client()
-{
-	DGameManager.register_client(m_rpc_client);
-}
-
-void server_handler::unregister_client()
-{
-	DGameManager.unregister_client(get_socket_index());
+	return singleton<game_manager>::get_instance_ptr();
 }

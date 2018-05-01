@@ -20,6 +20,11 @@ class rpc_wrapper : public singleton<rpc_wrapper>
 			process_id = INVALID_PROCESS_ID;
 			rpc = NULL;
 		}
+
+		rpc_client_wrapper_info(TProcessID_t _process_id, rpc_client* _rpc) {
+			process_id = _process_id;
+			rpc = _rpc;
+		}
 	};
 
 public:
@@ -263,9 +268,9 @@ public:
 	void unregister_handler_info(TSocketIndex_t socket_index);
 
 public:
-	void get_server_info(const game_process_info& process_info, game_server_info& server_info) const;
+	bool get_server_info(const game_process_info& process_info, game_server_info& server_info) const;
 	void get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const;
-	void get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const;
+	bool get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const;
 	TSocketIndex_t get_socket_index(const game_process_info& process_info) const;
 	TProcessID_t get_random_process_id(TServerID_t server_id, TProcessType_t process_type) const;
 	rpc_client* get_client(const game_process_info& process_info) const;
@@ -273,6 +278,7 @@ public:
 	uint64 get_key_id_by_process_id(const game_process_info& process_info) const;
 	uint64 get_key_id_by_process_type(TServerID_t server_id, TProcessType_t process_type) const;
 	void parse_key_id_by_process_id(game_process_info& process_info, uint64 key_id) const;
+	void parse_key_id_by_process_type(game_process_info& process_info, uint64 key_id) const;
 
 private:
 	std::map<uint64, rpc_client*> m_server_process_id_2_clients;

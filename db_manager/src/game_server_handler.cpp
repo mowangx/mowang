@@ -15,42 +15,12 @@ game_server_handler::~game_server_handler()
 
 }
 
-void game_server_handler::Setup()
+service_interface* game_server_handler::get_service() const
 {
-	TBaseType_t::Setup();
+	return singleton<db_server>::get_instance_ptr();
 }
 
-TPacketSendInfo_t* game_server_handler::create_packet_info()
-{
-	return DDbServer.allocate_packet_info();
-}
-
-char* game_server_handler::create_packet(int n)
-{
-	return DDbServer.allocate_memory(n);
-}
-
-void game_server_handler::write_packet(TPacketSendInfo_t* packet_info)
-{
-	DDbServer.push_write_packets(packet_info);
-}
-
-const game_server_info & game_server_handler::get_server_info() const
-{
-	return DDbServer.get_server_info();
-}
-
-void game_server_handler::register_client()
-{
-	DDbServer.register_client(m_rpc_client);
-}
-
-void game_server_handler::unregister_client()
-{
-	DDbServer.unregister_client(get_socket_index());
-}
-
-void game_server_handler::handle_init()
+void game_server_handler::handle_init() const
 {
 	log_info("'%"I64_FMT"u', game connect success, handle init", get_socket_index());
 	TBaseType_t::handle_init();

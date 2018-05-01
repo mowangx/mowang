@@ -14,15 +14,20 @@ void rpc_wrapper::register_handler_info(rpc_client* client, const game_server_in
 {
 	const game_process_info& process_info = server_info.process_info;
 	uint64 key_id = get_key_id_by_process_id(process_info);
+	auto id_itr = m_server_process_id_2_clients.find(key_id);
+	if (id_itr != m_server_process_id_2_clients.end()) {
+		id_itr->second->get_handler()->kick();
+		log_info("kick server, server id = %u, process type = %u, process id = %u",
+			process_info.server_id, process_info.process_type, process_info.process_id);
+	}
 	m_server_process_id_2_clients[key_id] = client;
 
-	rpc_client_wrapper_info* wrapper_info = new rpc_client_wrapper_info();
-	wrapper_info->rpc = client;
-	wrapper_info->process_id = process_info.process_id;
+	rpc_client_wrapper_info* wrapper_info = new rpc_client_wrapper_info(process_info.process_id, client);
 	key_id = get_key_id_by_process_type(process_info.server_id, process_info.process_type);
 	auto itr = m_server_process_type_2_clients.find(key_id);
 	if (itr != m_server_process_type_2_clients.end()) {
-		itr->second.push_back(wrapper_info);
+		std::vector<rpc_client_wrapper_info*>& rpc_wrappers = itr->second;
+		rpc_wrappers.push_back(wrapper_info);
 	}
 	else {
 		std::vector<rpc_client_wrapper_info*> rpc_wrappers;
@@ -47,28 +52,26 @@ void rpc_wrapper::unregister_handler_info(TSocketIndex_t socket_index)
 	}
 
 	game_process_info process_info;
-
 	for (auto itr = m_server_process_type_2_clients.begin(); itr != m_server_process_type_2_clients.end(); ++itr) {
 		std::vector<rpc_client_wrapper_info*>& wrappers = itr->second;
 		for (auto wrapper_itr = wrappers.begin(); wrapper_itr != wrappers.end(); ++wrapper_itr) {
 			rpc_client_wrapper_info* wrapper_info = *wrapper_itr;
-			if (wrapper_info->rpc->get_handler()->get_socket_index() != socket_index) {
-				continue;
+			if (wrapper_info->rpc->get_handler()->get_socket_index() == socket_index) {
+				process_info.process_id = wrapper_info->process_id;
+				parse_key_id_by_process_type(process_info, itr->first);
+				delete wrapper_info;
+				wrappers.erase(wrapper_itr);
+				break;
 			}
-
-			parse_key_id_by_process_id(process_info, itr->first);
-			delete wrapper_info;
-			wrappers.erase(wrapper_itr);
-			break;
 		}
 	}
 
 	m_server_manager.unregister_server(process_info);
 }
 
-void rpc_wrapper::get_server_info(const game_process_info& process_info, game_server_info & server_info) const
+bool rpc_wrapper::get_server_info(const game_process_info& process_info, game_server_info & server_info) const
 {
-	m_server_manager.get_server_info(process_info, server_info);
+	return m_server_manager.get_server_info(process_info, server_info);
 }
 
 void rpc_wrapper::get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const
@@ -76,7 +79,7 @@ void rpc_wrapper::get_server_infos(TServerID_t server_id, TProcessType_t process
 	m_server_manager.get_server_infos(server_id, process_type, servers);
 }
 
-void rpc_wrapper::get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const
+bool rpc_wrapper::get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const
 {
 	for (auto itr = m_server_process_id_2_clients.begin(); itr != m_server_process_id_2_clients.end(); ++itr) {
 		const rpc_client* rpc = itr->second;
@@ -85,8 +88,24 @@ void rpc_wrapper::get_server_simple_info_by_socket_index(game_process_info& proc
 		}
 
 		parse_key_id_by_process_id(process_info, itr->first);
-		break;
+		return true;
 	}
+
+	for (auto itr = m_server_process_type_2_clients.begin(); itr != m_server_process_type_2_clients.end(); ++itr) {
+		const std::vector<rpc_client_wrapper_info*>& wrappers = itr->second;
+		for (auto wrapper_itr = wrappers.begin(); wrapper_itr != wrappers.end(); ++wrapper_itr) {
+			const rpc_client_wrapper_info* wrapper_info = *wrapper_itr;
+			if (wrapper_info->rpc->get_handler()->get_socket_index() != socket_index) {
+				continue;
+			}
+			
+			process_info.process_id = wrapper_info->process_id;
+			parse_key_id_by_process_type(process_info, itr->first);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 TSocketIndex_t rpc_wrapper::get_socket_index(const game_process_info& process_info) const
@@ -151,6 +170,13 @@ void rpc_wrapper::parse_key_id_by_process_id(game_process_info& process_info, ui
 {
 	process_info.process_id = (TProcessID_t)(key_id & 0xFFFF);
 	key_id = (key_id >> (sizeof(TProcessID_t) * 8));
+	process_info.process_type = (TProcessType_t)(key_id & 0xFF);
+	key_id = (key_id >> (sizeof(TProcessType_t) * 8));
+	process_info.server_id = (TServerID_t)(key_id & 0xFFFF);
+}
+
+void rpc_wrapper::parse_key_id_by_process_type(game_process_info & process_info, uint64 key_id) const
+{
 	process_info.process_type = (TProcessType_t)(key_id & 0xFF);
 	key_id = (key_id >> (sizeof(TProcessType_t) * 8));
 	process_info.server_id = (TServerID_t)(key_id & 0xFFFF);

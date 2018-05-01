@@ -35,11 +35,20 @@ public:
 
 	uint32	socket_num() const;
 
-	void	read_packets(std::vector<TPacketRecvInfo_t*>& packets, std::vector<socket_base*>& new_sockets, std::vector<socket_base*>& del_sockets);
-	void	finish_read_packets(std::vector<TPacketRecvInfo_t*>& packets, std::vector<socket_base*>& sockets);
 
-	void	write_packets(std::vector<TPacketSendInfo_t*>& packets);
-	void	finish_write_packets(std::vector<TPacketSendInfo_t*>& packets);
+	void	swap_net_2_logic(
+		std::vector<TPacketRecvInfo_t*>& read_packets, 
+		std::vector<TPacketSendInfo_t*>& finish_write_packets, 
+		std::vector<socket_base*>& new_sockets, 
+		std::vector<socket_base*>& del_sockets
+	);
+
+	void	swap_login_2_net(
+		const std::vector<TPacketSendInfo_t*>& write_packets, 
+		const std::vector<TPacketRecvInfo_t*>& finish_read_packets, 
+		const std::vector<TSocketIndex_t>& kick_sockets,
+		const std::vector<socket_base*>& del_sockets
+	);
 
 	void	test_get_sockets(std::vector<socket_base*>& sockets);
 
@@ -53,6 +62,7 @@ private:
 	void	handle_unpacket();
 	void	handle_socket_unpacket(socket_base* socket);
 	void	handle_write_msg();
+	void	handle_kick_socket();
 	void	handle_close_socket(socket_base* socket, bool write_flag);
 	void	handle_release_socket();
 	void	handle_release_packet();
@@ -85,6 +95,7 @@ private:
 	std::vector<TPacketSendInfo_t*> m_finish_write_packets;
 	std::vector<socket_base*> m_new_sockets;
 	std::vector<socket_base*> m_wait_init_sockets;
+	std::vector<TSocketIndex_t> m_wait_kick_sockets;
 	std::vector<socket_base*> m_wait_delete_sockets;
 	std::vector<socket_base*> m_delete_sockets;
 	std::unordered_map<TSocketIndex_t, socket_base*> m_sockets;

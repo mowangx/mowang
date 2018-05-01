@@ -4,6 +4,7 @@
 
 #include "singleton.h"
 #include "service.h"
+#include "dynamic_array.h"
 
 class game_manager : public service, public singleton<game_manager>
 {
@@ -23,12 +24,16 @@ private:
 	void broadcast_db(const game_server_info& server_info) const;
 	void broadcast_games() const;
 	void broadcast_game(const game_server_info& server_info) const;
+private:
+	void broadcast_db_core(const dynamic_array<game_server_info>& servers) const;
+	void broadcast_game_core(const dynamic_array<game_server_info>& servers) const;
 
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;
 
 private:
+	bool m_broadcast_flag;
 	TProcessNum_t m_process_num[MAX_PROCESS_TYPE_NUM];
 };
 

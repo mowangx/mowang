@@ -14,7 +14,7 @@ public:
 	~server_manager();
 
 public:
-	void get_server_info(const game_process_info& process_info, game_server_info& server_info) const;
+	bool get_server_info(const game_process_info& process_info, game_server_info& server_info) const;
 	void get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const;
 
 public:

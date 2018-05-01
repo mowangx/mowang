@@ -24,11 +24,11 @@ bool game_server::init(TProcessID_t process_id)
 		return false;
 	}
 
-	if (!DTblTestMgr.load("../config/server_test.xml")) {
-		log_error("load config failed");
-		return false;
-	}
-	log_info("load config success");
+	//if (!DTblTestMgr.load("../config/server_test.xml")) {
+	//	log_error("load config failed");
+	//	return false;
+	//}
+	//log_info("load config success");
 
 	m_server_info.process_info.server_id = 100;
 	char* ip = "127.0.0.1";
@@ -43,7 +43,7 @@ bool game_server::init(TProcessID_t process_id)
 	DRegisterStubRpc(this, game_server, game_rpc_func, 2);
 
 	DRegisterServerRpc(this, game_server, register_server, 2);
-	DRegisterServerRpc(this, game_server, on_query_servers, 4);
+	DRegisterServerRpc(this, game_server, on_register_servers, 4);
 	DRegisterServerRpc(this, game_server, login_server, 5);
 	DRegisterServerRpc(this, game_server, game_rpc_func_1, 4);
 	DRegisterServerRpc(this, game_server, game_rpc_func_2, 3);
@@ -164,11 +164,18 @@ void game_server::game_rpc_func_2(TSocketIndex_t socket_index, uint8 p1, const s
 	log_info("game rpc func 2, p1 = %d, p2 = %s", p1, p2.data());
 }
 
-void game_server::on_query_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
+void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
 {
-	log_info("on_query_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
+	log_info("on_register_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
 	for (int i = 0; i < servers.size(); ++i) {
 		const game_server_info& server_info = servers[i];
+
+		game_server_info tmp_server_info;
+		if (DRpcWrapper.get_server_info(server_info.process_info, tmp_server_info)) {
+			log_info("server has registerted, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+			continue;
+		}
+
 		if (DNetMgr.start_connect<db_manager_handler>(server_info.ip.data(), server_info.port)) {
 			log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
 		}

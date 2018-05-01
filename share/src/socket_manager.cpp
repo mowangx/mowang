@@ -17,6 +17,7 @@ socket_manager::socket_manager()
 	m_finish_write_packets.clear();
 	m_new_sockets.clear();
 	m_wait_init_sockets.clear();
+	m_wait_kick_sockets.clear();
 	m_wait_delete_sockets.clear();
 	m_delete_sockets.clear();
 	m_sockets.clear();
@@ -53,6 +54,8 @@ void socket_manager::update(uint32 diff)
 
 	handle_unpacket();
 
+	handle_kick_socket();
+
 	handle_release_packet();
 
 	handle_write_msg();
@@ -79,12 +82,18 @@ uint32 socket_manager::socket_num() const
 	return (uint32)m_sockets.size();
 }
 
-void socket_manager::read_packets(std::vector<TPacketRecvInfo_t*>& packets, std::vector<socket_base*>& new_sockets, std::vector<socket_base*>& del_sockets)
+void socket_manager::swap_net_2_logic(
+	std::vector<TPacketRecvInfo_t*>& read_packets, 
+	std::vector<TPacketSendInfo_t*>& finish_write_packets, 
+	std::vector<socket_base*>& new_sockets, 
+	std::vector<socket_base*>& del_sockets)
 {
 	auto_lock lock(&m_mutex);
-
-	packets.insert(packets.end(), m_read_packets.begin(), m_read_packets.end());
+	read_packets.insert(read_packets.end(), m_read_packets.begin(), m_read_packets.end());
 	m_read_packets.clear();
+
+	finish_write_packets.insert(finish_write_packets.end(), m_finish_write_packets.begin(), m_finish_write_packets.end());
+	m_finish_write_packets.clear();
 
 	new_sockets.insert(new_sockets.end(), m_wait_init_sockets.begin(), m_wait_init_sockets.end());
 	m_wait_init_sockets.clear();
@@ -93,26 +102,21 @@ void socket_manager::read_packets(std::vector<TPacketRecvInfo_t*>& packets, std:
 	m_wait_delete_sockets.clear();
 }
 
-void socket_manager::finish_read_packets(std::vector<TPacketRecvInfo_t*>& packets, std::vector<socket_base*>& sockets)
+void socket_manager::swap_login_2_net(
+	const std::vector<TPacketSendInfo_t*>& write_packets, 
+	const std::vector<TPacketRecvInfo_t*>& finish_read_packets, 
+	const std::vector<TSocketIndex_t>& kick_sockets, 
+	const std::vector<socket_base*>& del_sockets)
 {
 	auto_lock lock(&m_mutex);
 
-	m_finish_read_packets.insert(m_finish_read_packets.end(), packets.begin(), packets.end());
+	m_write_packets.insert(m_write_packets.end(), write_packets.begin(), write_packets.end());
 
-	m_delete_sockets.insert(m_delete_sockets.end(), sockets.begin(), sockets.end());
-}
+	m_finish_read_packets.insert(m_finish_read_packets.end(), finish_read_packets.begin(), finish_read_packets.end());
 
-void socket_manager::write_packets(std::vector<TPacketSendInfo_t*>& packets)
-{
-	auto_lock lock(&m_mutex);
-	m_write_packets.insert(m_write_packets.end(), packets.begin(), packets.end());
-}
+	m_wait_kick_sockets.insert(m_wait_kick_sockets.end(), kick_sockets.begin(), kick_sockets.end());
 
-void socket_manager::finish_write_packets(std::vector<TPacketSendInfo_t*>& packets)
-{
-	auto_lock lock(&m_mutex);
-	packets.insert(packets.end(), m_finish_write_packets.begin(), m_finish_write_packets.end());
-	m_finish_write_packets.clear();
+	m_delete_sockets.insert(m_delete_sockets.end(), del_sockets.begin(), del_sockets.end());
 }
 
 void socket_manager::test_get_sockets(std::vector<socket_base*>& sockets)
@@ -215,6 +219,8 @@ void socket_manager::handle_socket_unpacket(socket_base* socket)
 	if (cur_len != len) {
 		log_error("socket index = '%"I64_FMT"u', read len is not equal cache len, read len = %d, cache len = %d", socket->get_socket_index(), cur_len, len);
 	}
+
+	std::vector<TPacketRecvInfo_t*> packets;
 	packet_base* packet = socket_handler->unpacket();
 	while (NULL != packet) {
 		char* packet_pool = m_mem_pool.allocate(packet->get_packet_len());
@@ -222,26 +228,55 @@ void socket_manager::handle_socket_unpacket(socket_base* socket)
 		TPacketRecvInfo_t* packet_info = m_packet_info_pool.allocate();
 		packet_info->socket = socket;
 		packet_info->packet = (packet_base*)packet_pool;
-		{
-			auto_lock lock(&m_mutex);
-			m_read_packets.push_back(packet_info);
-		}
+		packets.push_back(packet_info);
 		packet = socket_handler->unpacket();
+	}
+
+	{
+		if (packets.empty()) {
+			return;
+		}
+		auto_lock lock(&m_mutex);
+		m_read_packets.insert(m_read_packets.end(), packets.begin(), packets.end());
 	}
 }
 
 void socket_manager::handle_write_msg()
 {
 	std::vector<TPacketSendInfo_t*> packets;
+	std::vector<TPacketSendInfo_t*> finish_packets;
+
 	{
 		auto_lock lock(&m_mutex);
 		packets.insert(packets.begin(), m_write_packets.begin(), m_write_packets.end());
 		m_write_packets.clear();
 	}
+
 	for (auto packet_info : packets) {
 		send_packet(packet_info->socket_index, (char*)packet_info->packet, packet_info->packet->get_packet_len());
+		finish_packets.push_back(packet_info);
+	}
+
+	{
 		auto_lock lock(&m_mutex);
-		m_finish_write_packets.push_back(packet_info);
+		m_finish_write_packets.insert(m_finish_write_packets.end(), finish_packets.begin(), finish_packets.end());
+	}
+}
+
+void socket_manager::handle_kick_socket()
+{
+	std::vector<TSocketIndex_t> kick_sockets;
+	{
+		auto_lock lock(&m_mutex);
+		kick_sockets.insert(kick_sockets.end(), m_wait_kick_sockets.begin(), m_wait_kick_sockets.end());
+		m_wait_kick_sockets.clear();
+	}
+
+	for (TSocketIndex_t socket_index : kick_sockets) {
+		auto itr = m_sockets.find(socket_index);
+		if (itr != m_sockets.end()) {
+			del_socket(itr->second);
+		}
 	}
 }
 

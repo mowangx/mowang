@@ -28,7 +28,7 @@ bool gate_server::init(TProcessID_t process_id)
 	memcpy(m_server_info.ip.data(), ip, strlen(ip));
 	m_server_info.port = 10300 + process_id;
 
-	DRegisterServerRpc(this, gate_server, on_query_servers, 4);
+	DRegisterServerRpc(this, gate_server, on_register_servers, 4);
 	DRegisterServerRpc(this, gate_server, login_server, 4);
 	DRegisterServerRpc(this, gate_server, register_server, 2);
 
@@ -51,11 +51,24 @@ void gate_server::register_server(TSocketIndex_t socket_index, const game_server
 	}
 }
 
-void gate_server::on_query_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
+void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
 {
-	log_info("on_query_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
+	log_info("on_register_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
 	for (int i = 0; i < servers.size(); ++i) {
-		on_game_connect(servers[i]);
+		const game_server_info& server_info = servers[i];
+
+		game_server_info tmp_server_info;
+		if (DRpcWrapper.get_server_info(server_info.process_info, tmp_server_info)) {
+			log_info("server has registerted, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+			continue;
+		}
+
+		if (DNetMgr.start_connect<game_server_handler>(server_info.ip.data(), server_info.port)) {
+			log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+		}
+		else {
+			log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+		}
 	}
 }
 
@@ -70,20 +83,6 @@ void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platfo
 	rpc_client* rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
 		rpc->call_remote_func("login_server", socket_index, m_server_info.process_info.process_id, platform_id, user_id);
-	}
-}
-
-void gate_server::on_game_lose(TServerID_t server_id, TProcessID_t game_id)
-{
-}
-
-void gate_server::on_game_connect(const game_server_info & server_info)
-{
-	if (DNetMgr.start_connect<game_server_handler>(server_info.ip.data(), server_info.port)) {
-		log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
-	}
-	else {
-		log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
 	}
 }
 

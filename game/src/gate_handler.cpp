@@ -22,34 +22,9 @@ void gate_handler::Setup()
 	register_handler((TPacketID_t)PACKET_ID_TRANSFER_CLIENT, (packet_handler_func)&gate_handler::handle_transfer_client);
 }
 
-TPacketSendInfo_t* gate_handler::create_packet_info()
+service_interface* gate_handler::get_service() const
 {
-	return DGameServer.allocate_packet_info();
-}
-
-char* gate_handler::create_packet(int n)
-{
-	return DGameServer.allocate_memory(n);
-}
-
-void gate_handler::write_packet(TPacketSendInfo_t* packet_info)
-{
-	DGameServer.push_write_packets(packet_info);
-}
-
-const game_server_info& gate_handler::get_server_info() const
-{
-	return DGameServer.get_server_info();
-}
-
-void gate_handler::register_client()
-{
-	DGameServer.register_client(m_rpc_client);
-}
-
-void gate_handler::unregister_client()
-{
-	DGameServer.unregister_client(get_socket_index());
+	return singleton<game_server>::get_instance_ptr();
 }
 
 bool gate_handler::handle_transfer_client(packet_base * packet)
