@@ -3,13 +3,11 @@
 
 rpc_proxy::rpc_proxy()
 {
-	log_info("rpx proxy constructor");
 	clean_up();
 }
 
 rpc_proxy::~rpc_proxy()
 {
-	log_info("rpc proxy desconstrutor");
 	clean_up();
 }
 
@@ -107,6 +105,9 @@ void rpc_role::call(TRoleID_t role_id, uint8 func_index, char * buffer)
 	if (NULL != proxy) {
 		proxy->call(func_index, buffer);
 	}
+	else {
+		log_error("call role func, but not find role id, role id = '%"I64_FMT"u'", role_id);
+	}
 }
 
 void rpc_role::call(TRoleID_t role_id, const std::string & func_name, char * buffer)
@@ -114,6 +115,9 @@ void rpc_role::call(TRoleID_t role_id, const std::string & func_name, char * buf
 	rpc_proxy* proxy = get_proxy(role_id);
 	if (NULL != proxy) {
 		proxy->call(func_name, buffer);
+	}
+	else {
+		log_error("call role func, but not find role id, role id = '%"I64_FMT"u'", role_id);
 	}
 }
 

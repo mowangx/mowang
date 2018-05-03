@@ -9,6 +9,7 @@
 #include "robot_server.h"
 #include "socket_manager.h"
 #include "gate_handler.h"
+#include "game_random.h"
 
 void work_run(TProcessID_t process_id)
 {
@@ -36,13 +37,13 @@ void net_run(TProcessID_t process_id)
 		//DNetMgr.test_kick();
 
 		if (DNetMgr.socket_num() < 100) {
-			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", 10301)) {
+			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", DGameRandom.get_rand<int>(10301, 10308))) {
 				log_info("connect server failed");
 				break;
 			}
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}
 }
 

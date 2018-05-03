@@ -5,7 +5,7 @@
 #include <string>
 #include <mutex>
 #include <thread>
-#include <deque>
+#include <vector>
 
 #include "types_def.h"
 #include "singleton.h"
@@ -38,7 +38,7 @@ private:
 	FILE* m_file;
 	std::mutex m_mutex;
 	std::string m_filename;
-	std::deque<std::string> m_logs;
+	std::vector<std::string> m_logs;
 };
 
 #define DLogMgr							singleton<log_wrapper>::get_instance()

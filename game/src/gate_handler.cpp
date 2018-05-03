@@ -30,6 +30,6 @@ service_interface* gate_handler::get_service() const
 bool gate_handler::handle_transfer_client(packet_base * packet)
 {
 	transfer_client_packet* transfer_info = (transfer_client_packet*)packet;
-	DGameServer.transfer_client(transfer_info->m_client_id, (packet_base*)transfer_info->m_buffer);
+	DGameServer.transfer_client(transfer_info->m_gate_id, transfer_info->m_client_id, (packet_base*)transfer_info->m_buffer);
 	return true;
 }

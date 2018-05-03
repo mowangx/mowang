@@ -81,10 +81,11 @@ public:
 			packet_handler_func handler = itr->second;
 			bool ret = (caller->*handler)(packet);
 			caller->on_after_handle(packet);
+			log_info("packet handle sucess! packet id = %u, socket index = '%"I64_FMT"u'", packet->get_packet_id(), get_socket_index());
 			return ret;
 		}
 		else {
-			log_error("packet handle faild for not find func! packet id = %u", packet->get_packet_id());
+			log_error("packet handle faild for not find packet id! packet id = %u, socket index = '%"I64_FMT"u'", packet->get_packet_id(), get_socket_index());
 		}
 
 		return false;

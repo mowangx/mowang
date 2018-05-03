@@ -17,7 +17,7 @@ static const uint32 MAX_PACKET_READ_SIZE = 128;			// 一次读取的数据的字节数
 static const uint32 MAX_PACKET_BUFFER_SIZE = 2048;		// 196608 = 65536 * 3
 static const uint32 MAX_PACKET_BUFFER_MOVE_FORWARD_SIZE = 1024;	// MAX_PACKET_BUFFER_SIZE - 65535(单个包最大的字节数) - MAX_PACKET_READ_SIZE, 需要注意MAX_PACKET_BUFFER_MOVE_FORWARD_SIZE + MAX_PACKET_READ_SIZE  * 2 < MAX_PACKET_BUFFER_SIZE
 
-static const uint32 PER_FRAME_TIME = 30;	// 每帧的时间（毫秒）
+static const uint32 PER_FRAME_TIME = 2;	// 每帧的时间（毫秒）
 
 static const uint32 MAX_ATTR_NUM = 6;	// 属性数量
 

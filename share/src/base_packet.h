@@ -150,11 +150,13 @@ class transfer_client_packet : public packet_base
 {
 public:
 	transfer_client_packet() : packet_base(PACKET_ID_TRANSFER_CLIENT) {
+		m_gate_id = INVALID_PROCESS_ID;
 		m_client_id = INVALID_SOCKET_INDEX;
 		memset(m_buffer, 0, 65000);
 	}
 
 public:
+	TProcessID_t m_gate_id;
 	TSocketIndex_t m_client_id;
 	char m_buffer[65000];
 };

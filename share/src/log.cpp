@@ -85,20 +85,16 @@ void log_wrapper::flush()
 	if (m_logs.empty()) {
 		return;
 	}
-	std::string s = "";
+	std::vector<std::string> logs;
 	{
 		auto_lock lock(&m_mutex);
-		s = m_logs.front();
-		m_logs.pop_front();
-		static int pop_count = 0;
-		++pop_count;
-		if (pop_count > 10000) {
-			pop_count = 0;
-			// shrink_to_fit will recaculate deque capacity
-			m_logs.shrink_to_fit();
-		}
+		logs.insert(logs.end(), m_logs.begin(), m_logs.end());
+		m_logs.clear();
 	}
-	fwrite(s.c_str(), s.size(), 1, m_file);
+	
+	for (auto s : logs) {
+		fwrite(s.c_str(), s.size(), 1, m_file);
+	}
 	fflush(m_file);
 	check_rename_file();
 }

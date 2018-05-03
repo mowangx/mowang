@@ -23,9 +23,8 @@ role::~role()
 
 bool role::init()
 {
-	DRegisterServerRpc(this, role, login_with_index, 3);
-	DRegisterStubRpc(this, role, login, 2);
 	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, login, 2);
+	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, test_func_2, 3);
 	return true;
 }
 
@@ -38,21 +37,24 @@ void role::update(TGameTime_t diff)
 
 void role::login(TPlatformID_t platform_id, const TUserID_t & user_id)
 {
-	log_info("role login, platform id = %u, user id = %s", platform_id, user_id.data());
+	//log_info("role login, platform id = %u, user id = %s, role id = %"I64_FMT"u, gate id = %u", platform_id, user_id.data(), m_mailbox_info.role_id, m_proxy_info.gate_id);
 	m_platform_id = platform_id;
 	m_user_id = user_id;
-	uint8 p2_1 = 99;
 	std::array<char, 33> p2_2;
 	memset(p2_2.data(), 0, 33);
 	memcpy(p2_2.data(), "mowang", 6);
-	DRpcWrapper.call_client(get_proxy_info(), "robot_rpc_func_2", m_proxy_info.client_id, p2_1, p2_2);
+	DRpcWrapper.call_client(get_proxy_info(), "robot_rpc_func_2", m_proxy_info.gate_id, m_proxy_info.client_id, m_mailbox_info.role_id, p2_2);
 }
 
-void role::login_with_index(TSocketIndex_t socket_index, TPlatformID_t platform_id, const TUserID_t & user_id)
+void role::test_func_2(const dynamic_string& s1, TServerID_t server_id, const dynamic_string& s2)
 {
-	log_info("role login, platform id = %u, user id = %s", platform_id, user_id.data());
-	m_platform_id = platform_id;
-	m_user_id = user_id;
+	//log_info("role test func 2, server id = %u, s1 = %s, s2 = %s, role id = %"I64_FMT"u, gate id = %u", server_id, s1.data(), s2.data(), m_mailbox_info.role_id, m_proxy_info.gate_id);
+
+	dynamic_string p1("xiedi");
+	std::array<char, 127> p3;
+	memset(p3.data(), 0, 127);
+	memcpy(p3.data(), "hello world", 11);
+	DRpcWrapper.call_client(get_proxy_info(), "robot_rpc_func_1", m_proxy_info.gate_id, m_proxy_info.client_id, p1, m_mailbox_info.role_id, p3, (TSocketIndex_t)0);
 }
 
 void role::add_city(const game_pos & pos, TLevel_t lvl)

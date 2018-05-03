@@ -30,7 +30,7 @@ bool gate_server::init(TProcessID_t process_id)
 	m_server_info.port = 10300 + process_id;
 
 	DRegisterServerRpc(this, gate_server, on_register_servers, 4);
-	DRegisterServerRpc(this, gate_server, login_server, 4);
+	DRegisterServerRpc(this, gate_server, login_server, 5);
 	DRegisterServerRpc(this, gate_server, register_server, 2);
 
 	game_manager_handler::Setup();
@@ -68,7 +68,7 @@ void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 	}
 }
 
-void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const TUserID_t& user_id)
+void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const TUserID_t& user_id, TSocketIndex_t test_client_id)
 {
 	game_process_info process_info;
 	process_info.server_id = server_id;
@@ -78,7 +78,7 @@ void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platfo
 	log_info("login server, client id = '%"I64_FMT"u', user id = %s, game id = %u", socket_index, user_id.data(), process_info.process_id);
 	rpc_client* rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
-		rpc->call_remote_func("login_server", socket_index, m_server_info.process_info.process_id, platform_id, user_id);
+		rpc->call_remote_func("login_server", socket_index, m_server_info.process_info.process_id, platform_id, user_id, test_client_id);
 	}
 }
 
@@ -112,7 +112,7 @@ void gate_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 	push_write_packets(packet_info);
 }
 
-void gate_server::transfer_server(TSocketIndex_t client_id, packet_base * packet)
+void gate_server::transfer_server(TSocketIndex_t client_id, packet_base* packet)
 {
 	TPacketSendInfo_t* packet_info = allocate_packet_info();
 	packet_info->socket_index = get_server_socket_index(client_id);
@@ -121,6 +121,7 @@ void gate_server::transfer_server(TSocketIndex_t client_id, packet_base * packet
 	packet_info->packet = transfer_packet;
 	transfer_packet->m_len = len;
 	transfer_packet->m_id = PACKET_ID_TRANSFER_CLIENT;
+	transfer_packet->m_gate_id = m_server_info.process_info.process_id;
 	transfer_packet->m_client_id = client_id;
 	memcpy(transfer_packet->m_buffer, packet, packet->get_packet_len());
 	push_write_packets(packet_info);

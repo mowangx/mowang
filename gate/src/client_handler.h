@@ -19,6 +19,9 @@ public:
 
 private:
 	virtual service_interface* get_service() const override;
+	virtual bool need_register_server() const override {
+		return false;
+	}
 
 public:
 	bool handle_transfer_server_by_index(packet_base* packet);

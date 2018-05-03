@@ -31,7 +31,8 @@ void gate_handler::handle_init() const
 	TUserID_t user_id;
 	memset(user_id.data(), 0, USER_ID_LEN);
 	memcpy(user_id.data(), "xiedi", 5);
-	m_rpc_client->call_remote_func("login_server", platform_id, server_id, user_id);
+	TSocketIndex_t client_id = get_socket_index();
+	m_rpc_client->call_remote_func("login_server", platform_id, server_id, user_id, client_id);
 }
 
 void gate_handler::handle_close()

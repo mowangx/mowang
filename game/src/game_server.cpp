@@ -45,7 +45,7 @@ bool game_server::init(TProcessID_t process_id)
 
 	DRegisterServerRpc(this, game_server, register_server, 2);
 	DRegisterServerRpc(this, game_server, on_register_servers, 4);
-	DRegisterServerRpc(this, game_server, login_server, 5);
+	DRegisterServerRpc(this, game_server, login_server, 6);
 	DRegisterServerRpc(this, game_server, game_rpc_func_1, 4);
 	DRegisterServerRpc(this, game_server, game_rpc_func_2, 3);
 
@@ -127,7 +127,7 @@ void game_server::register_server(TSocketIndex_t socket_index, const game_server
 	DRpcWrapper.call_stub(process_info, "game_server", "game_rpc_func_2", p2_1, p2_2);
 }
 
-void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TProcessID_t gate_id, TPlatformID_t platform_id, TUserID_t user_id)
+void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TProcessID_t gate_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id)
 {
 	// send msg to db manager to query role id from db by platform id and user id
 	static TRoleID_t role_id = 1;
@@ -139,17 +139,18 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 	p->set_gate_id(gate_id);
 	p->set_role_id(role_id);
 	p->init();
-	m_client_id_2_role_id[client_id] = role_id;
+	TSocketIndex_t key_id = gate_id;
+	key_id = (key_id << (sizeof(TProcessID_t) * 8)) + client_id;
+	m_client_id_2_role_id[key_id] = role_id;
 	m_roles.push_back(p);
 
 	dynamic_string p1("xiedi");
-	TServerID_t server_id = 100;
 	std::array<char, 127> p3;
 	memset(p3.data(), 0, 127);
 	memcpy(p3.data(), "hello world", 11);
-	DRpcWrapper.call_client(p->get_proxy_info(), "robot_rpc_func_1", client_id, p1, server_id, p3);
+	DRpcWrapper.call_client(p->get_proxy_info(), "robot_rpc_func_1", gate_id, client_id, p1, role_id, p3, test_client_id);
 
-	log_info("login server, client id = '%"I64_FMT"u', platform id = %u, user id = %s", client_id, platform_id, user_id.data());
+	log_info("login server, client id = %"I64_FMT"u, gate id = %u, role id = %"I64_FMT"u, platform id = %u, user id = %s", client_id, gate_id, role_id, platform_id, user_id.data());
 }
 
 void game_server::game_rpc_func(TSocketIndex_t socket_index, TServerID_t server_id)
@@ -188,16 +189,20 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 	}
 }
 
-void game_server::transfer_client(TSocketIndex_t client_id, packet_base * packet)
+void game_server::transfer_client(TProcessID_t gate_id, TSocketIndex_t client_id, packet_base* packet)
 {
 	TPacketID_t packet_id = packet->get_packet_id();
+	log_info("transfer client, gate id = %u, client id = %"I64_FMT"u, packet id = %u", gate_id, client_id, packet_id);
 	if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_NAME) {
 		transfer_server_by_name_packet* rpc_info = (transfer_server_by_name_packet*)packet;
-		DRpcRole.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_name, rpc_info->m_buffer);
+		DRpcRole.call(get_role_id_by_client_id(gate_id, client_id), rpc_info->m_rpc_name, rpc_info->m_buffer);
 	}
 	else if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_INDEX) {
 		transfer_server_by_index_packet* rpc_info = (transfer_server_by_index_packet*)packet;
-		DRpcRole.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_index, rpc_info->m_buffer);
+		DRpcRole.call(get_role_id_by_client_id(gate_id, client_id), rpc_info->m_rpc_index, rpc_info->m_buffer);
+	}
+	else {
+		log_error("transfer client failed, not find packet id, gate id = %u, packet id = %u", gate_id, packet_id);
 	}
 }
 
@@ -211,9 +216,11 @@ void game_server::create_entity(uint8 e_type)
 	}
 }
 
-TRoleID_t game_server::get_role_id_by_client_id(TSocketIndex_t client_id) const
+TRoleID_t game_server::get_role_id_by_client_id(TProcessID_t gate_id, TSocketIndex_t client_id) const
 {
-	auto itr = m_client_id_2_role_id.find(client_id);
+	TSocketIndex_t key_id = gate_id;
+	key_id = (key_id << (sizeof(TProcessID_t) * 8)) + client_id;
+	auto itr = m_client_id_2_role_id.find(key_id);
 	if (itr != m_client_id_2_role_id.end()) {
 		return itr->second;
 	}

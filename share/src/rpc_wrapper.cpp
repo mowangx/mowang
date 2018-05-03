@@ -136,6 +136,7 @@ rpc_client* rpc_wrapper::get_client(const game_process_info& process_info) const
 {
 	auto itr = m_server_process_id_2_clients.find(get_key_id_by_process_id(process_info));
 	if (itr == m_server_process_id_2_clients.end()) {
+		log_error("rpc wrapper get client failed! server id = %u, process type = %u, process id = %u", process_info.server_id, process_info.process_type, process_info.process_id);
 		return NULL;
 	}
 	return itr->second;
@@ -145,6 +146,7 @@ rpc_client* rpc_wrapper::get_random_client(TServerID_t server_id, TProcessType_t
 {
 	auto itr = m_server_process_type_2_clients.find(get_key_id_by_process_type(server_id, process_type));
 	if (itr == m_server_process_type_2_clients.end()) {
+		log_error("rpc wrapper get random client failed! server id = %u, process type = %u", server_id, process_type);
 		return NULL;
 	}
 	const std::vector<rpc_client_wrapper_info*>& rpc_wrappers = itr->second;

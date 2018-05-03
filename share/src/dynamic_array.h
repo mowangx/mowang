@@ -26,6 +26,7 @@ public:
 
 	dynamic_array& operator = (const dynamic_array& rhs) {
 		if (this != &rhs) {
+			delete[] m_data;
 			m_len = rhs.size();
 			m_max_len = m_len + 1;
 			m_data = new T[m_max_len];
@@ -121,6 +122,7 @@ public:
 
 	dynamic_string& operator = (const dynamic_string& rhs) {
 		if (this != &rhs) {
+			delete[] m_data;
 			m_len = rhs.size();
 			m_max_len = m_len + 1;
 			m_data = new char[m_max_len];

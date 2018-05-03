@@ -29,6 +29,7 @@ void game_handler::handle_init() const
 	log_info("connect success, handle init, socket index = '%"I64_FMT"u'", m_socket_index);
 	get_service()->register_client(m_rpc_client);
 	if (need_register_server()) {
+		log_info("send register server, handle init, socket index = '%"I64_FMT"u'", m_socket_index);
 		m_rpc_client->call_remote_func("register_server", get_service()->get_server_info());
 	}
 }
@@ -37,7 +38,9 @@ void game_handler::handle_close()
 {
 	log_info("disconnect, handle close, socket index = '%"I64_FMT"u'", m_socket_index);
 	get_service()->unregister_client(m_socket_index);
-	DRpcWrapper.unregister_handler_info(m_socket_index);
+	if (need_register_server()) {
+		DRpcWrapper.unregister_handler_info(m_socket_index);
+	}
 	m_socket_index = INVALID_SOCKET_INDEX;
 }
 
