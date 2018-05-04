@@ -29,9 +29,9 @@ bool gate_server::init(TProcessID_t process_id)
 	memcpy(m_server_info.ip.data(), ip, strlen(ip));
 	m_server_info.port = 10300 + process_id;
 
+	DRegisterServerRpc(this, gate_server, register_server, 2);
 	DRegisterServerRpc(this, gate_server, on_register_servers, 4);
 	DRegisterServerRpc(this, gate_server, login_server, 5);
-	DRegisterServerRpc(this, gate_server, register_server, 2);
 
 	game_manager_handler::Setup();
 	game_server_handler::Setup();
@@ -78,61 +78,15 @@ void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platfo
 	log_info("login server, client id = '%"I64_FMT"u', user id = %s, game id = %u", socket_index, user_id.data(), process_info.process_id);
 	rpc_client* rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
-		rpc->call_remote_func("login_server", socket_index, m_server_info.process_info.process_id, platform_id, user_id, test_client_id);
+		rpc->call_remote_func("login_server", socket_index, platform_id, user_id, test_client_id);
 	}
 }
 
-void gate_server::transfer_role(TServerID_t server_id, TProcessID_t game_id, TRoleID_t role_id, packet_base* packet)
+TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const
 {
-	TPacketSendInfo_t* packet_info = allocate_packet_info();
-	packet_info->socket_index = DRpcWrapper.get_socket_index(game_process_info(server_id, PROCESS_GAME, game_id));
-	role_rpc_by_name_packet* transfer_packet = (role_rpc_by_name_packet*)allocate_memory(packet->get_packet_len());
-	packet_info->packet = transfer_packet;
-	memcpy(transfer_packet, packet, packet->get_packet_len());
-	push_write_packets(packet_info);
-}
-
-void gate_server::transfer_stub(TServerID_t server_id, TProcessID_t game_id, packet_base* packet)
-{
-	TPacketSendInfo_t* packet_info = allocate_packet_info();
-	packet_info->socket_index = DRpcWrapper.get_socket_index(game_process_info(server_id, PROCESS_GAME, game_id));
-	rpc_by_name_packet* transfer_packet = (rpc_by_name_packet*)allocate_memory(packet->get_packet_len());
-	packet_info->packet = transfer_packet;
-	memcpy(transfer_packet, packet, packet->get_packet_len());
-	push_write_packets(packet_info);
-}
-
-void gate_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
-{
-	TPacketSendInfo_t* packet_info = allocate_packet_info();
-	packet_info->socket_index = client_id;
-	packet_base* transfer_packet = (packet_base*)allocate_memory(packet->get_packet_len());
-	packet_info->packet = transfer_packet;
-	memcpy(packet_info->packet, packet, packet->get_packet_len());
-	push_write_packets(packet_info);
-}
-
-void gate_server::transfer_server(TSocketIndex_t client_id, packet_base* packet)
-{
-	TPacketSendInfo_t* packet_info = allocate_packet_info();
-	packet_info->socket_index = get_server_socket_index(client_id);
-	TPacketLen_t len = (TPacketLen_t)(sizeof(transfer_client_packet) - 65000 + packet->get_packet_len());
-	transfer_client_packet* transfer_packet = (transfer_client_packet*)allocate_memory(len);
-	packet_info->packet = transfer_packet;
-	transfer_packet->m_len = len;
-	transfer_packet->m_id = PACKET_ID_TRANSFER_CLIENT;
-	transfer_packet->m_gate_id = m_server_info.process_info.process_id;
-	transfer_packet->m_client_id = client_id;
-	memcpy(transfer_packet->m_buffer, packet, packet->get_packet_len());
-	push_write_packets(packet_info);
-	log_info("transfer server! client id = '%"I64_FMT"u'", client_id);
-}
-
-TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t client_id) const
-{
-	auto itr = m_client_2_process.find(client_id);
-	if (itr == m_client_2_process.end()) {
-		return INVALID_SOCKET_INDEX;
+	auto itr = m_client_2_process.find(socket_index);
+	if (itr != m_client_2_process.end()) {
+		return DRpcWrapper.get_socket_index(itr->second);
 	}
-	return DRpcWrapper.get_socket_index(itr->second);
+	return INVALID_SOCKET_INDEX;
 }

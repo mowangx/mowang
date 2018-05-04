@@ -42,6 +42,7 @@ public:
 	}
 
 public:
+	// call directly without transfer send, we can use when register process or login
 	void call_remote_func(const std::string& func_name) {
 		DRpcCreatePacket;
 		send_packet(&packet, buffer_index);
@@ -104,6 +105,7 @@ public:
 	}
 
 public:
+	// client call game function, will transfer by gate
 	void call_server(const std::string& func_name) {
 		DRpcCreateServerPacket;
 		send_packet(&packet, buffer_index);
@@ -170,6 +172,7 @@ public:
 	}
 
 public:
+	// game call client function, will transfer by gate
 	void call_client(TSocketIndex_t client_id, const std::string& func_name) {
 		DRpcCreateClientPacket;
 		send_packet(&packet, &transfer_packet, buffer_index);
@@ -236,6 +239,7 @@ public:
 	}
 
 public:
+	// call role function, will transfer by gate
 	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name) {
 		DRpcCreateRolePacket;
 		send_packet(&packet, &transfer_packet, buffer_index);
@@ -305,6 +309,7 @@ public:
 	}
 
 public:
+	// call stub function, will transfer by gate
 	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name) {
 		DRpcCreateStubPacket;
 		send_packet(&packet, &transfer_packet, buffer_index);
@@ -388,7 +393,6 @@ private:
 	void init_role_packet(transfer_role_packet& transfer_packet, role_rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, TRoleID_t role_id, const std::string& func_name) {
 		transfer_packet.m_server_id = server_id;
 		transfer_packet.m_game_id = game_id;
-		transfer_packet.m_role_id = role_id;
 		packet.m_role_id = role_id;
 		init_packet(packet, func_name);
 	}

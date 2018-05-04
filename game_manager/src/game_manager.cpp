@@ -125,6 +125,7 @@ void game_manager::on_connect(TSocketIndex_t socket_index)
 		m_broadcast_flag = true;
 		broadcast_dbs();
 		broadcast_games();
+		log_info("all process are start! broadcast server infos");
 	}
 }
 

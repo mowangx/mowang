@@ -29,7 +29,7 @@ socket_manager::~socket_manager()
 	clean_up();
 }
 
-bool socket_manager::init()
+bool socket_manager::init(TProcessID_t process_id)
 {
 	if (!SOCKET_API::gx_lib_init()) {
 		return false;
@@ -39,6 +39,9 @@ bool socket_manager::init()
 	if (NULL == m_eventbase) {
 		return false;
 	}
+
+	m_socket_sequence_index = process_id;
+	m_socket_sequence_index <<= 48;
 
 	return true;
 }

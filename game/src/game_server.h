@@ -40,19 +40,18 @@ public:
 	void deallocate_farmland(farmland* f);
 
 public:
-	virtual void register_server(TSocketIndex_t socket_index, const game_server_info& server_info) override;
-	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TProcessID_t gate_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id);
+	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id);
 	void game_rpc_func(TSocketIndex_t socket_index, TServerID_t server_id);
 	void game_rpc_func_1(TSocketIndex_t socket_index, const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3);
 	void game_rpc_func_2(TSocketIndex_t socket_index, uint8 p1, const std::array<char, 33>& p2);
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
 
 public:
-	void transfer_client(TProcessID_t gate_id, TSocketIndex_t client_id, packet_base* packet);
+	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
 	void create_entity(uint8 e_type);
 
 private:
-	TRoleID_t get_role_id_by_client_id(TProcessID_t gate_id, TSocketIndex_t client_id) const;
+	TRoleID_t get_role_id_by_client_id(TSocketIndex_t client_id) const;
 
 private:
 	obj_memory_pool<resource, 65536> m_resource_pool;

@@ -132,19 +132,22 @@ private:
 #define DRpcBindFunc_7(obj) DRpcBindFunc_6(obj), std::placeholders::_7
 #define DRpcBindFunc_8(obj) DRpcBindFunc_7(obj), std::placeholders::_8
 
-// 参数依次为：
+// only for client, a simple remote function without any feature
 #define DRegisterClientRpc(obj, class_name, func_name, args_count) { \
 	DRpcStub.register_func<args_count>(#func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
+// call directly without transfer send, such game ---> game_manager or gate --->game, callback first param is socket index
 #define DRegisterServerRpc(obj, class_name, func_name, args_count) { \
 	DRpcStub.register_func_with_index<args_count>(#func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
+// call with transfer send, such as game ---> gate ---> game, every stub will has only one in same server
 #define DRegisterStubRpc(obj, class_name, func_name, args_count) { \
-	DRpcStub.register_func_with_index<args_count>(#class_name###func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+	DRpcStub.register_func<args_count>(#class_name###func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
+// call with transfer send, such as game ---> gate ---> game, callback will call by role id
 #define DRegisterRoleRpc(role_id, obj, class_name, func_name, args_count) { \
 	DRpcRole.register_func<args_count>(role_id, #func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }

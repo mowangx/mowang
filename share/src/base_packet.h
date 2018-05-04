@@ -14,8 +14,10 @@ enum packet_id_type
 {
 	PACKET_ID_RPC_BY_INDEX = 0x65,
 	PACKET_ID_RPC_BY_NAME = 0x66,
-	PACKET_ID_ROLE_RPC_BY_INDEX = 0x67,
-	PACKET_ID_ROLE_RPC_BY_NAME = 0x68,
+	PACKET_ID_STUB_RPC_BY_INDEX = 0x67,
+	PACKET_ID_STUB_RPC_BY_NAME = 0x68,
+	PACKET_ID_ROLE_RPC_BY_INDEX = 0x6e,
+	PACKET_ID_ROLE_RPC_BY_NAME = 0x6f,
 
 	PACKET_ID_TRANSFER_ROLE = 0x85,
 	PACKET_ID_TRANSFER_STUB = 0x86,
@@ -84,6 +86,32 @@ public:
 	char m_buffer[65000];
 };
 
+class stub_rpc_by_index_packet : public packet_base
+{
+public:
+	stub_rpc_by_index_packet() : packet_base(PACKET_ID_STUB_RPC_BY_INDEX) {
+		m_rpc_index = 0;
+		memset(m_buffer, 0, 65000);
+	}
+
+public:
+	uint8 m_rpc_index;
+	char m_buffer[65000];
+};
+
+class stub_rpc_by_name_packet : public packet_base
+{
+public:
+	stub_rpc_by_name_packet() : packet_base(PACKET_ID_STUB_RPC_BY_NAME) {
+		memset(m_rpc_name, 0, 100);
+		memset(m_buffer, 0, 65000);
+	}
+
+public:
+	char m_rpc_name[100];
+	char m_buffer[65000];
+};
+
 class role_rpc_by_index_packet : public packet_base
 {
 public:
@@ -120,14 +148,12 @@ public:
 	transfer_role_packet() : packet_base(PACKET_ID_TRANSFER_ROLE) {
 		m_server_id = INVALID_SERVER_ID;
 		m_game_id = INVALID_PROCESS_ID;
-		m_role_id = INVALID_ROLE_ID;
 		memset(m_buffer, 0, 65000);
 	}
 
 public:
 	TServerID_t m_server_id;
 	TProcessID_t m_game_id;
-	TRoleID_t m_role_id;
 	char m_buffer[65000];
 };
 
@@ -150,13 +176,11 @@ class transfer_client_packet : public packet_base
 {
 public:
 	transfer_client_packet() : packet_base(PACKET_ID_TRANSFER_CLIENT) {
-		m_gate_id = INVALID_PROCESS_ID;
 		m_client_id = INVALID_SOCKET_INDEX;
 		memset(m_buffer, 0, 65000);
 	}
 
 public:
-	TProcessID_t m_gate_id;
 	TSocketIndex_t m_client_id;
 	char m_buffer[65000];
 };

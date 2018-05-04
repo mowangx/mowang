@@ -28,6 +28,8 @@ public:
 
 	virtual bool handle_rpc_by_index(packet_base* packet) const;
 	virtual bool handle_rpc_by_name(packet_base* packet) const;
+	virtual bool handle_stub_rpc_by_index(packet_base* packet) const;
+	virtual bool handle_stub_rpc_by_name(packet_base* packet) const;
 	virtual bool handle_role_rpc_by_index(packet_base* packet) const;
 	virtual bool handle_role_rpc_by_name(packet_base* packet) const;
 
@@ -81,13 +83,11 @@ public:
 			packet_handler_func handler = itr->second;
 			bool ret = (caller->*handler)(packet);
 			caller->on_after_handle(packet);
-			log_info("packet handle sucess! packet id = %u, socket index = '%"I64_FMT"u'", packet->get_packet_id(), get_socket_index());
+			//log_info("packet handle sucess! packet id = %u, socket index = '%"I64_FMT"u'", packet->get_packet_id(), get_socket_index());
 			return ret;
 		}
-		else {
-			log_error("packet handle faild for not find packet id! packet id = %u, socket index = '%"I64_FMT"u'", packet->get_packet_id(), get_socket_index());
-		}
 
+		log_error("packet handle faild for not find packet id! packet id = %u, socket index = '%"I64_FMT"u'", packet->get_packet_id(), get_socket_index());
 		return false;
 	}
 
@@ -112,6 +112,8 @@ public:
 	static void Setup() {
 		register_handler((TPacketID_t)PACKET_ID_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_rpc_by_index);
 		register_handler((TPacketID_t)PACKET_ID_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_rpc_by_name);
+		register_handler((TPacketID_t)PACKET_ID_STUB_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_stub_rpc_by_index);
+		register_handler((TPacketID_t)PACKET_ID_STUB_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_stub_rpc_by_name);
 		register_handler((TPacketID_t)PACKET_ID_ROLE_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_role_rpc_by_index);
 		register_handler((TPacketID_t)PACKET_ID_ROLE_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_role_rpc_by_name);
 	}

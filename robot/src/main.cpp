@@ -36,8 +36,8 @@ void net_run(TProcessID_t process_id)
 		DNetMgr.update(0);
 		//DNetMgr.test_kick();
 
-		if (DNetMgr.socket_num() < 100) {
-			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", DGameRandom.get_rand<int>(10301, 10308))) {
+		if (DNetMgr.socket_num() < 1000) {
+			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", DGameRandom.get_rand<int>(10301, 10303))) {
 				log_info("connect server failed");
 				break;
 			}
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 	DLogMgr.init(module_name + argv[1]);
 	gxSetDumpHandler(module_name);
 
-	if (!DNetMgr.init()) {
+	if (!DNetMgr.init(process_id)) {
 		log_error("init socket manager failed");
 		return 0;
 	}

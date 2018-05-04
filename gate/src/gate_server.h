@@ -24,13 +24,7 @@ public:
 	void login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const TUserID_t& user_id, TSocketIndex_t test_client_id);
 
 public:
-	void transfer_role(TServerID_t server_id, TProcessID_t game_id, TRoleID_t role_id, packet_base* packet);
-	void transfer_stub(TServerID_t server_id, TProcessID_t game_id, packet_base* packet);
-	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
-	void transfer_server(TSocketIndex_t client_id, packet_base* packet);
-
-private:
-	TSocketIndex_t get_server_socket_index(TSocketIndex_t client_id) const;
+	TSocketIndex_t get_server_socket_index(TSocketIndex_t socket_index) const;
 
 private:
 	std::unordered_map<TSocketIndex_t, game_process_info> m_client_2_process;

@@ -10,6 +10,7 @@
 #include "rpc_client.h"
 #include "game_enum.h"
 
+// rpc client wrapper for server
 class rpc_wrapper : public singleton<rpc_wrapper>
 {
 	struct rpc_client_wrapper_info
@@ -189,7 +190,7 @@ public:
 	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name) {
 		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
 		if (NULL != rpc) {
-			rpc->call_stub(mailbox.server_id, mailbox.game_id, class_name, func_name);
+			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name);
 		}
 	}
 

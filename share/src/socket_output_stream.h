@@ -41,13 +41,13 @@ private:
 	sint32						_length()const;
 
 protected:
-	socket_base*    m_socket;
-	char*		m_buffer;
-	sint32		m_buffer_len;
-	sint32		m_max_buffer_len;
-	sint32		m_head;
-	sint32		m_tail;
-	volatile uint32	   m_output_len;             // 当前缓冲区长度, 必须实时改变数值
+	socket_base*	m_socket;
+	char*			m_buffer;
+	sint32			m_buffer_len;
+	sint32			m_max_buffer_len;
+	sint32			m_head;
+	sint32			m_tail;
+	volatile uint32	m_output_len;             // 当前缓冲区长度, 必须实时改变数值
 };
 
 #endif

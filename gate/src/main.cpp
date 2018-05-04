@@ -41,7 +41,7 @@ void net_run(TProcessID_t process_id)
 
 	while (true) {
 		DNetMgr.update(0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}
 }
 
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 	DLogMgr.init(module_name + argv[1]);
 	gxSetDumpHandler(module_name);
 
-	if (!DNetMgr.init()) {
+	if (!DNetMgr.init(process_id)) {
 		log_error("init socket manager failed");
 		return 0;
 	}

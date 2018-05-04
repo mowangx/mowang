@@ -29,7 +29,6 @@ void game_handler::handle_init() const
 	log_info("connect success, handle init, socket index = '%"I64_FMT"u'", m_socket_index);
 	get_service()->register_client(m_rpc_client);
 	if (need_register_server()) {
-		log_info("send register server, handle init, socket index = '%"I64_FMT"u'", m_socket_index);
 		m_rpc_client->call_remote_func("register_server", get_service()->get_server_info());
 	}
 }
@@ -55,6 +54,20 @@ bool game_handler::handle_rpc_by_name(packet_base* packet) const
 {
 	rpc_by_name_packet* rpc_info = (rpc_by_name_packet*)packet;
 	DRpcStub.call_with_index(rpc_info->m_rpc_name, rpc_info->m_buffer, get_socket_index());
+	return true;
+}
+
+bool game_handler::handle_stub_rpc_by_index(packet_base * packet) const
+{
+	stub_rpc_by_index_packet* rpc_info = (stub_rpc_by_index_packet*)packet;
+	DRpcStub.call(rpc_info->m_rpc_index, rpc_info->m_buffer);
+	return true;
+}
+
+bool game_handler::handle_stub_rpc_by_name(packet_base * packet) const
+{
+	stub_rpc_by_name_packet* rpc_info = (stub_rpc_by_name_packet*)packet;
+	DRpcStub.call(rpc_info->m_rpc_name, rpc_info->m_buffer);
 	return true;
 }
 
