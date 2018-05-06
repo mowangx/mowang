@@ -111,7 +111,7 @@ public:
 
 public:
 	void call_role(const mailbox_info& mailbox, const std::string& func_name) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GAME);
+		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name);
 		}
@@ -119,7 +119,7 @@ public:
 
 	template <class T1>
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GAME);
+		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1);
 		}
@@ -127,7 +127,7 @@ public:
 
 	template <class T1, class T2>
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GAME);
+		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2);
 		}
@@ -135,7 +135,7 @@ public:
 
 	template <class T1, class T2, class T3>
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GAME);
+		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3);
 		}
@@ -143,7 +143,7 @@ public:
 
 	template <class T1, class T2, class T3, class T4>
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GAME);
+		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4);
 		}
@@ -152,7 +152,7 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5>
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, 
 		const T5& p5) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GAME);
+		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4, p5);
 		}
@@ -161,7 +161,7 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5, class T6>
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4, 
 		const T5& p5, const T6& p6) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GAME);
+		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4, p5, p6);
 		}
@@ -170,7 +170,7 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
 		const T5& p5, const T6& p6, const T7& p7) {
-		rpc_client = get_random_client(mailbox.server_id, PROCESS_GAME);
+		rpc_client = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4, p5, p6, p7);
 		}
@@ -179,7 +179,7 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
 		const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GAME);
+		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4, p5, p6, p7, p8);
 		}
@@ -187,78 +187,78 @@ public:
 
 public:
 	template <typename F, typename... T>
-	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name) {
-		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
+	void call_stub(const std::string& class_name, const std::string& func_name) {
+		rpc_client* rpc = get_stub_client(class_name);
 		if (NULL != rpc) {
 			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name);
 		}
 	}
 
 	template <class T1>
-	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name, const T1& p1) {
-		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
+	void call_stub(const std::string& class_name, const std::string& func_name, const T1& p1) {
+		rpc_client* rpc = get_stub_client(class_name);
 		if (NULL != rpc) {
 			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name, p1);
 		}
 	}
 
 	template <class T1, class T2>
-	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2) {
-		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
+	void call_stub(const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2) {
+		rpc_client* rpc = get_stub_client(class_name);
 		if (NULL != rpc) {
 			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name, p1, p2);
 		}
 	}
 
 	template <class T1, class T2, class T3>
-	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
+	void call_stub(const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
 		const T3& p3) {
-		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
+		rpc_client* rpc = get_stub_client(class_name);
 		if (NULL != rpc) {
 			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name, p1, p2, p3);
 		}
 	}
 
 	template <class T1, class T2, class T3, class T4>
-	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
+	void call_stub(const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
 		const T3& p3, const T4& p4) {
-		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
+		rpc_client* rpc = get_stub_client(class_name);
 		if (NULL != rpc) {
 			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name, p1, p2, p3, p4);
 		}
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5>
-	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
+	void call_stub(const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
 		const T3& p3, const T4& p4, const T5& p5) {
-		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
+		rpc_client* rpc = get_stub_client(class_name);
 		if (NULL != rpc) {
 			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name, p1, p2, p3, p4, p5);
 		}
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6>
-	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
+	void call_stub(const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
 		const T3& p3, const T4& p4, const T5& p5, const T6& p6) {
-		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
+		rpc_client* rpc = get_stub_client(class_name);
 		if (NULL != rpc) {
 			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name, p1, p2, p3, p4, p5, p6);
 		}
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
-	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
+	void call_stub(const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
 		const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7) {
-		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
+		rpc_client* rpc = get_stub_client(class_name);
 		if (NULL != rpc) {
 			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name, p1, p2, p3, p4, p5, p6, p7);
 		}
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
-	void call_stub(const game_process_info& process_info, const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
+	void call_stub(const std::string& class_name, const std::string& func_name, const T1& p1, const T2& p2,
 		const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
-		rpc_client* rpc = get_random_client(process_info.server_id, process_info.process_type);
+		rpc_client* rpc = get_stub_client(class_name);
 		if (NULL != rpc) {
 			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name, p1, p2, p3, p4, p5, p6, p7, p8);
 		}
@@ -267,6 +267,7 @@ public:
 public:
 	void register_handler_info(rpc_client* client, const game_server_info& server_info);
 	void unregister_handler_info(TSocketIndex_t socket_index);
+	void register_stub_info(const std::string& stub_name, const game_process_info& process_info);
 
 public:
 	bool get_server_info(const game_process_info& process_info, game_server_info& server_info) const;
@@ -276,6 +277,7 @@ public:
 	TProcessID_t get_random_process_id(TServerID_t server_id, TProcessType_t process_type) const;
 	rpc_client* get_client(const game_process_info& process_info) const;
 	rpc_client* get_random_client(TServerID_t server_id, TProcessType_t process_type) const;
+	rpc_client* get_stub_client(const std::string& stub_name);
 	uint64 get_key_id_by_process_id(const game_process_info& process_info) const;
 	uint64 get_key_id_by_process_type(TServerID_t server_id, TProcessType_t process_type) const;
 	void parse_key_id_by_process_id(game_process_info& process_info, uint64 key_id) const;
@@ -284,6 +286,7 @@ public:
 private:
 	std::map<uint64, rpc_client*> m_server_process_id_2_clients;
 	std::map<uint64, std::vector<rpc_client_wrapper_info*>> m_server_process_type_2_clients;
+	std::map<std::string, game_process_info> m_stub_name_2_process_infos;
 	server_manager m_server_manager;
 };
 

@@ -3,11 +3,13 @@
 #define _SERVICE_H_
 
 #include <vector>
+#include <map>
 #include <unordered_map>
 
 #include "service_interface.h"
 #include "game_enum.h"
 #include "memory_pool.h"
+#include "dynamic_array.h"
 
 class rpc_client;
 
@@ -49,6 +51,9 @@ public:
 protected:
 	virtual void on_connect(TSocketIndex_t socket_index);
 	virtual void on_disconnect(TSocketIndex_t socket_index);
+
+protected:
+	void on_register_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name, const game_process_info& process_info);
 
 public:
 	rpc_client* get_client(TSocketIndex_t socket_index);

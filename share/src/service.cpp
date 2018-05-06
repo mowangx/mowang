@@ -201,6 +201,12 @@ void service::on_disconnect(TSocketIndex_t socket_index)
 {
 }
 
+void service::on_register_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name, const game_process_info& process_info)
+{
+	std::string tmp_stub_name = stub_name.data();
+	DRpcWrapper.register_stub_info(tmp_stub_name, process_info);
+}
+
 rpc_client* service::get_client(TSocketIndex_t socket_index)
 {
 	auto itr = m_clients.find(socket_index);

@@ -69,6 +69,12 @@ void rpc_wrapper::unregister_handler_info(TSocketIndex_t socket_index)
 	m_server_manager.unregister_server(process_info);
 }
 
+void rpc_wrapper::register_stub_info(const std::string & stub_name, const game_process_info & process_info)
+{
+	log_info("register stub info, stub name = %s, process id = %d", stub_name.c_str(), process_info.process_id);
+	m_stub_name_2_process_infos[stub_name] = process_info;
+}
+
 bool rpc_wrapper::get_server_info(const game_process_info& process_info, game_server_info & server_info) const
 {
 	return m_server_manager.get_server_info(process_info, server_info);
@@ -152,6 +158,15 @@ rpc_client* rpc_wrapper::get_random_client(TServerID_t server_id, TProcessType_t
 	const std::vector<rpc_client_wrapper_info*>& rpc_wrappers = itr->second;
 	int wrapper_index = DGameRandom.get_rand<int>(0, (int)(rpc_wrappers.size() - 1));
 	return rpc_wrappers[wrapper_index]->rpc;
+}
+
+rpc_client * rpc_wrapper::get_stub_client(const std::string & stub_name)
+{
+	auto itr = m_stub_name_2_process_infos.find(stub_name);
+	if (itr == m_stub_name_2_process_infos.end()) {
+		return NULL;
+	}
+	return get_client(itr->second);
 }
 
 uint64 rpc_wrapper::get_key_id_by_process_id(const game_process_info& process_info) const

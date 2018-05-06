@@ -47,6 +47,8 @@ bool game_server::init(TProcessID_t process_id)
 	DRegisterServerRpc(this, game_server, register_server, 2);
 	DRegisterServerRpc(this, game_server, on_register_servers, 4);
 	DRegisterServerRpc(this, game_server, login_server, 5);
+	DRegisterServerRpc(this, game_server, create_entity, 2);
+	DRegisterServerRpc(this, game_server, on_register_entity, 3);
 
 	connect_game_manager_loop("127.0.0.1", 10000);
 
@@ -157,6 +159,17 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 			log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
 		}
 	}
+	
+
+	if (m_server_info.process_info.process_id == 1) {
+		create_entity_globally("RollStub");
+		create_entity_globally("SpaceStub");
+	}
+}
+
+void game_server::create_entity(TSocketIndex_t socket_index, const dynamic_string & stub_name)
+{
+	create_entity_locally(stub_name);
 }
 
 void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
@@ -177,14 +190,30 @@ void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 	}
 }
 
-void game_server::create_entity(uint8 e_type)
+void game_server::create_entity_globally(const dynamic_string& stub_name)
+{
+	TServerID_t server_id = 100;
+	rpc_client* rpc = DRpcWrapper.get_random_client(server_id, PROCESS_GAME_MANAGER);
+	if (NULL == rpc) {
+		return;
+	}
+	rpc->call_remote_func("create_entity", server_id, stub_name);
+}
+
+void game_server::create_entity_locally(const dynamic_string& stub_name)
 {
 	entity* e = NULL;
-	if (e_type == ENTITY_ROLL_STUB) {
+	if (strcmp(stub_name.data(), "RollStub") == 0) {
 	}
 	if (NULL != e) {
 		e->init();
 	}
+	TServerID_t server_id = 100;
+	rpc_client* rpc = DRpcWrapper.get_random_client(server_id, PROCESS_GAME_MANAGER);
+	if (NULL == rpc) {
+		return;
+	}
+	rpc->call_remote_func("register_entity", stub_name, m_server_info.process_info);
 }
 
 TRoleID_t game_server::get_role_id_by_client_id(TSocketIndex_t client_id) const

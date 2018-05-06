@@ -28,6 +28,10 @@ private:
 	void broadcast_db_core(const dynamic_array<game_server_info>& servers) const;
 	void broadcast_game_core(const dynamic_array<game_server_info>& servers) const;
 
+public:
+	void create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const dynamic_string& stub_name);
+	void register_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name, const game_process_info& process_info);
+
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;

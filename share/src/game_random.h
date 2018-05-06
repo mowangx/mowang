@@ -7,7 +7,6 @@
 class game_random : public singleton<game_random>
 {
 public:
-
 	game_random(TSeedType_t seed = 0);
 
 public:

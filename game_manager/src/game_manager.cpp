@@ -4,6 +4,7 @@
 #include "rpc_client.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
+#include "game_random.h"
 
 game_manager::game_manager() : service(PROCESS_GAME_MANAGER)
 {
@@ -32,6 +33,8 @@ bool game_manager::init(TProcessID_t process_id)
 	server_handler::Setup();
 
 	DRegisterServerRpc(this, game_manager, register_server, 2);
+	DRegisterServerRpc(this, game_manager, create_entity, 3);
+	DRegisterServerRpc(this, game_manager, register_entity, 3);
 	
 	return true;
 }
@@ -100,6 +103,32 @@ void game_manager::broadcast_game_core(const dynamic_array<game_server_info>& se
 		rpc_client* rpc = DRpcWrapper.get_client(server_info.process_info);
 		if (NULL != rpc) {
 			rpc->call_remote_func("on_register_servers", m_server_info.process_info.server_id, (TProcessType_t)PROCESS_GAME, servers);
+		}
+	}
+}
+
+void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const dynamic_string& stub_name)
+{
+	dynamic_array<game_server_info> game_servers;
+	DRpcWrapper.get_server_infos(server_id, PROCESS_GAME, game_servers);
+	if (game_servers.empty()) {
+		return;
+	}
+	int index = DGameRandom.get_rand<int>(0, (int)(game_servers.size() - 1));
+	rpc_client* rpc = DRpcWrapper.get_client(game_servers[index].process_info);
+	rpc->call_remote_func("create_entity", stub_name);
+}
+
+void game_manager::register_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name, const game_process_info& process_info)
+{
+	TBaseType_t::on_register_entity(socket_index, stub_name, process_info);
+	dynamic_array<game_server_info> game_servers;
+	DRpcWrapper.get_server_infos(process_info.server_id, PROCESS_GAME, game_servers);
+	for (int i = 0; i < game_servers.size(); ++i) {
+		const game_server_info& server_info = game_servers[i];
+		rpc_client* rpc = DRpcWrapper.get_client(server_info.process_info);
+		if (NULL != rpc) {
+			rpc->call_remote_func("on_register_entity", stub_name, process_info);
 		}
 	}
 }

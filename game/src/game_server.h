@@ -45,10 +45,12 @@ public:
 	void game_rpc_func_1(TSocketIndex_t socket_index, const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3);
 	void game_rpc_func_2(TSocketIndex_t socket_index, uint8 p1, const std::array<char, 33>& p2);
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
+	void create_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name);
 
 public:
 	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
-	void create_entity(uint8 e_type);
+	void create_entity_globally(const dynamic_string& stub_name);
+	void create_entity_locally(const dynamic_string& stub_name);
 
 private:
 	TRoleID_t get_role_id_by_client_id(TSocketIndex_t client_id) const;
