@@ -6,6 +6,8 @@
 
 #include "base_util.h"
 #include "singleton.h"
+#include "game_struct.h"
+#include "memory_pool.h"
 
 class entity;
 struct timer_node;
@@ -20,7 +22,10 @@ public:
 	void init();
 	void update(TGameTime_t diff);
 private:
-	void do_once_update();
+	void proc_second_nodes();
+	void proc_minute_nodes();
+	void proc_hour_nodes();
+	void proc_day_nodes();
 
 public:
 	void add_timer(TGameTime_t delay,  bool repeat, entity* e, uint8 data);
@@ -46,6 +51,7 @@ private:
 	std::vector<timer_node*> m_minute_nodes;
 	std::vector<timer_node*> m_hour_nodes;
 	std::vector<timer_node*> m_day_nodes;
+	obj_memory_pool<timer_node, 100> m_node_pool;
 };
 
 #define DTimer singleton<timer>::get_instance()

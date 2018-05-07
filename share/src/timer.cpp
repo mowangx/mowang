@@ -1,5 +1,4 @@
 #include "timer.h"
-#include "game_struct.h"
 #include "common_const.h"
 #include "time_manager.h"
 #include "entity.h"
@@ -40,46 +39,58 @@ void timer::update(TGameTime_t diff)
 	int second = cur_time - m_last_time;
 	m_last_time = cur_time;
 	if (second == 1) {
-		do_once_update();
+		proc_second_nodes();
 		return;
 	}
 	for (int i = 0; i < second; ++i) {
-		do_once_update();
+		proc_second_nodes();
 	}
 }
 
-void timer::do_once_update()
+void timer::proc_second_nodes()
 {
-	sint32 second_index = 1 + m_second_index;
-	m_second_index = second_index % SECOND_IN_MINUTE;
-	if (second_index >= SECOND_IN_MINUTE) {
-		int minute_index = second_index / SECOND_IN_MINUTE + m_minute_index;
-		m_minute_index = minute_index % MINUTE_IN_HOUR;
-		if (minute_index >= MINUTE_IN_HOUR) {
-			int hour_index = minute_index / MINUTE_IN_HOUR + m_hour_index;
-			m_hour_index = hour_index % HOUR_IN_DAY;
-			if (hour_index >= HOUR_IN_DAY) {
-				int day_index = hour_index / HOUR_IN_DAY + m_day_index;
-				m_day_index = day_index % 30;
-				auto hour_func = [](uint16 slot_index_1, uint8 slot_index_2) -> int { return ((slot_index_1 >> 6) & 0x1F); };
-				proc_up_layer_node(m_hour_nodes, m_day_nodes[m_day_index], hour_func);
-				m_day_nodes[m_day_index] = NULL;
-			}
-			auto minute_func = [](uint16 slot_index_1, uint8 slot_index_2) -> int { return (slot_index_1 & 0x3F); };
-			proc_up_layer_node(m_minute_nodes, m_hour_nodes[m_hour_index], minute_func);
-			m_hour_nodes[m_hour_index] = NULL;
-		}
-		auto second_func = [](uint16 slot_index_1, uint8 slot_index_2) -> int { return (slot_index_2 & 0x3F); };
-		proc_up_layer_node(m_second_nodes, m_minute_nodes[m_minute_index], second_func);
-		m_minute_nodes[m_minute_index] = NULL;
+	m_second_index += 1;
+	if (m_second_index >= SECOND_IN_MINUTE) {
+		proc_minute_nodes();
 	}
+	m_second_index = m_second_index % SECOND_IN_MINUTE;
 	proc_node(m_second_nodes[m_second_index]);
 	m_second_nodes[m_second_index] = NULL;
 }
 
+void timer::proc_minute_nodes()
+{
+	m_minute_index += (m_second_index / SECOND_IN_MINUTE);
+	if (m_minute_index >= MINUTE_IN_HOUR) {
+		proc_hour_nodes();
+	}
+	m_minute_index = m_minute_index % MINUTE_IN_HOUR;
+	auto func = [](uint16 slot_index_1, uint8 slot_index_2) -> int { return (slot_index_2 & 0x3F); };
+	proc_up_layer_node(m_second_nodes, m_minute_nodes[m_minute_index], func);
+}
+
+void timer::proc_hour_nodes()
+{
+	m_hour_index += (m_minute_index / MINUTE_IN_HOUR);
+	if (m_hour_index >= HOUR_IN_DAY) {
+		proc_day_nodes();
+	}
+	m_hour_index = m_hour_index % HOUR_IN_DAY;
+	auto func = [](uint16 slot_index_1, uint8 slot_index_2) -> int { return (slot_index_1 & 0x3F); };
+	proc_up_layer_node(m_minute_nodes, m_hour_nodes[m_hour_index], func);
+}
+
+void timer::proc_day_nodes()
+{
+	m_day_index += (m_hour_index / HOUR_IN_DAY);
+	m_day_index = m_day_index % 30;
+	auto func = [](uint16 slot_index_1, uint8 slot_index_2) -> int { return ((slot_index_1 >> 6) & 0x1F); };
+	proc_up_layer_node(m_hour_nodes, m_day_nodes[m_day_index], func);
+}
+
 void timer::add_timer(TGameTime_t delay, bool repeat, entity* e, uint8 data)
 {
-	timer_node* node = new timer_node;
+	timer_node* node = m_node_pool.allocate();
 	add_timer_core(node, delay, repeat, e, data);
 }
 
@@ -91,7 +102,7 @@ void timer::del_timer(timer_node* node)
 	if (NULL != node->next) {
 		node->next->pre = node->pre;
 	}
-	delete node;
+	m_node_pool.deallocate(node);
 }
 
 void timer::add_timer_core(timer_node *& node, TGameTime_t delay, bool repeat, entity* e, uint8 data)
@@ -169,6 +180,7 @@ void timer::proc_up_layer_node(std::vector<timer_node*>& cur_node, timer_node*& 
 		node = node->next;
 		add_node(cur_node[index], tmp_node);
 	}
+	node = NULL;
 }
 
 void timer::clean_up()
