@@ -100,32 +100,33 @@ void timer::add_timer_core(timer_node *& node, TGameTime_t delay, bool repeat, e
 	node->e = e;
 	node->data = data;
 	int day_index = int(delay / SECOND_IN_DAY);
+	int slot_day_index = (day_index + m_day_index) % 30;
 	int hour_index = int(delay / SECOND_IN_HOUR);
+	int slot_hour_index = (hour_index + m_hour_index) % HOUR_IN_DAY;
 	int minute_index = int(delay / SECOND_IN_MINUTE);
+	int slot_minute_index = (minute_index + m_minute_index) % SECOND_IN_MINUTE;
 	int second_index = delay % SECOND_IN_MINUTE;
-	node->slot_index_1 = (uint16)((day_index << 11) + (day_index << 6) + minute_index);
+	int slot_second_index = (second_index + m_second_index) % SECOND_IN_MINUTE;
+
+	node->slot_index_1 = (uint16)((slot_day_index << 11) + (slot_hour_index << 6) + slot_minute_index);
 	node->slot_index_2 = repeat ? 1 : 0;
-	node->slot_index_2 = (uint8)((node->slot_index_2 << 7) + second_index);
+	node->slot_index_2 = (uint8)((node->slot_index_2 << 7) + slot_second_index);
 
 	if (day_index > 0) {
-		day_index = (day_index + m_day_index) % 30;
-		add_node(m_day_nodes[day_index], node);
+		add_node(m_day_nodes[slot_day_index], node);
 		return;
 	}
 
 	if (hour_index > 0) {
-		hour_index = (hour_index + m_hour_index) % HOUR_IN_DAY;
-		add_node(m_hour_nodes[hour_index], node);
+		add_node(m_hour_nodes[slot_hour_index], node);
 		return;
 	}
 
 	if (minute_index > 0) {
-		minute_index = (minute_index + m_minute_index) % SECOND_IN_MINUTE;
-		add_node(m_minute_nodes[minute_index], node);
+		add_node(m_minute_nodes[slot_minute_index], node);
 	}
 	else {
-		second_index = (second_index + m_second_index) % SECOND_IN_MINUTE;
-		add_node(m_second_nodes[second_index], node);
+		add_node(m_second_nodes[slot_second_index], node);
 	}
 }
 
