@@ -4,6 +4,7 @@
 #include "socket_manager.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
+#include "timer.h"
 
 service::service(game_process_type process_type)
 {
@@ -24,6 +25,7 @@ service::~service()
 bool service::init(TProcessID_t process_id)
 {
 	m_server_info.process_info.process_id = process_id;
+	DTimer.init();
 	return true;
 }
 
@@ -43,6 +45,8 @@ void service::run()
 void service::do_loop(TGameTime_t diff)
 {
 	// 
+	DTimer.update(diff);
+
 	std::vector<TPacketRecvInfo_t*> read_packets;
 	std::vector<TPacketSendInfo_t*> finish_write_packets;
 	std::vector<socket_base*> add_sockets;

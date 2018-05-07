@@ -1,0 +1,22 @@
+
+#ifndef _COMMON_CONST_H_
+#define _COMMON_CONST_H_
+
+#define SECOND_IN_MINUTE	60
+#define SECOND_IN_HOUR		3600
+#define SECOND_IN_DAY		86400
+#define SECOND_IN_WEEKDAY	604800
+
+#define MINUTE_IN_HOUR		60
+#define MINUTE_IN_DAY		1440
+#define MINUTE_IN_WEEKDAY	10080
+
+#define HOUR_IN_DAY			24
+#define HOUR_IN_WEEKDAY		168
+
+#define DAY_IN_WEEKDAY		7
+
+#define TIME_ZONE_OFFSET_TIME 28800
+
+#endif // !_COMMON_CONST_H_
+

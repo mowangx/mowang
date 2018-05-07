@@ -175,8 +175,10 @@
     <ClInclude Include="src\base_packet.h" />
     <ClInclude Include="src\base_util.h" />
     <ClInclude Include="src\bit_set.h" />
+    <ClInclude Include="src\common_const.h" />
     <ClInclude Include="src\debug.h" />
     <ClInclude Include="src\dynamic_array.h" />
+    <ClInclude Include="src\entity.h" />
     <ClInclude Include="src\game_enum.h" />
     <ClInclude Include="src\game_random.h" />
     <ClInclude Include="src\game_struct.h" />
@@ -203,6 +205,7 @@
     <ClInclude Include="src\socket_util.h" />
     <ClInclude Include="src\socket_wrapper.h" />
     <ClInclude Include="src\stdcore.h" />
+    <ClInclude Include="src\timer.h" />
     <ClInclude Include="src\time_manager.h" />
     <ClInclude Include="src\types_def.h" />
     <ClInclude Include="src\xml_loader.h" />
@@ -222,6 +225,7 @@
     <ClCompile Include="src\socket_input_stream.cpp" />
     <ClCompile Include="src\socket_manager.cpp" />
     <ClCompile Include="src\socket_output_stream.cpp" />
+    <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\time_manager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

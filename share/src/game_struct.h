@@ -4,6 +4,32 @@
 
 #include "base_util.h"
 
+class entity;
+
+struct timer_node
+{
+	timer_node* pre;
+	timer_node* next;
+	entity* e;
+	TGameTime_t delay;
+	uint16 slot_index_1;	// 5 bit day index, 5 bit hour index, 6 bit minute index
+	uint8 slot_index_2;	// 1 bit repeate, 6 bit second index
+	uint8 data;
+	timer_node() {
+		clean_up();
+	}
+
+	void clean_up() {
+		pre = NULL;
+		next = NULL;
+		e = NULL;
+		delay = INVALID_GAME_TIME;
+		slot_index_1 = 0;
+		slot_index_2 = 0;
+		data = 0;
+	}
+};
+
 struct game_pos
 {
 	TPosValue_t x;
