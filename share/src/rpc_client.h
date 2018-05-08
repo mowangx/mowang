@@ -30,7 +30,7 @@ init_role_packet(transfer_packet, packet, server_id, game_server_id, role_id, fu
 #define DRpcCreateStubPacket \
 std::string real_name = class_name + func_name; \
 transfer_stub_packet transfer_packet; \
-rpc_by_name_packet packet; \
+stub_rpc_by_name_packet packet; \
 int buffer_index = 0; \
 init_stub_packet(transfer_packet, packet, server_id, game_server_id, real_name);
 
@@ -397,7 +397,7 @@ private:
 		init_packet(packet, func_name);
 	}
 
-	void init_stub_packet(transfer_stub_packet& transfer_packet, rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, const std::string& func_name) {
+	void init_stub_packet(transfer_stub_packet& transfer_packet, stub_rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, const std::string& func_name) {
 		transfer_packet.m_server_id = server_id;
 		transfer_packet.m_game_id = game_id;
 		init_packet(packet, func_name);

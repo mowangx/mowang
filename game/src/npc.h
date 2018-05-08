@@ -11,6 +11,9 @@ public:
 	virtual ~npc();
 
 public:
+	virtual void on_timer(uint8 data) override;
+
+public:
 	TNpcIndex_t get_index() const;
 	void set_index(TNpcIndex_t index);
 

@@ -25,6 +25,9 @@ void rpc_proxy::call(const std::string& func_name, char* buffer) const
 	if (itr != m_name_2_func.end()) {
 		itr->second(buffer);
 	}
+	else {
+		log_error("call proxy func failed not find func name! func name = %s", func_name.c_str());
+	}
 }
 
 void rpc_proxy::call_with_index(uint8 rpc_index, char * buffer, TSocketIndex_t socket_index) const
@@ -40,6 +43,9 @@ void rpc_proxy::call_with_index(const std::string & func_name, char * buffer, TS
 	auto itr = m_name_2_func_with_index.find(func_name.c_str());
 	if (itr != m_name_2_func_with_index.end()) {
 		itr->second(buffer, socket_index);
+	}
+	else {
+		log_error("call proxy func failed not find func name! func name = %s", func_name.c_str());
 	}
 }
 

@@ -8,6 +8,7 @@
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
 #include "socket_manager.h"
+#include "roll_stub.h"
 
 game_server::game_server() :service(PROCESS_GAME)
 {
@@ -116,6 +117,8 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 	m_client_id_2_role_id[client_id] = role_id;
 	m_roles.push_back(p);
 
+	DRpcWrapper.call_stub("roll_stub", "register_role", role_id, p->get_mailbox_info());
+
 	dynamic_string p1("xiedi");
 	std::array<char, 127> p3;
 	memset(p3.data(), 0, 127);
@@ -162,8 +165,8 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 	
 
 	if (m_server_info.process_info.process_id == 1) {
-		create_entity_globally("RollStub");
-		create_entity_globally("SpaceStub");
+		create_entity_globally("roll_stub");
+		create_entity_globally("space_stub");
 	}
 }
 
@@ -203,7 +206,8 @@ void game_server::create_entity_globally(const dynamic_string& stub_name)
 void game_server::create_entity_locally(const dynamic_string& stub_name)
 {
 	entity* e = NULL;
-	if (strcmp(stub_name.data(), "RollStub") == 0) {
+	if (strcmp(stub_name.data(), "roll_stub") == 0) {
+		e = new roll_stub();
 	}
 	if (NULL != e) {
 		e->init();

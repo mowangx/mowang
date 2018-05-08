@@ -160,13 +160,14 @@ rpc_client* rpc_wrapper::get_random_client(TServerID_t server_id, TProcessType_t
 	return rpc_wrappers[wrapper_index]->rpc;
 }
 
-rpc_client * rpc_wrapper::get_stub_client(const std::string & stub_name)
+rpc_client* rpc_wrapper::get_stub_client_and_prcoess_info(const std::string & stub_name, game_process_info& process_info)
 {
 	auto itr = m_stub_name_2_process_infos.find(stub_name);
-	if (itr == m_stub_name_2_process_infos.end()) {
-		return NULL;
+	if (itr != m_stub_name_2_process_infos.end()) {
+		process_info = itr->second;
+		return get_random_client(process_info.server_id, PROCESS_GATE);
 	}
-	return get_client(itr->second);
+	return NULL;
 }
 
 uint64 rpc_wrapper::get_key_id_by_process_id(const game_process_info& process_info) const
