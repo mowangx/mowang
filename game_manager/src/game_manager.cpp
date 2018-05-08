@@ -74,7 +74,7 @@ void game_manager::broadcast_games() const
 	broadcast_game_core(servers);
 }
 
-void game_manager::broadcast_game(const game_server_info & server_info) const
+void game_manager::broadcast_game(const game_server_info& server_info) const
 {
 	dynamic_array<game_server_info> servers;
 	servers.push_back(server_info);
@@ -104,6 +104,26 @@ void game_manager::broadcast_game_core(const dynamic_array<game_server_info>& se
 		if (NULL != rpc) {
 			rpc->call_remote_func("on_register_servers", m_server_info.process_info.server_id, (TProcessType_t)PROCESS_GAME, servers);
 		}
+	}
+}
+
+void game_manager::unicast_to_game(const game_process_info& process_info) const
+{
+	dynamic_array<game_server_info> servers;
+	DRpcWrapper.get_server_infos(process_info.server_id, PROCESS_DB, servers);
+	rpc_client* rpc = DRpcWrapper.get_client(process_info);
+	if (NULL != rpc) {
+		rpc->call_remote_func("on_register_servers", process_info.server_id, (TProcessType_t)PROCESS_DB, servers);
+	}
+}
+
+void game_manager::unicast_to_gate(const game_process_info& process_info) const
+{
+	dynamic_array<game_server_info> servers;
+	DRpcWrapper.get_server_infos(process_info.server_id, PROCESS_GAME, servers);
+	rpc_client* rpc = DRpcWrapper.get_client(process_info);
+	if (NULL != rpc) {
+		rpc->call_remote_func("on_register_servers", process_info.server_id, (TProcessType_t)PROCESS_GAME, servers);
 	}
 }
 
@@ -145,9 +165,13 @@ void game_manager::on_connect(TSocketIndex_t socket_index)
 		DRpcWrapper.get_server_info(process_info, server_info);
 		if (process_info.process_type == PROCESS_GAME) {
 			broadcast_game(server_info);
+			unicast_to_game(process_info);
 		}
 		else if (process_info.process_type == PROCESS_DB) {
 			broadcast_db(server_info);
+		}
+		else if (process_info.process_type == PROCESS_GATE) {
+			unicast_to_gate(process_info);
 		}
 	}
 	else if (check_all_process_start()) {

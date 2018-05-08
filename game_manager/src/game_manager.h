@@ -27,6 +27,8 @@ private:
 private:
 	void broadcast_db_core(const dynamic_array<game_server_info>& servers) const;
 	void broadcast_game_core(const dynamic_array<game_server_info>& servers) const;
+	void unicast_to_game(const game_process_info& process_info) const;
+	void unicast_to_gate(const game_process_info& process_info) const;
 
 public:
 	void create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const dynamic_string& stub_name);
