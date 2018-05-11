@@ -420,70 +420,49 @@ private:
 private:
 	template <class T1>
 	void fill_packet(char* buffer, int& buffer_index, const T1& p1) {
-		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
+		rpc_param_fill<T1, template_type<T1>::type>::fill_param(p1, buffer, buffer_index);
 	}
 
 	template <class T1, class T2>
 	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2) {
-		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
+		fill_packet(buffer, buffer_index, p1);
+		rpc_param_fill<T2, template_type<T2>::type>::fill_param(p2, buffer, buffer_index);
 	}
 
 	template <class T1, class T2, class T3>
 	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3) {
-		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
+		fill_packet(buffer, buffer_index, p1, p2);
+		rpc_param_fill<T3, template_type<T3>::type>::fill_param(p3, buffer, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4>
 	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
-		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
+		fill_packet(buffer, buffer_index, p1, p2, p3);
+		rpc_param_fill<T4, template_type<T4>::type>::fill_param(p4, buffer, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5>
 	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5) {
-		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
-		rpc_param_fill<T5>::fill_param(p5, buffer, buffer_index);
+		fill_packet(buffer, buffer_index, p1, p2, p3, p4);
+		rpc_param_fill<T5, template_type<T5>::type>::fill_param(p5, buffer, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6>
 	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6) {
-		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
-		rpc_param_fill<T5>::fill_param(p5, buffer, buffer_index);
-		rpc_param_fill<T6>::fill_param(p6, buffer, buffer_index);
+		fill_packet(buffer, buffer_index, p1, p2, p3, p4, p5);
+		rpc_param_fill<T6, template_type<T6>::type>::fill_param(p6, buffer, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
 	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7) {
-		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
-		rpc_param_fill<T5>::fill_param(p5, buffer, buffer_index);
-		rpc_param_fill<T6>::fill_param(p6, buffer, buffer_index);
-		rpc_param_fill<T7>::fill_param(p7, buffer, buffer_index);
+		fill_packet(buffer, buffer_index, p1, p2, p3, p4, p5, p6);
+		rpc_param_fill<T7, template_type<T7>::type>::fill_param(p7, buffer, buffer_index);
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
 	void fill_packet(char* buffer, int& buffer_index, const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
-		rpc_param_fill<T1>::fill_param(p1, buffer, buffer_index);
-		rpc_param_fill<T2>::fill_param(p2, buffer, buffer_index);
-		rpc_param_fill<T3>::fill_param(p3, buffer, buffer_index);
-		rpc_param_fill<T4>::fill_param(p4, buffer, buffer_index);
-		rpc_param_fill<T5>::fill_param(p5, buffer, buffer_index);
-		rpc_param_fill<T6>::fill_param(p6, buffer, buffer_index);
-		rpc_param_fill<T7>::fill_param(p7, buffer, buffer_index);
-		rpc_param_fill<T8>::fill_param(p8, buffer, buffer_index);
+		fill_packet(buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7);
+		rpc_param_fill<T8, template_type<T8>::type>::fill_param(p8, buffer, buffer_index);
 	}
 
 public:

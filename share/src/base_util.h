@@ -31,6 +31,8 @@ static const uint32 USER_ID_LEN = 64;	// 用户ID长度
 
 static const uint32 MAX_PROCESS_TYPE_NUM = 4; // 进程类型数量
 
+static const uint32 MAX_SEQUENCE_TYPE_NUM = 8;	// 序列ID数量
+
 typedef uint32 TTime_t;					// 系统时间
 typedef uint32 TAppTime_t;				// 程序运行的毫秒数
 
@@ -117,6 +119,12 @@ typedef std::array<char, USER_ID_LEN> TUserID_t;	// 用户ID
 
 typedef uint64 TRoleID_t;				// 角色id
 const TRoleID_t INVALID_ROLE_ID = 0;
+
+typedef uint32 TSequenceID_t;			// 序列ID
+const TSequenceID_t INVALID_SEQUENCE_ID = 0;
+
+typedef uint64 TDbOptID_t;				// db操作ID
+const TDbOptID_t INVALID_DB_OPT_ID = 0;
 
 //根据指针值删除内存
 #ifndef DSafeDelete

@@ -10,6 +10,8 @@
 #include "socket_manager.h"
 #include "roll_stub.h"
 
+#include "sequence.h"
+
 game_server::game_server() :service(PROCESS_GAME)
 {
 	m_write_packets.clear();
@@ -53,7 +55,15 @@ bool game_server::init(TProcessID_t process_id)
 
 	connect_game_manager_loop("127.0.0.1", 10000);
 
+	//DSequence.save();
+
 	return true;
+}
+
+void game_server::do_loop(TGameTime_t diff)
+{
+	TBaseType_t::do_loop(diff);
+	test();
 }
 
 bool game_server::connect_game_manager(const char * ip, TPort_t port)
@@ -99,6 +109,46 @@ farmland * game_server::allocate_farmland()
 void game_server::deallocate_farmland(farmland * f)
 {
 	m_farmland_pool.deallocate(f);
+}
+
+void game_server::db_remove(const char* table, const char* query, const std::function<void(bool)>& func)
+{
+	db_opt(4, table, query, NULL, func);
+}
+
+void game_server::db_insert(const char* table, const char* fields, const std::function<void(bool)>& func)
+{
+	db_opt(3, table, NULL, fields, func);
+}
+
+void game_server::db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& func)
+{
+	db_opt(2, table, query, fields, func);
+}
+
+void game_server::db_query(const char* table, const char* query, const char* fields, const std::function<void(bool)>& func)
+{
+	db_opt(1, table, query, fields, func);
+}
+
+void game_server::db_opt(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& func)
+{
+	rpc_client* rpc = DRpcWrapper.get_random_client(m_server_info.process_info.server_id, PROCESS_DB);
+	if (NULL != rpc) {
+		dynamic_string tmp_table(table);
+		dynamic_string tmp_query(query);
+		dynamic_string tmp_fields(fields);
+		rpc->call_remote_func("add_executor", opt_type, m_db_opt_id, tmp_table, tmp_query, tmp_fields);
+	}
+	m_db_callbacks_2[m_db_opt_id] = func;
+}
+
+void game_server::test()
+{
+	for (auto itr = m_db_callbacks_2.begin(); itr != m_db_callbacks_2.end(); ++itr) {
+		const std::function<void(bool)>& func = itr->second;
+		func(false);
+	}
 }
 
 void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id)

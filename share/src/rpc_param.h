@@ -24,19 +24,31 @@ struct func_param<R(*)(Args...)> {
 	typedef typename std::tuple<typename std::decay<Args>::type...> args_type;
 };
 
-template <class T>
+
+template <class C>
+struct template_type {
+	typedef C type;
+};
+
+template <template <class> class C, class T>
+struct template_type<C<T>>
+{
+	typedef T type;
+};
+
+template <class T1, class T2>
 struct rpc_param_parse {
-	static void parse_param(T& value, char* buffer, int& buffer_index) {
-		value = *(T*)(buffer + buffer_index);
-		buffer_index += sizeof(T);
+	static void parse_param(T1& value, char* buffer, int& buffer_index) {
+		value = *(T1*)(buffer + buffer_index);
+		buffer_index += sizeof(T1);
 	}
 };
 
 template <>
-struct rpc_param_parse<dynamic_string> {
+struct rpc_param_parse<dynamic_string, dynamic_string> {
 	static void parse_param(dynamic_string& value, char* buffer, int& buffer_index) {
 		uint16 len = 0;
-		rpc_param_parse<uint16>::parse_param(len, buffer, buffer_index);
+		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
 			value.push_back(*(char*)(buffer + buffer_index));
 			buffer_index += sizeof(char);
@@ -45,44 +57,73 @@ struct rpc_param_parse<dynamic_string> {
 };
 
 template <>
-struct rpc_param_parse<dynamic_array<game_server_info>> {
-	static void parse_param(dynamic_array<game_server_info>& value, char* buffer, int& buffer_index) {
+struct rpc_param_parse<dynamic_string_array, dynamic_string_array> {
+	static void parse_param(dynamic_string_array& value, char* buffer, int& buffer_index) {
 		uint16 len = 0;
-		rpc_param_parse<uint16>::parse_param(len, buffer, buffer_index);
+		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
-			game_server_info server_info;
-			rpc_param_parse<game_server_info>::parse_param(server_info, buffer, buffer_index);
-			value.push_back(server_info);
+			uint16 cur_len = 0;
+			dynamic_string s;
+			rpc_param_parse<uint16, uint16>::parse_param(cur_len, buffer, buffer_index);
+			for (int j = 0; j < cur_len; ++j) {
+				s.push_back(*(char*)(buffer + buffer_index));
+				buffer_index += sizeof(char);
+			}
+			value.push_back(s);
+		}
+	}
+};
+
+template <class T>
+struct rpc_param_parse<dynamic_array<T>, T> {
+	static void parse_param(dynamic_array<T>& value, char* buffer, int& buffer_index) {
+		uint16 len = 0;
+		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
+		for (int i = 0; i < len; ++i) {
+			T data;
+			rpc_param_parse<T, template_type<T>::type>::parse_param(data, buffer, buffer_index);
+			value.push_back(data);
 		}
 	}
 };
 
 
-template <class T>
+template <class T1, class T2>
 struct rpc_param_fill {
-	static void fill_param(const T& value, char* buffer, int& buffer_index) {
+	static void fill_param(const T1& value, char* buffer, int& buffer_index) {
 		memcpy((void*)(buffer + buffer_index), &value, sizeof(value));
 		buffer_index += sizeof(value);
 	}
 };
 
 template <>
-struct rpc_param_fill<dynamic_string> {
+struct rpc_param_fill<dynamic_string, dynamic_string> {
 	static void fill_param(const dynamic_string& value, char* buffer, int& buffer_index) {
 		uint16 len = value.size();
-		rpc_param_fill<uint16>::fill_param(len, buffer, buffer_index);
+		rpc_param_fill<uint16, uint16>::fill_param(len, buffer, buffer_index);
 		memcpy((void*)(buffer + buffer_index), value.data(), len);
 		buffer_index += len;
 	}
 };
 
 template <>
-struct rpc_param_fill<dynamic_array<game_server_info>> {
-	static void fill_param(const dynamic_array<game_server_info>& value, char* buffer, int& buffer_index) {
+struct rpc_param_fill<dynamic_string_array, dynamic_string_array> {
+	static void fill_param(const dynamic_string_array& value, char* buffer, int& buffer_index) {
 		uint16 len = value.size();
-		rpc_param_fill<uint16>::fill_param(len, buffer, buffer_index);
+		uint16 real_len = value.real_len();
+		rpc_param_fill<uint16, uint16>::fill_param(len, buffer, buffer_index);
+		memcpy((void*)(buffer + buffer_index), value.data(), real_len);
+		buffer_index += real_len;
+	}
+};
+
+template <class T>
+struct rpc_param_fill<dynamic_array<T>, T> {
+	static void fill_param(const dynamic_array<T>& value, char* buffer, int& buffer_index) {
+		uint16 len = value.size();
+		rpc_param_fill<uint16, uint16>::fill_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
-			rpc_param_fill<game_server_info>::fill_param(value[i], buffer, buffer_index);
+			rpc_param_fill<T, template_type<T>::type>::fill_param(value[i], buffer, buffer_index);
 		}
 	}
 };
@@ -93,7 +134,7 @@ struct rpc_param_wrapper {
 	static void convert_core(T& params, char* buffer, int& buffer_index) {
 		auto v = std::get<N>(params);
 		typedef decltype(v) TValue_t;
-		rpc_param_parse<TValue_t>::parse_param(std::get<N>(params), buffer, buffer_index);
+		rpc_param_parse<TValue_t, template_type<TValue_t>::type>::parse_param(std::get<N>(params), buffer, buffer_index);
 	}
 };
 

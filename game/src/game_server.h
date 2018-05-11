@@ -24,6 +24,7 @@ public:
 public:
 	virtual bool init(TProcessID_t process_id) override;
 private:
+	virtual void do_loop(TGameTime_t diff) override;
 	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 
 public:
@@ -38,6 +39,17 @@ public:
 
 	farmland* allocate_farmland();
 	void deallocate_farmland(farmland* f);
+
+public:
+	void db_remove(const char* table, const char* query, const std::function<void(bool)>& func);
+	void db_insert(const char* table, const char* fields, const std::function<void(bool)>& func);
+	void db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& func);
+	void db_query(const char* table, const char* query, const char* fields, const std::function<void(bool)>& func);
+private:
+	void db_opt(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& func);
+
+public:
+	void test();
 
 public:
 	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id);
@@ -56,6 +68,9 @@ private:
 	TRoleID_t get_role_id_by_client_id(TSocketIndex_t client_id) const;
 
 private:
+	TDbOptID_t m_db_opt_id;
+	std::unordered_map<TDbOptID_t, std::function<void(char*, bool)>> m_db_callbacks_1;
+	std::unordered_map<TDbOptID_t, std::function<void(bool)>> m_db_callbacks_2;
 	obj_memory_pool<resource, 65536> m_resource_pool;
 	obj_memory_pool<city, 1024> m_city_pool;
 	obj_memory_pool<npc, 1024> m_npc_pool;

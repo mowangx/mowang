@@ -172,6 +172,7 @@
     <ClCompile Include="src\resource.cpp" />
     <ClCompile Include="src\role.cpp" />
     <ClCompile Include="src\roll_stub.cpp" />
+    <ClCompile Include="src\sequence.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\city.h" />
@@ -184,6 +185,7 @@
     <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\role.h" />
     <ClInclude Include="src\roll_stub.h" />
+    <ClInclude Include="src\sequence.h" />
     <ClInclude Include="src\tbl_test.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

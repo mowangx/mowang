@@ -1,34 +1,28 @@
 
 #include "db_server.h"
-#include "mysql_conn.h"
 #include "game_manager_handler.h"
 #include "game_server_handler.h"
 #include "socket_manager.h"
 #include "rpc_proxy.h"
+#include "executor_manager.h"
 
 db_server::db_server() : service(PROCESS_DB)
 {
-	m_db = NULL;
+	
 }
 
 db_server::~db_server()
 {
-	if (NULL != m_db) {
-		delete m_db;
-		m_db = NULL;
-	}
+	
 }
 
 bool db_server::init(TProcessID_t process_id)
 {
-	//m_db = new CMysqlConn();
-	//if (NULL == m_db) {
-	//	return false;
-	//}
-
-	//return m_db->init("127.0.0.1", 3306, "root", "123456", "test");
-
 	if (!TBaseType_t::init(process_id)) {
+		return false;
+	}
+
+	if (!DExecutorMgr.init()) {
 		return false;
 	}
 
@@ -45,6 +39,12 @@ bool db_server::init(TProcessID_t process_id)
 	connect_game_manager_loop("127.0.0.1", 10000);
 
 	return true;
+}
+
+void db_server::do_loop(TGameTime_t diff)
+{
+	TBaseType_t::do_loop(diff);
+	DExecutorMgr.update(diff);
 }
 
 bool db_server::connect_game_manager(const char * ip, TPort_t port)

@@ -69,7 +69,8 @@ public:
 
 	bool push_back(const T& data) {
 		if ((m_len + 1) >= m_max_len) {
-			T* tmp = new T[2 * m_max_len];
+			m_max_len <<= 1;
+			T* tmp = new T[m_max_len];
 			memcpy(tmp, m_data, m_len * sizeof(T));
 			delete[] m_data;
 			m_data = tmp;
@@ -104,7 +105,7 @@ public:
 		m_data[m_len] = '\0';
 	}
 
-	dynamic_string(char* s) {
+	dynamic_string(const char* s) {
 		m_len = (uint16)strlen(s);
 		m_max_len = m_len + 1;
 		m_data = new char[m_max_len];
@@ -121,7 +122,7 @@ public:
 	}
 
 	dynamic_string& operator = (const dynamic_string& rhs) {
-		if (this != &rhs) {
+		if (&rhs != this) {
 			delete[] m_data;
 			m_len = rhs.size();
 			m_max_len = m_len + 1;
@@ -133,6 +134,8 @@ public:
 	}
 
 	~dynamic_string() {
+		m_len = 0;
+		m_max_len = 0;
 		if (NULL != m_data) {
 			delete[] m_data;
 			m_data = NULL;
@@ -150,7 +153,8 @@ public:
 
 	bool push_back(char data) {
 		if ((m_len + 1) >= m_max_len) {
-			char* tmp = new char[2 * m_max_len];
+			m_max_len <<= 1;
+			char* tmp = new char[m_max_len];
 			memcpy(tmp, m_data, m_len * sizeof(char));
 			delete[] m_data;
 			m_data = tmp;
@@ -172,6 +176,89 @@ public:
 private:
 	uint16 m_len;
 	uint16 m_max_len;
+	char* m_data;
+};
+
+class dynamic_string_array
+{
+public:
+	dynamic_string_array() {
+		m_len = 0;
+		m_max_len = 0;
+		m_data = NULL;
+	}
+
+	dynamic_string_array(const dynamic_string_array& rhs) {
+		m_len = rhs.size();
+		m_real_len = rhs.real_len();
+		m_max_len = m_real_len + 1;
+		m_data = new char[m_max_len];
+		memcpy(m_data, rhs.data(), sizeof(char) * m_real_len);
+		m_data[m_real_len] = '\0';
+	}
+
+	dynamic_string_array& operator = (const dynamic_string_array& rhs) {
+		if (&rhs != this) {
+			delete[] m_data;
+			m_len = rhs.size();
+			m_real_len = rhs.real_len();
+			m_max_len = m_real_len + 1;
+			m_data = new char[m_max_len];
+			memcpy(m_data, rhs.data(), sizeof(char) * m_real_len);
+			m_data[m_real_len] = '\0';
+		}
+		return *this;
+	}
+
+	~dynamic_string_array() {
+		m_len = 0;
+		m_real_len = 0;
+		m_max_len = 0;
+		if (NULL != m_data) {
+			delete[] m_data;
+			m_data = NULL;
+		}
+	}
+
+public:
+	char* data() {
+		return m_data;
+	}
+
+	const char* data() const {
+		return m_data;
+	}
+
+	bool push_back(const dynamic_string& data) {
+		if (((uint32)m_real_len + data.size()) >= m_max_len) {
+			m_max_len <<= 1;
+			char* tmp = new char[m_max_len];
+			memcpy(tmp, m_data, m_len * sizeof(char));
+			delete[] m_data;
+			m_data = tmp;
+		}
+		memcpy(m_data + m_len, data.data(), data.size());
+		m_len += data.size();
+		m_data[m_len] = '\0';
+		return true;
+	}
+
+	bool empty() const {
+		return size() == 0;
+	}
+
+	uint16 size() const {
+		return m_len;
+	}
+
+	uint16 real_len() const {
+		return m_real_len;
+	}
+
+private:
+	uint16 m_len;
+	uint16 m_real_len;
+	uint32 m_max_len;
 	char* m_data;
 };
 
