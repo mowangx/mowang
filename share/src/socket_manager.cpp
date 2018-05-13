@@ -29,7 +29,7 @@ socket_manager::~socket_manager()
 	clean_up();
 }
 
-bool socket_manager::init(TProcessID_t process_id)
+bool socket_manager::init(TProcessType_t process_type, TProcessID_t process_id)
 {
 	if (!SOCKET_API::gx_lib_init()) {
 		return false;
@@ -40,9 +40,9 @@ bool socket_manager::init(TProcessID_t process_id)
 		return false;
 	}
 
-	m_socket_sequence_index = process_id;
-	m_socket_sequence_index <<= 48;
-
+	m_socket_sequence_index = process_type;
+	m_socket_sequence_index = (m_socket_sequence_index << (sizeof(process_id) * 8)) + process_id;
+	m_socket_sequence_index <<= 40;
 	return true;
 }
 

@@ -52,5 +52,5 @@ void client_handler::transfer_server(packet_base* packet) const
 	transfer_packet->m_client_id = get_socket_index();
 	memcpy(transfer_packet->m_buffer, packet, packet->get_packet_len());
 	DGateServer.push_write_packets(packet_info);
-	log_info("transfer server! client id = '%"I64_FMT"u'", get_socket_index());
+	log_info("transfer client packet to server! client id = '%"I64_FMT"u', socket index = '%"I64_FMT"u'", packet_info->socket_index, get_socket_index());
 }

@@ -154,8 +154,8 @@ void game_server::test()
 void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id)
 {
 	// send msg to db manager to query role id from db by platform id and user id
-	TProcessID_t gate_id = (TProcessID_t)(client_id >> 48);
-	static TRoleID_t role_id = 1;
+	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
+	static TRoleID_t role_id = ((TRoleID_t)m_server_info.process_info.server_id << 48) + ((TRoleID_t)m_server_info.process_info.process_id << 40);
 	++role_id;
 	role* p = new role();
 	p->set_server_id(100);
@@ -228,7 +228,7 @@ void game_server::create_entity(TSocketIndex_t socket_index, const dynamic_strin
 void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 {
 	TPacketID_t packet_id = packet->get_packet_id();
-	TProcessID_t gate_id = (TProcessID_t)(client_id >> 48);
+	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
 	log_info("transfer client, gate id = %u, client id = %"I64_FMT"u, packet id = %u", gate_id, client_id, packet_id);
 	if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_NAME) {
 		transfer_server_by_name_packet* rpc_info = (transfer_server_by_name_packet*)packet;

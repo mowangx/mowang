@@ -167,6 +167,7 @@ rpc_client* rpc_wrapper::get_stub_client_and_prcoess_info(const std::string & st
 		process_info = itr->second;
 		return get_random_client(process_info.server_id, PROCESS_GATE);
 	}
+	log_error("get stub client and process info failed! stub name = %s", stub_name.c_str());
 	return NULL;
 }
 

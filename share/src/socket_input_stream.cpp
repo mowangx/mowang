@@ -192,169 +192,123 @@ sint32 socket_input_stream::fill()
 	sint32 nReceived = 0;
 	sint32 nFree = 0;
 
-	if (m_head <= m_tail)
-	{
-		if (m_head == 0)
-		{
-			//
-			// H   T		LEN=10
-			// 0123456789
-			// abcd......
-			//
-
+	if (m_head <= m_tail) {
+		if (m_head == 0) {
 			nReceived = 0;
 			nFree = m_buffer_len - m_tail - 1;
-			if (nFree != 0)
-			{
-				nReceived = m_socket->receive(&m_buffer[m_tail], nFree);
-				if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
-				if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 1;
-				if (nReceived == 0) return SOCKET_ERROR - 2;
-
+			if (nFree != 0) {
+				nReceived = fill_stream(nFilled, nFree, 1);
+				if (nReceived < 1) {
+					return nReceived;
+				}
 				m_tail += nReceived;
-				nFilled += nReceived;
 			}
 
-			if (nReceived == nFree)
-			{
-				sint32 available = m_socket->available();
-				if (available > 0)
-				{
-					// 如果缓冲区过大则断开连接
-					if ((m_buffer_len + available + 1)>m_max_buffer_len)
-					{
-						initsize(m_socket, m_buffer_len, m_max_buffer_len);
-						log_error("Socket input buff is too big!");
-						m_socket->set_active(false);
-						return SOCKET_ERROR - 3;
-					}
-					if (!resize(available + 1))
-					{
-						return 0;
-					}
-
-					nReceived = m_socket->receive(&m_buffer[m_tail], available);
-					if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
-					if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 4;
-					if (nReceived == 0) return SOCKET_ERROR - 5;
-
-					m_tail += nReceived;
-					nFilled += nReceived;
+			if (nReceived == nFree) {
+				sint32 ret = check_stream_available(nFilled, 3);
+				if (ret < 1) {
+					return ret;
 				}
 			}
 		}
-		else
-		{
-			//
-			//    H   T		LEN=10
-			// 0123456789
-			// ...abcd...
-			//
-
+		else {
 			nFree = m_buffer_len - m_tail;
-			nReceived = m_socket->receive(&m_buffer[m_tail], nFree);
-			if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
-			if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 6;
-			if (nReceived == 0) return SOCKET_ERROR - 7;
-
+			nReceived = fill_stream(nFilled, nFree, 6);
+			if (nReceived < 1) {
+				return nReceived;
+			}
 			m_tail = (m_tail + nReceived) % m_buffer_len;
-			nFilled += nReceived;
 
-			if (nReceived == nFree)
-			{
-				//				Assert( m_Tail == 0 );
-
+			if (nReceived == nFree) {
 				nReceived = 0;
 				nFree = m_head - 1;
-				if (nFree != 0)
-				{
-					nReceived = m_socket->receive(&m_buffer[0], nFree);
-					if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
-					if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 8;
-					if (nReceived == 0) return SOCKET_ERROR - 9;
-
+				if (nFree != 0) {
+					nReceived = fill_stream(nFilled, nFree, 8);
+					if (nReceived < 1) {
+						return nReceived;
+					}
 					m_tail += nReceived;
-					nFilled += nReceived;
 				}
 
-				if (nReceived == nFree)
-				{
-					sint32 available = m_socket->available();
-					if (available > 0)
-					{
-						if ((m_buffer_len + available + 1)>m_max_buffer_len)
-						{
-							initsize(m_socket, m_buffer_len, m_max_buffer_len);
-							m_socket->set_active(false);
-							log_error("Socket input buff is too big!");
-							return SOCKET_ERROR - 10;
-						}
-						if (!resize(available + 1))
-							return 0;
-
-						nReceived = m_socket->receive(&m_buffer[m_tail], available);
-						if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
-						if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 11;
-						if (nReceived == 0) return SOCKET_ERROR - 12;
-
-						m_tail += nReceived;
-						nFilled += nReceived;
+				if (nReceived == nFree) {
+					sint32 ret = check_stream_available(nFilled, 10);
+					if (ret < 1) {
+						return ret;
 					}
 				}
 			}
 		}
-
 	}
-	else
-	{
-		//
-		//     T  H		LEN=10
-		// 0123456789
-		// abcd...efg
-		//
-
+	else {
 		nReceived = 0;
 		nFree = m_head - m_tail - 1;
-		if (nFree != 0)
-		{
-			nReceived = m_socket->receive(&m_buffer[m_tail], nFree);
-			if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
-			if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 13;
-			if (nReceived == 0) return SOCKET_ERROR - 14;
-
+		if (nFree != 0) {
+			nReceived = fill_stream(nFilled, nFree, 13);
+			if (nReceived < 1) {
+				return nReceived;
+			}
 			m_tail += nReceived;
-			nFilled += nReceived;
 		}
-		if (nReceived == nFree)
-		{
-			sint32 available = m_socket->available();
-			if (available>0)
-			{
-				if ((m_buffer_len + available + 1)>m_max_buffer_len)
-				{
-					initsize(m_socket, m_buffer_len, m_max_buffer_len);
-					m_socket->set_active(false);
-					log_error("Socket input buff is too big!");
-					return SOCKET_ERROR - 15;
-				}
-				if (!resize(available + 1))
-					return 0;
-
-				nReceived = m_socket->receive(&m_buffer[m_tail], available);
-				if (nReceived == SOCKET_ERROR_WOULDBLOCK) return 0;
-				if (nReceived == SOCKET_ERROR) return SOCKET_ERROR - 16;
-				if (nReceived == 0) return SOCKET_ERROR - 17;
-
-				m_tail += nReceived;
-				nFilled += nReceived;
+		if (nReceived == nFree) {
+			sint32 ret = check_stream_available(nFilled, 15);
+			if (ret < 1) {
+				return ret;
 			}
 		}
 	}
 
-	sint32 tempLen = _length();
-	m_input_len = tempLen;
-
+	m_input_len = _length();
 	return nFilled;
+}
+
+sint32 socket_input_stream::check_stream_available(sint32 fill_len, sint32 error_sequence_id)
+{
+	m_input_len = _length(); 
+
+	sint32 available = m_socket->available();
+	if (available > 0) {
+
+		// 如果缓冲区过大则断开连接
+		if ((m_buffer_len + available + 1) > m_max_buffer_len) {
+			initsize(m_socket, m_buffer_len, m_max_buffer_len);
+			log_error("Socket input buff is too big!");
+			m_socket->set_active(false);
+			return SOCKET_ERROR - error_sequence_id;
+		}
+		if (!resize(available + 1)) {
+			return 0;
+		}
+
+		sint32 receive_len = fill_stream(fill_len, available, error_sequence_id + 1);
+		if (receive_len < 1) {
+			return receive_len;
+		}
+
+		m_tail += receive_len;
+	}
+	return 1;
+}
+
+sint32 socket_input_stream::fill_stream(sint32& fill_len, sint32 available, sint32 error_sequence_id)
+{
+	m_input_len = _length();
+
+	sint32 receive_len = m_socket->receive(&m_buffer[m_tail], available);
+	if (receive_len == SOCKET_ERROR_WOULDBLOCK) {
+		return 0;
+	}
+
+	if (receive_len == SOCKET_ERROR) {
+		return SOCKET_ERROR - error_sequence_id;
+	}
+
+	if (receive_len == 0) {
+		return SOCKET_ERROR - error_sequence_id - 1;
+	}
+
+	fill_len += receive_len;
+
+	return receive_len;
 }
 
 bool socket_input_stream::resize(sint32 size)

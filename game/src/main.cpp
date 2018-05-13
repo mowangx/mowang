@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 	DLogMgr.init(module_name + argv[1]);
 	gxSetDumpHandler(module_name);
 
-	if (!DNetMgr.init(process_id)) {
+	if (!DNetMgr.init(PROCESS_GAME, process_id)) {
 		log_error("init socket manager failed");
 		return 0;
 	}

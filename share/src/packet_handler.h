@@ -101,7 +101,7 @@ public:
 			s->push_write_packets(packet_info);
 		}
 		else {
-			log_info("send packet failed for handle is invalid!");
+			log_error("send packet failed for handle is invalid!");
 		}
 	}
 

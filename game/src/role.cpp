@@ -37,7 +37,7 @@ void role::update(TGameTime_t diff)
 
 void role::login(TPlatformID_t platform_id, const TUserID_t & user_id)
 {
-	//log_info("role login, platform id = %u, user id = %s, role id = %"I64_FMT"u, gate id = %u", platform_id, user_id.data(), m_mailbox_info.role_id, m_proxy_info.gate_id);
+	log_info("role login, platform id = %u, user id = %s, role id = %"I64_FMT"u, gate id = %u", platform_id, user_id.data(), m_mailbox_info.role_id, m_proxy_info.gate_id);
 	m_platform_id = platform_id;
 	m_user_id = user_id;
 	std::array<char, 33> p2_2;
@@ -48,7 +48,7 @@ void role::login(TPlatformID_t platform_id, const TUserID_t & user_id)
 
 void role::test_func_2(const dynamic_string& s1, TServerID_t server_id, const dynamic_string& s2)
 {
-	//log_info("role test func 2, server id = %u, s1 = %s, s2 = %s, role id = %"I64_FMT"u, gate id = %u", server_id, s1.data(), s2.data(), m_mailbox_info.role_id, m_proxy_info.gate_id);
+	log_info("role test func 2, server id = %u, s1 = %s, s2 = %s, role id = %"I64_FMT"u, gate id = %u", server_id, s1.data(), s2.data(), m_mailbox_info.role_id, m_proxy_info.gate_id);
 
 	dynamic_string p1("xiedi");
 	std::array<char, 127> p3;

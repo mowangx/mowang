@@ -22,7 +22,7 @@ public:
 	~socket_manager();
 
 public:
-	bool	init(TProcessID_t process_id);
+	bool	init(TProcessType_t process_type, TProcessID_t process_id);
 	void	update(uint32 diff);
 
 	void	test_kick();

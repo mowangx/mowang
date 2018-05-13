@@ -31,15 +31,15 @@ bool robot_server::init(TProcessID_t process_id)
 
 void robot_server::robot_rpc_func_1(TProcessID_t process_id, TSocketIndex_t socket_index, const dynamic_string & p1, TRoleID_t role_id, const std::array<char, 127>& p3, TSocketIndex_t client_id)
 {
-	log_info("robot rpc func 1, gate id = %u, role id = %"I64_FMT"u, p1 = %s, p3 = %s", process_id, role_id, p1.data(), p3.data());
-
+	log_info("robot rpc func 1, gate id = %u, role id = %"I64_FMT"u, p1 = %s, p3 = %s, socket index = %"I64_FMT"u", 
+		process_id, role_id, p1.data(), p3.data(), socket_index);
 	TPlatformID_t platform_id = 88;
 	TUserID_t user_id;
 	memset(user_id.data(), 0, USER_ID_LEN);
 	memcpy(user_id.data(), "mowang", 6);
 	if (client_id > 0) {
 		TSocketIndex_t key_id = process_id;
-		key_id = (key_id << (sizeof(TProcessID_t) * 8)) + socket_index;
+		key_id = (key_id << 48) + socket_index;
 		m_sockets[key_id] = client_id;
 	}
 	rpc_client* rpc = get_robot_client(process_id, socket_index);
@@ -53,7 +53,8 @@ void robot_server::robot_rpc_func_1(TProcessID_t process_id, TSocketIndex_t sock
 
 void robot_server::robot_rpc_func_2(TProcessID_t process_id, TSocketIndex_t socket_index, TRoleID_t role_id, const std::array<char, 33>& p2)
 {
-	log_info("robot rpc func 2, gate id = %u, role id = %"I64_FMT"u, p2 = %s", process_id, role_id, p2.data());
+	log_info("robot rpc func 2, gate id = %u, role id = %"I64_FMT"u, p2 = %s, socket index = %"I64_FMT"u", 
+		process_id, role_id, p2.data(), socket_index);
 	dynamic_string p2_1("xiedi");
 	TServerID_t p2_2 = 65500;
 	dynamic_string p2_3("hello world");
@@ -69,7 +70,7 @@ void robot_server::robot_rpc_func_2(TProcessID_t process_id, TSocketIndex_t sock
 rpc_client * robot_server::get_robot_client(TProcessID_t process_id, TSocketIndex_t socket_index)
 {
 	TSocketIndex_t key_id = process_id;
-	key_id = (key_id << (sizeof(TProcessID_t) * 8)) + socket_index;
+	key_id = (key_id << 48) + socket_index;
 	auto itr = m_sockets.find(key_id);
 	if (itr != m_sockets.end()) {
 		return get_client(itr->second);

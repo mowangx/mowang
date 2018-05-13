@@ -22,7 +22,11 @@ public:
 	bool						peek(char* buf, sint32 len);
 	bool						skip(sint32 len);
 	sint32						fill();
+private:
+	sint32						check_stream_available(sint32 fill_len, sint32 error_sequence_id);
+	sint32						fill_stream(sint32& fill_len, sint32 available, sint32 error_sequence_id);
 
+public:
 	void						initsize(socket_base* sock, sint32 BufferLen = DEFAULT_SOCKET_INPUT_BUFFER_SIZE, sint32 MaxBufferLen = DISCONNECT_SOCKET_INPUT_SIZE);
 	bool						resize(sint32 size);
 
