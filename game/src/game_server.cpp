@@ -39,23 +39,21 @@ bool game_server::init(TProcessID_t process_id)
 	memcpy(m_server_info.ip.data(), ip, strlen(ip));
 	m_server_info.port = 10200 + process_id;
 
+	m_db_opt_id = ((TDbOptID_t)m_server_info.process_info.server_id << 48) + ((TDbOptID_t)m_server_info.process_info.process_id << 40);
+
 	gate_handler::Setup();
 	game_manager_handler::Setup();
 	db_manager_handler::Setup();
-
-	DRegisterStubRpc(this, game_server, game_rpc_func, 2);
-	DRegisterStubRpc(this, game_server, game_rpc_func_1, 4);
-	DRegisterStubRpc(this, game_server, game_rpc_func_2, 3);
 
 	DRegisterServerRpc(this, game_server, register_server, 2);
 	DRegisterServerRpc(this, game_server, on_register_servers, 4);
 	DRegisterServerRpc(this, game_server, login_server, 5);
 	DRegisterServerRpc(this, game_server, create_entity, 2);
 	DRegisterServerRpc(this, game_server, on_register_entity, 3);
+	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
+	DRegisterServerRpc(this, game_server, on_opt_db_with_result, 4);
 
 	connect_game_manager_loop("127.0.0.1", 10000);
-
-	//DSequence.save();
 
 	return true;
 }
@@ -63,7 +61,6 @@ bool game_server::init(TProcessID_t process_id)
 void game_server::do_loop(TGameTime_t diff)
 {
 	TBaseType_t::do_loop(diff);
-	test();
 }
 
 bool game_server::connect_game_manager(const char * ip, TPort_t port)
@@ -111,43 +108,47 @@ void game_server::deallocate_farmland(farmland * f)
 	m_farmland_pool.deallocate(f);
 }
 
-void game_server::db_remove(const char* table, const char* query, const std::function<void(bool)>& func)
+void game_server::db_remove(const char* table, const char* query, const std::function<void(bool)>& callback)
 {
-	db_opt(4, table, query, NULL, func);
+	db_opt_with_status(4, table, query, NULL, callback);
 }
 
-void game_server::db_insert(const char* table, const char* fields, const std::function<void(bool)>& func)
+void game_server::db_insert(const char* table, const char* fields, const std::function<void(bool)>& callback)
 {
-	db_opt(3, table, NULL, fields, func);
+	db_opt_with_status(3, table, NULL, fields, callback);
 }
 
-void game_server::db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& func)
+void game_server::db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)
 {
-	db_opt(2, table, query, fields, func);
+	db_opt_with_status(2, table, query, fields, callback);
 }
 
-void game_server::db_query(const char* table, const char* query, const char* fields, const std::function<void(bool)>& func)
+void game_server::db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string_array&)>& callback)
 {
-	db_opt(1, table, query, fields, func);
+	db_opt_with_result(1, table, query, fields, callback);
 }
 
-void game_server::db_opt(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& func)
+void game_server::db_opt_with_status(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)
 {
+	db_opt(opt_type, table, query, fields);
+	m_db_status_callbacks[m_db_opt_id] = callback;
+}
+
+void game_server::db_opt_with_result(uint8 opt_type, const char * table, const char * query, const char * fields, const std::function<void(bool, const dynamic_string_array&)>& callback)
+{
+	db_opt(opt_type, table, query, fields);
+	m_db_result_callbacks[m_db_opt_id] = callback;
+}
+
+void game_server::db_opt(uint8 opt_type, const char * table, const char * query, const char * fields)
+{
+	m_db_opt_id += 1;
 	rpc_client* rpc = DRpcWrapper.get_random_client(m_server_info.process_info.server_id, PROCESS_DB);
 	if (NULL != rpc) {
 		dynamic_string tmp_table(table);
 		dynamic_string tmp_query(query);
 		dynamic_string tmp_fields(fields);
 		rpc->call_remote_func("add_executor", opt_type, m_db_opt_id, tmp_table, tmp_query, tmp_fields);
-	}
-	m_db_callbacks_2[m_db_opt_id] = func;
-}
-
-void game_server::test()
-{
-	for (auto itr = m_db_callbacks_2.begin(); itr != m_db_callbacks_2.end(); ++itr) {
-		const std::function<void(bool)>& func = itr->second;
-		func(false);
 	}
 }
 
@@ -176,21 +177,6 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 	DRpcWrapper.call_client(p->get_proxy_info(), "robot_rpc_func_1", gate_id, client_id, p1, role_id, p3, test_client_id);
 
 	log_info("login server, client id = %"I64_FMT"u, gate id = %u, role id = %"I64_FMT"u, platform id = %u, user id = %s", client_id, gate_id, role_id, platform_id, user_id.data());
-}
-
-void game_server::game_rpc_func(TSocketIndex_t socket_index, TServerID_t server_id)
-{
-	log_info("game rpc func, server id = %u", server_id);
-}
-
-void game_server::game_rpc_func_1(TSocketIndex_t socket_index, const dynamic_string& p1, uint16 p2, const std::array<char, 127>& p3)
-{
-	log_info("game rpc func 1, p1 = %s, p2 = %d, p3 = %s", p1.data(), p2, p3.data());
-}
-
-void game_server::game_rpc_func_2(TSocketIndex_t socket_index, uint8 p1, const std::array<char, 33>& p2)
-{
-	log_info("game rpc func 2, p1 = %d, p2 = %s", p1, p2.data());
 }
 
 void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
@@ -223,6 +209,37 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 void game_server::create_entity(TSocketIndex_t socket_index, const dynamic_string & stub_name)
 {
 	create_entity_locally(stub_name);
+}
+
+void game_server::on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status)
+{
+	auto itr = m_db_status_callbacks.find(opt_id);
+	if (itr == m_db_status_callbacks.end()) {
+		return;
+	}
+	const std::function<void(bool)>& callback = itr->second;
+	callback(status);
+}
+
+void game_server::on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string_array& data)
+{
+	auto itr = m_db_result_callbacks.find(opt_id);
+	if (itr == m_db_result_callbacks.end()) {
+		return;
+	}
+	const std::function<void(bool, const dynamic_string_array&)>& callback = itr->second;
+	callback(status, data);
+}
+
+void game_server::on_connect(TSocketIndex_t socket_index)
+{
+	TBaseType_t::on_connect(socket_index);
+	game_process_info process_info;
+	if (DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index)) {
+		if (process_info.process_type == PROCESS_DB) {
+			DSequence.save();
+		}
+	}
 }
 
 void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)

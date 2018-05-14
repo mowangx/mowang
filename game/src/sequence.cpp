@@ -28,9 +28,20 @@ TSequenceID_t sequence::gen_sequence_id(uint8 sequence_type)
 
 void sequence::save()
 {
-	DGameServer.db_insert("sequence", "role_index = 1", [](bool status) {
+	//DGameServer.db_insert("sequence", "role_index = 1", [](bool status) {
+	//	if (status) {
+	//		log_info("save success");
+	//	}
+	//	else {
+	//		log_info("save failed");
+	//	}
+	//});
+	DGameServer.db_query("sequence", "abc, efg", NULL, [](bool status, const dynamic_string_array& data) {
 		if (status) {
 			log_info("save success");
+			for (int i = 0; i < data.size(); ++i) {
+				log_info("query result, %s", data[i].data());
+			}
 		}
 		else {
 			log_info("save failed");

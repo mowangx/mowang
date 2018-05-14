@@ -16,9 +16,6 @@ public:
 
 private:
 	virtual service_interface* get_service() const override;
-
-public:
-	virtual void handle_init() const override;
 };
 
 #endif // !_GAME_SERVER_HANDLER_H_

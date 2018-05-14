@@ -41,7 +41,7 @@ bool mysql_conn::init(const char* ip, uint16 port, const char* user, const char*
 	return true;
 }
 
-void mysql_conn::remove(const char* table, const char* query)
+bool mysql_conn::remove(const char* table, const char* query)
 {
 	char sql[2048];
 	memset(sql, 0, 2048);
@@ -51,20 +51,22 @@ void mysql_conn::remove(const char* table, const char* query)
 	else {
 		sprintf(sql, "delete from %s where %s", table, query);
 	}
+	return true;
 }
 
-void mysql_conn::insert(const char* table, const char* fields)
+bool mysql_conn::insert(const char* table, const char* fields)
 {
 	if (NULL == fields || strlen(fields) < 1) {
-		return;
+		return false;
 	}
 
 	char sql[2048];
 	memset(sql, 0, 2048);
 	sprintf(sql, "insert into %s %s", table, fields);
+	return true;
 }
 
-void mysql_conn::update(const char* table, const char* query, const char* fields)
+bool mysql_conn::update(const char* table, const char* query, const char* fields)
 {
 	char sql[2048];
 	memset(sql, 0, 2048);
@@ -74,9 +76,10 @@ void mysql_conn::update(const char* table, const char* query, const char* fields
 	else {
 		sprintf(sql, "update %s %s where %s", table, fields, query);
 	}
+	return true;
 }
 
-void mysql_conn::query(const char* table, const char* query, const char* fields)
+bool mysql_conn::query(const char* table, const char* query, const char* fields)
 {
 	char sql[2048];
 	memset(sql, 0, 2048);
@@ -106,8 +109,10 @@ void mysql_conn::query(const char* table, const char* query, const char* fields)
 		}
 		delete res;
 		delete pstmt;
+		return true;
 	}
 	catch (sql::SQLException &e) {
 		log_error("mysql query failed! error code = %d, error msg = %s, state = %s, sql = %s", e.getErrorCode(), e.what(), e.getSQLState().c_str(), sql);
 	}
+	return false;
 }

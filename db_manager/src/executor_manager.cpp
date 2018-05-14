@@ -1,7 +1,8 @@
 
 #include "executor_manager.h"
-#include "rpc_proxy.h"
 #include "mysql_conn.h"
+#include "rpc_proxy.h"
+#include "rpc_wrapper.h"
 
 executor_manager::executor_manager()
 {
@@ -49,23 +50,45 @@ void executor_manager::update(TGameTime_t diff)
 
 void executor_manager::executor(db_opt_info* opt_info)
 {
+	game_process_info process_info;
+	if (!DRpcWrapper.get_server_simple_info_by_socket_index(process_info, opt_info->socket_index)) {
+		return;
+	}
+	rpc_client* rpc = DRpcWrapper.get_client(process_info);
+	if (NULL == rpc) {
+		return;
+	}
 	if (opt_info->opt_type == 1) {
-		m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
+		//m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
+		dynamic_string_array data;
+		dynamic_string k1("name");
+		dynamic_string v1("xty");
+		dynamic_string k2("level");
+		dynamic_string v2("28");
+		data.push_back(k1);
+		data.push_back(v1);
+		data.push_back(k2);
+		data.push_back(v2);
+		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, true, data);
 	}
 	else if (opt_info->opt_type == 2) {
-		m_db->update(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
+		//m_db->update(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
+		rpc->call_remote_func("on_opt_db_with_status", opt_info->opt_id, true);
 	}
 	else if (opt_info->opt_type == 3) {
-		m_db->insert(opt_info->table_name.c_str(), opt_info->fields.c_str());
+		//m_db->insert(opt_info->table_name.c_str(), opt_info->fields.c_str());
+		rpc->call_remote_func("on_opt_db_with_status", opt_info->opt_id, false);
 	}
 	else if (opt_info->opt_type == 4) {
-		m_db->remove(opt_info->table_name.c_str(), opt_info->condition.c_str());
+		//m_db->remove(opt_info->table_name.c_str(), opt_info->condition.c_str());
+		rpc->call_remote_func("on_opt_db_with_status", opt_info->opt_id, true);
 	}
 	m_mem_pool.deallocate(opt_info);
 }
 
 void executor_manager::add_executor(TSocketIndex_t socket_index, uint8 opt_type, uint64 opt_id, const dynamic_string& table_name, const dynamic_string& query, const dynamic_string& fields)
 {
+	log_info("add executor, opt type = %u, opt id = %"I64_FMT"u, table name = %s", opt_type, opt_id, table_name.data());
 	db_opt_info* opt_info = m_mem_pool.allocate();
 	opt_info->opt_type = opt_type;
 	opt_info->opt_id = opt_id;
@@ -98,10 +121,9 @@ void executor_manager::parse_fields(db_opt_info* opt_info)
 	}
 	char* s = const_cast<char*>(opt_info->fields.data());
 	char* split_fields = strtok(s, ",");
-	parse_key_and_value(opt_info, split_fields);
 	while (NULL != split_fields) {
-		split_fields = strtok(NULL, ",");
 		parse_key_and_value(opt_info, split_fields);
+		split_fields = strtok(NULL, ",");
 	}
 }
 
