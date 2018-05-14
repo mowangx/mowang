@@ -197,75 +197,83 @@ class dynamic_string_array
 public:
 	dynamic_string_array() {
 		m_len = 0;
-		m_real_len = 0;
-		m_max_len = 16;
-		m_data = new char[m_max_len];
+		m_max_len = 2;
+		m_data = new dynamic_string*[m_max_len];
+		for (sint32 i = 0; i < m_max_len; ++i) {
+			m_data[i] = NULL;
+		}
 	}
 
 	dynamic_string_array(const dynamic_string_array& rhs) {
 		m_len = rhs.size();
-		m_real_len = rhs.real_len();
-		m_max_len = m_real_len + 1;
-		m_data = new char[m_max_len];
-		memcpy(m_data, rhs.data(), sizeof(char) * m_real_len);
-		m_data[m_real_len] = '\0';
+		m_max_len = m_len;
+		m_data = new dynamic_string*[m_len];
+		for (sint32 i = 0; i < m_len; ++i) {
+			m_data[i] = new dynamic_string(*rhs[i]);
+		}
 	}
 
 	dynamic_string_array& operator = (const dynamic_string_array& rhs) {
 		if (&rhs != this) {
+			for (sint32 i = 0; i < m_len; ++i) {
+				if (NULL != m_data[i]) {
+					delete m_data[i];
+				}
+				m_data[i] = NULL;
+			}
 			delete[] m_data;
 			m_len = rhs.size();
-			m_real_len = rhs.real_len();
-			m_max_len = m_real_len + 1;
-			m_data = new char[m_max_len];
-			memcpy(m_data, rhs.data(), sizeof(char) * m_real_len);
-			m_data[m_real_len] = '\0';
+			m_max_len = m_len;
+			m_data = new dynamic_string*[m_len];
+			for (sint32 i = 0; i < m_len; ++i) {
+				m_data[i] = new dynamic_string(*rhs[i]);
+			}
 		}
 		return *this;
 	}
 
 	~dynamic_string_array() {
 		m_len = 0;
-		m_real_len = 0;
 		m_max_len = 0;
 		if (NULL != m_data) {
+			for (sint32 i = 0; i < m_len; ++i) {
+				if (NULL != m_data[i]) {
+					delete m_data[i];
+				}
+				m_data[i] = NULL;
+			}
 			delete[] m_data;
 			m_data = NULL;
 		}
 	}
 
 public:
-	char* data() {
-		return m_data;
-	}
-
-	const char* data() const {
-		return m_data;
-	}
-
-	dynamic_string operator [] (size_t pos) const {
-		uint16 len = 0;
-		for (int i = 0; i < pos; ++i) {
-			uint16 cur_len = *(uint16*)(m_data + len);
-			len += cur_len;
+	const dynamic_string* operator [] (size_t pos) const {
+		if (pos >= m_len) {
+			log_error("pos is invalid! pos = %u, max len = %u", pos, m_len);
+			return NULL;
 		}
-		uint16 cur_len = *(uint16*)(m_data + len);
-		dynamic_string s((m_data + len), cur_len);
-		return s;
+		return m_data[pos];
 	}
 
 	bool push_back(const dynamic_string& data) {
-		if (((uint32)m_real_len + data.size()) >= m_max_len) {
-			m_max_len = m_real_len + data.size() + 1;
-			char* tmp = new char[m_max_len];
-			memcpy(tmp, m_data, m_real_len);
+		if ((m_len + 1) >= m_max_len) {
+			uint16 max_len = (m_max_len << 1);
+			dynamic_string** tmp = new dynamic_string*[max_len];
+			for (sint32 i = 0; i < max_len; ++i) {
+				if (i < m_max_len) {
+					tmp[i] = m_data[i];
+				}
+				else {
+					tmp[i] = NULL;
+				}
+			}
+			m_max_len = max_len;
 			delete[] m_data;
 			m_data = tmp;
 		}
-		memcpy(m_data + m_real_len, data.data(), data.size());
+		m_data[m_len] = new dynamic_string(data);
 		m_len += 1;
-		m_real_len += data.size();
-		m_data[m_len] = '\0';
 		return true;
 	}
 
@@ -277,15 +285,10 @@ public:
 		return m_len;
 	}
 
-	uint16 real_len() const {
-		return m_real_len;
-	}
-
 private:
 	uint16 m_len;
-	uint16 m_real_len;
-	uint32 m_max_len;
-	char* m_data;
+	sint32 m_max_len;
+	dynamic_string** m_data;
 };
 
 #pragma pack(pop)

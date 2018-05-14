@@ -62,13 +62,8 @@ struct rpc_param_parse<dynamic_string_array, dynamic_string_array> {
 		uint16 len = 0;
 		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
-			uint16 cur_len = 0;
 			dynamic_string s;
-			rpc_param_parse<uint16, uint16>::parse_param(cur_len, buffer, buffer_index);
-			for (int j = 0; j < cur_len; ++j) {
-				s.push_back(*(char*)(buffer + buffer_index));
-				buffer_index += sizeof(char);
-			}
+			rpc_param_parse<dynamic_string, dynamic_string>::parse_param(s, buffer, buffer_index);
 			value.push_back(s);
 		}
 	}
@@ -110,10 +105,10 @@ template <>
 struct rpc_param_fill<dynamic_string_array, dynamic_string_array> {
 	static void fill_param(const dynamic_string_array& value, char* buffer, int& buffer_index) {
 		uint16 len = value.size();
-		uint16 real_len = value.real_len();
 		rpc_param_fill<uint16, uint16>::fill_param(len, buffer, buffer_index);
-		memcpy((void*)(buffer + buffer_index), value.data(), real_len);
-		buffer_index += real_len;
+		for (int i = 0; i < len; ++i) {
+			rpc_param_fill<dynamic_string, dynamic_string>::fill_param(*value[i], buffer, buffer_index);
+		}
 	}
 };
 

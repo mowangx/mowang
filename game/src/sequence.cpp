@@ -40,7 +40,7 @@ void sequence::save()
 		if (status) {
 			log_info("save success");
 			for (int i = 0; i < data.size(); ++i) {
-				log_info("query result, %s", data[i].data());
+				log_info("query result, %s", data[i]->data());
 			}
 		}
 		else {
