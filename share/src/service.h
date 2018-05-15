@@ -10,6 +10,7 @@
 #include "game_enum.h"
 #include "memory_pool.h"
 #include "dynamic_array.h"
+#include "service_config.h"
 
 class rpc_client;
 
@@ -69,6 +70,7 @@ protected:
 	TGameTime_t m_reconnect_interval_time;
 	TGameTime_t m_next_reconnect_time;
 	game_server_info m_server_info;
+	service_config m_config;
 	obj_memory_pool<TPacketSendInfo_t, 1000> m_packet_pool;
 	memory_pool m_mem_pool;
 	std::vector<TSocketIndex_t> m_wait_kick_sockets;

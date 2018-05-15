@@ -30,6 +30,11 @@ void service::start(const std::string& module_name, const char* process_id)
 	DLogMgr.init(module_name + process_id);
 	gxSetDumpHandler(module_name);
 
+	if (!m_config.load("../config/game.ini")) {
+		log_error("load ini config failed");
+	}
+	log_info("load ini config success");
+
 	if (!DNetMgr.init(PROCESS_GATE, pid)) {
 		log_error("init socket manager failed");
 		return ;

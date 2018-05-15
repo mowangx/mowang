@@ -3,7 +3,7 @@
 #define _INI_FILE_H_
 
 #include "base_util.h"
-#include "debug.h"
+#include "string_common.h"
 
 class ini_file
 {
@@ -95,7 +95,7 @@ bool ini_file::read_type_if_exist( const char* section, const char*key, T& resul
 	}
 
 	char* str = read_text(m);
-	gxFromString(str, result);
+	from_string<T>::convert(str, result);
 
 	return true;
 }
