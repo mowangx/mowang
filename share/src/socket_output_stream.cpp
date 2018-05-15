@@ -21,11 +21,13 @@ socket_output_stream::~socket_output_stream()
 
 sint32 socket_output_stream::_length()const
 {
-	if (m_head<m_tail)
+	if (m_head < m_tail) {
 		return m_tail - m_head;
+	}
 
-	else if (m_head>m_tail)
+	else if (m_head > m_tail) {
 		return m_buffer_len - m_head + m_tail;
+	}
 
 	return 0;
 }
@@ -40,35 +42,28 @@ sint32 socket_output_stream::write(const char* buf, sint32 len)
 
 	sint32 nFree = ((m_head <= m_tail) ? (m_buffer_len - m_tail + m_head - 1) : (m_head - m_tail - 1));
 
-	if (len >= nFree)
-	{
+	if (len >= nFree) {
 		if (!resize(len - nFree + 1))
 			return 0;
 	}
 
-	if (m_head <= m_tail)
-	{
-		if (m_head == 0)
-		{
+	if (m_head <= m_tail) {
+		if (m_head == 0) {
 			nFree = m_buffer_len - m_tail - 1;
 			memcpy(&m_buffer[m_tail], buf, len);
 		}
-		else
-		{
+		else {
 			nFree = m_buffer_len - m_tail;
-			if (len <= nFree)
-			{
+			if (len <= nFree) {
 				memcpy(&m_buffer[m_tail], buf, len);
 			}
-			else
-			{
+			else {
 				memcpy(&m_buffer[m_tail], buf, nFree);
 				memcpy(m_buffer, &buf[nFree], len - nFree);
 			}
 		}
 	}
-	else
-	{
+	else {
 		memcpy(&m_buffer[m_tail], buf, len);
 	}
 
@@ -99,8 +94,8 @@ sint32 socket_output_stream::flush()
 	sint32 nSent = 0;
 	sint32 nLeft;
 
-	if (m_buffer_len>m_max_buffer_len)
-	{//如果单个客户端的缓存太大，则重新设置缓存，并将此客户端断开连接
+	//如果单个客户端的缓存太大，则重新设置缓存，并将此客户端断开连接
+	if (m_buffer_len>m_max_buffer_len) {
 		initsize(m_socket, m_buffer_len, m_max_buffer_len);
 		m_socket->set_active(false);
 		log_error("output stream too big, socket index = "I64_FMT"u", m_socket->get_socket_index());
@@ -113,12 +108,10 @@ sint32 socket_output_stream::flush()
 	sint32 flag = MSG_NOSIGNAL;
 #endif
 
-	if (m_head < m_tail)
-	{
+	if (m_head < m_tail) {
 		nLeft = m_tail - m_head;
 
-		while (nLeft > 0)
-		{
+		while (nLeft > 0) {
 			nSent = m_socket->send(&m_buffer[m_head], nLeft, flag);
 			if (nSent == SOCKET_ERROR_WOULDBLOCK) return 0;
 			if (nSent == SOCKET_ERROR) return SOCKET_ERROR - 2;
@@ -129,12 +122,10 @@ sint32 socket_output_stream::flush()
 			m_head += nSent;
 		}
 	}
-	else if (m_head > m_tail)
-	{
+	else if (m_head > m_tail) {
 		nLeft = m_buffer_len - m_head;
 
-		while (nLeft > 0)
-		{
+		while (nLeft > 0) {
 			nSent = m_socket->send(&m_buffer[m_head], nLeft, flag);
 			if (nSent == SOCKET_ERROR_WOULDBLOCK) return 0;
 			if (nSent == SOCKET_ERROR) return SOCKET_ERROR - 3;
@@ -149,8 +140,7 @@ sint32 socket_output_stream::flush()
 
 		nLeft = m_tail;
 
-		while (nLeft > 0)
-		{
+		while (nLeft > 0) {
 			nSent = m_socket->send(&m_buffer[m_head], nLeft, flag);
 			if (nSent == SOCKET_ERROR_WOULDBLOCK) return 0;
 			if (nSent == SOCKET_ERROR) return SOCKET_ERROR - 4;
@@ -176,22 +166,20 @@ bool socket_output_stream::resize(sint32 size)
 	sint32 newBufferLen = m_buffer_len + size;
 	len = _length();
 
-	if (size<0)
-	{
-		if (newBufferLen<0 || newBufferLen<len)
+	if (size < 0) {
+		if (newBufferLen < 0 || newBufferLen < len)
 			return false;
 	}
 
 	char * newBuffer = new char[newBufferLen];
-	if (newBuffer == NULL)
+	if (newBuffer == NULL) {
 		return false;
+	}
 
-	if (m_head<m_tail)
-	{
+	if (m_head<m_tail) {
 		memcpy(newBuffer, &m_buffer[m_head], m_tail - m_head);
 	}
-	else if (m_head>m_tail)
-	{
+	else if (m_head>m_tail) {
 		memcpy(newBuffer, &m_buffer[m_head], m_buffer_len - m_head);
 		memcpy(&newBuffer[m_buffer_len - m_head], m_buffer, m_tail);
 	}

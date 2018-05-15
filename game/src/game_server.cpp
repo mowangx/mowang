@@ -58,6 +58,22 @@ bool game_server::init(TProcessID_t process_id)
 	return true;
 }
 
+void game_server::net_run(TProcessID_t process_id)
+{
+	TPort_t listen_port = 10200 + process_id;
+	if (!DNetMgr.start_listen<gate_handler>(listen_port)) {
+		return;
+	}
+
+	log_info("init socket manager success");
+
+	while (true) {
+		DNetMgr.update(0);
+		//DNetMgr.test_kick();
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	}
+}
+
 void game_server::do_loop(TGameTime_t diff)
 {
 	TBaseType_t::do_loop(diff);
@@ -110,22 +126,22 @@ void game_server::deallocate_farmland(farmland * f)
 
 void game_server::db_remove(const char* table, const char* query, const std::function<void(bool)>& callback)
 {
-	db_opt_with_status(4, table, query, NULL, callback);
+	db_opt_with_status(DB_OPT_DELETE, table, query, NULL, callback);
 }
 
 void game_server::db_insert(const char* table, const char* fields, const std::function<void(bool)>& callback)
 {
-	db_opt_with_status(3, table, NULL, fields, callback);
+	db_opt_with_status(DB_OPT_INSERT, table, NULL, fields, callback);
 }
 
 void game_server::db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)
 {
-	db_opt_with_status(2, table, query, fields, callback);
+	db_opt_with_status(DB_OPT_UPDATE, table, query, fields, callback);
 }
 
 void game_server::db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string_array&)>& callback)
 {
-	db_opt_with_result(1, table, query, fields, callback);
+	db_opt_with_result(DB_OPT_QUERY, table, query, fields, callback);
 }
 
 void game_server::db_opt_with_status(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)

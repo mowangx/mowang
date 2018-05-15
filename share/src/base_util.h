@@ -33,6 +33,8 @@ static const uint32 MAX_PROCESS_TYPE_NUM = 4; // 进程类型数量
 
 static const uint32 MAX_SEQUENCE_TYPE_NUM = 8;	// 序列ID数量
 
+static const uint32 MAX_INI_VALUE = 1024;
+
 typedef uint32 TTime_t;					// 系统时间
 typedef uint32 TAppTime_t;				// 程序运行的毫秒数
 

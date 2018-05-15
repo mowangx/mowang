@@ -20,6 +20,13 @@ public:
 	~service();
 
 public:
+	virtual void start(const std::string& module_name, const char* process_id);
+protected:
+	virtual void work_run(TProcessID_t process_id);
+	virtual void net_run(TProcessID_t process_id);
+	virtual void log_run();
+
+public:
 	virtual bool init(TProcessID_t process_id);
 	virtual void run();
 

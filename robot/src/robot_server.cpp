@@ -5,6 +5,8 @@
 #include "rpc_client.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
+#include "game_random.h"
+#include "socket_manager.h"
 
 robot_server::robot_server() : service(PROCESS_ROBOT)
 {
@@ -27,6 +29,24 @@ bool robot_server::init(TProcessID_t process_id)
 	DRegisterClientRpc(this, robot_server, robot_rpc_func_2, 4);
 
 	return true;
+}
+
+void robot_server::net_run(TProcessID_t process_id)
+{
+	log_info("init socket manager success");
+	while (true) {
+		DNetMgr.update(0);
+		//DNetMgr.test_kick();
+
+		if (DNetMgr.socket_num() < 1000) {
+			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", DGameRandom.get_rand<int>(10301, 10303))) {
+				log_info("connect server failed");
+				break;
+			}
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	}
 }
 
 void robot_server::robot_rpc_func_1(TProcessID_t process_id, TSocketIndex_t socket_index, const dynamic_string & p1, TRoleID_t role_id, const std::array<char, 127>& p3, TSocketIndex_t client_id)

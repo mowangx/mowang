@@ -24,6 +24,7 @@ public:
 public:
 	virtual bool init(TProcessID_t process_id) override;
 private:
+	virtual void net_run(TProcessID_t process_id) override;
 	virtual void do_loop(TGameTime_t diff) override;
 	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 

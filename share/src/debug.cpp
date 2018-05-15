@@ -225,7 +225,7 @@ std::string gxGetDumpName()
 	return fileName;
 }
 
-void gxExit(EExitCode code)
+void gxExit(exit_code code)
 {
 	if (code == EXIT_CODE_CRASH) {
 		exit(code);

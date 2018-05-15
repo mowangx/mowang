@@ -5,6 +5,7 @@
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
 #include "game_random.h"
+#include "socket_manager.h"
 
 game_manager::game_manager() : service(PROCESS_GAME_MANAGER)
 {
@@ -37,6 +38,21 @@ bool game_manager::init(TProcessID_t process_id)
 	DRegisterServerRpc(this, game_manager, register_entity, 3);
 	
 	return true;
+}
+
+void game_manager::net_run(TProcessID_t process_id)
+{
+	TPort_t listen_port = 10000;
+	if (!DNetMgr.start_listen<server_handler>(listen_port)) {
+		return;
+	}
+
+	log_info("init socket manager success");
+
+	while (true) {
+		DNetMgr.update(0);
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+	}
 }
 
 bool game_manager::check_all_process_start() const

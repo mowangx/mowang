@@ -25,6 +25,7 @@ bool role::init()
 {
 	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, login, 2);
 	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, test_func_2, 3);
+	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, on_register, 1);
 	return true;
 }
 
@@ -55,6 +56,16 @@ void role::test_func_2(const dynamic_string& s1, TServerID_t server_id, const dy
 	memset(p3.data(), 0, 127);
 	memcpy(p3.data(), "hello world", 11);
 	DRpcWrapper.call_client(get_proxy_info(), "robot_rpc_func_1", m_proxy_info.gate_id, m_proxy_info.client_id, p1, m_mailbox_info.role_id, p3, (TSocketIndex_t)0);
+}
+
+void role::on_register(bool status)
+{
+	if (status) {
+		log_info("on register success, role id = '%"I64_FMT"u'", m_mailbox_info.role_id);
+	}
+	else {
+		log_info("on register failed, role id = '%"I64_FMT"u'", m_mailbox_info.role_id);
+	}
 }
 
 void role::add_city(const game_pos & pos, TLevel_t lvl)

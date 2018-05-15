@@ -36,25 +36,23 @@ sint32 socket_input_stream::_length() const
 //返回0表示没有读到数据
 sint32 socket_input_stream::read(char* buf, sint32 len)
 {
-	if (len == 0)
+	if (len == 0) {
 		return 0;
+	}
 
-	if (len > _length())
+	if (len > _length()) {
 		return 0;
+	}
 
-	if (m_head < m_tail)
-	{
+	if (m_head < m_tail) {
 		memcpy(buf, &m_buffer[m_head], len);
 	}
-	else
-	{
+	else {
 		sint32 rightLen = m_buffer_len - m_head;
-		if (len <= rightLen)
-		{
+		if (len <= rightLen) {
 			memcpy(buf, &m_buffer[m_head], len);
 		}
-		else
-		{
+		else {
 			memcpy(buf, &m_buffer[m_head], rightLen);
 			memcpy(&buf[rightLen], m_buffer, len - rightLen);
 		}
@@ -62,33 +60,30 @@ sint32 socket_input_stream::read(char* buf, sint32 len)
 
 	m_head = (m_head + len) % m_buffer_len;
 
-	sint32 tempLen = _length();
-	m_input_len = tempLen;
+	m_input_len = _length();
 	return len;
 }
 
 bool socket_input_stream::peek(char* buf, sint32 len)
 {
-	if (len == 0)
+	if (len == 0) {
 		return false;
+	}
 
-	if (len>_length())
+	if (len > _length()) {
 		return false;
+	}
 
-	if (m_head<m_tail)
-	{
+	if (m_head < m_tail) {
 		memcpy(buf, &m_buffer[m_head], len);
 
 	}
-	else
-	{
+	else {
 		sint32 rightLen = m_buffer_len - m_head;
-		if (len <= rightLen)
-		{
+		if (len <= rightLen) {
 			memcpy(&buf[0], &m_buffer[m_head], len);
 		}
-		else
-		{
+		else {
 			memcpy(&buf[0], &m_buffer[m_head], rightLen);
 			memcpy(&buf[rightLen], &m_buffer[0], len - rightLen);
 		}
@@ -100,8 +95,7 @@ bool socket_input_stream::peek(char* buf, sint32 len)
 sint32 socket_input_stream::peak_int()
 {
 	sint32 len = 0;
-	if (uint32(_length()) >= sizeof(len))
-	{
+	if (uint32(_length()) >= sizeof(len)) {
 		peek((char*)&len, sizeof(len));
 	}
 
@@ -111,8 +105,7 @@ sint32 socket_input_stream::peak_int()
 uint32 socket_input_stream::peak_uint()
 {
 	uint32 len = 0;
-	if (uint32(_length()) >= sizeof(len))
-	{
+	if (uint32(_length()) >= sizeof(len)) {
 		peek((char*)&len, sizeof(len));
 	}
 
@@ -122,8 +115,7 @@ uint32 socket_input_stream::peak_uint()
 sint16 socket_input_stream::peak_int16()
 {
 	sint16 len = 0;
-	if (uint32(_length()) >= sizeof(len))
-	{
+	if (uint32(_length()) >= sizeof(len)) {
 		peek((char*)&len, sizeof(len));
 	}
 
@@ -133,8 +125,7 @@ sint16 socket_input_stream::peak_int16()
 uint16 socket_input_stream::peak_uint16()
 {
 	uint16 len = 0;
-	if (uint32(_length()) >= sizeof(len))
-	{
+	if (uint32(_length()) >= sizeof(len)) {
 		peek((char*)&len, sizeof(len));
 	}
 
@@ -144,8 +135,7 @@ uint16 socket_input_stream::peak_uint16()
 sint8 socket_input_stream::peak_byte()
 {
 	sint8 len = 0;
-	if (uint32(_length()) >= sizeof(len))
-	{
+	if (uint32(_length()) >= sizeof(len)) {
 		peek((char*)&len, sizeof(len));
 	}
 
@@ -155,13 +145,11 @@ sint8 socket_input_stream::peak_byte()
 
 bool socket_input_stream::skip(sint32 len)
 {
-	if (len == 0)
-	{
+	if (len == 0) {
 		return false;
 	}
 
-	if (len>_length())
-	{
+	if (len>_length()) {
 		return false;
 	}
 
@@ -318,20 +306,17 @@ bool socket_input_stream::resize(sint32 size)
 	sint32 newBufferLen = m_buffer_len + size;
 	len = _length();
 
-	if (size < 0)
-	{
+	if (size < 0) {
 		if (newBufferLen < 0 || newBufferLen < len)
 			return false;
 	}
 
 	char * newBuffer = new char[newBufferLen];
 
-	if (m_head < m_tail)
-	{
+	if (m_head < m_tail) {
 		memcpy(newBuffer, &m_buffer[m_head], m_tail - m_head);
 	}
-	else if (m_head > m_tail)
-	{
+	else if (m_head > m_tail) {
 		memcpy(newBuffer, &m_buffer[m_head], m_buffer_len - m_head);
 		memcpy(&newBuffer[m_buffer_len - m_head], m_buffer, m_tail);
 	}

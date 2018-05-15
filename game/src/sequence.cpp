@@ -38,13 +38,13 @@ void sequence::save()
 	//});
 	DGameServer.db_query("sequence", "abc, efg", NULL, [](bool status, const dynamic_string_array& data) {
 		if (status) {
-			log_info("save success");
+			log_info("query success");
 			for (int i = 0; i < data.size(); ++i) {
 				log_info("query result, %s", data[i]->data());
 			}
 		}
 		else {
-			log_info("save failed");
+			log_info("query failed");
 		}
 	});
 }

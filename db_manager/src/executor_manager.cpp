@@ -1,6 +1,7 @@
 
 #include "executor_manager.h"
 #include "mysql_conn.h"
+#include "game_enum.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
 
@@ -58,7 +59,7 @@ void executor_manager::executor(db_opt_info* opt_info)
 	if (NULL == rpc) {
 		return;
 	}
-	if (opt_info->opt_type == 1) {
+	if (opt_info->opt_type == DB_OPT_QUERY) {
 		//m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
 		dynamic_string_array data;
 		dynamic_string k1("name");
@@ -71,16 +72,16 @@ void executor_manager::executor(db_opt_info* opt_info)
 		data.push_back(v2);
 		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, true, data);
 	}
-	else if (opt_info->opt_type == 2) {
-		//m_db->update(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
-		rpc->call_remote_func("on_opt_db_with_status", opt_info->opt_id, true);
-	}
-	else if (opt_info->opt_type == 3) {
-		//m_db->insert(opt_info->table_name.c_str(), opt_info->fields.c_str());
-		rpc->call_remote_func("on_opt_db_with_status", opt_info->opt_id, false);
-	}
-	else if (opt_info->opt_type == 4) {
-		//m_db->remove(opt_info->table_name.c_str(), opt_info->condition.c_str());
+	else {
+		if (opt_info->opt_type == DB_OPT_UPDATE) {
+			//m_db->update(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
+		}
+		else if (opt_info->opt_type == DB_OPT_INSERT) {
+			//m_db->insert(opt_info->table_name.c_str(), opt_info->fields.c_str());
+		}
+		else if (opt_info->opt_type == DB_OPT_DELETE) {
+			//m_db->remove(opt_info->table_name.c_str(), opt_info->condition.c_str());
+		}
 		rpc->call_remote_func("on_opt_db_with_status", opt_info->opt_id, true);
 	}
 	m_mem_pool.deallocate(opt_info);

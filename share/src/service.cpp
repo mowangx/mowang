@@ -1,5 +1,6 @@
 
 #include "service.h"
+#include "debug.h"
 #include "time_manager.h"
 #include "socket_manager.h"
 #include "rpc_client.h"
@@ -20,6 +21,49 @@ service::service(game_process_type process_type)
 service::~service()
 {
 
+}
+
+void service::start(const std::string& module_name, const char* process_id)
+{
+	TProcessID_t pid = atoi(process_id);
+
+	DLogMgr.init(module_name + process_id);
+	gxSetDumpHandler(module_name);
+
+	if (!DNetMgr.init(PROCESS_GATE, pid)) {
+		log_error("init socket manager failed");
+		return ;
+	}
+
+	std::thread log_thread(std::bind(&service::log_run, this));
+	std::thread net_thread(std::bind(&service::net_run, this, std::ref(pid)));
+
+	work_run(pid);
+
+	log_thread.join();
+	net_thread.join();
+}
+
+void service::work_run(TProcessID_t process_id)
+{
+	if (!init(process_id)) {
+		log_error("Init service failed");
+		return;
+	}
+	log_info("Init service success");
+	run();
+}
+
+void service::net_run(TProcessID_t process_id)
+{
+}
+
+void service::log_run()
+{
+	while (true) {
+		DLogMgr.flush();
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	}
 }
 
 bool service::init(TProcessID_t process_id)

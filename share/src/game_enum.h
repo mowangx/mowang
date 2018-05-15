@@ -12,6 +12,14 @@ enum game_process_type
 	PROCESS_ROBOT,
 };
 
+enum db_operation_type
+{
+	DB_OPT_QUERY = 1,
+	DB_OPT_UPDATE,
+	DB_OPT_INSERT,
+	DB_OPT_DELETE,
+};
+
 enum entity_type
 {
 	ENTITY_ROLL_STUB = 1,

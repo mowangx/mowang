@@ -16,6 +16,8 @@ public:
 	
 public:
 	bool init(TProcessID_t process_id);
+private:
+	virtual void net_run(TProcessID_t process_id) override;
 
 private:
 	bool check_all_process_start() const;

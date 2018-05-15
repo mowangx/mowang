@@ -24,6 +24,7 @@ public:
 public:
 	void login(TPlatformID_t platform_id, const TUserID_t& user_id);
 	void test_func_2(const dynamic_string& s1, TServerID_t server_id, const dynamic_string& s2);
+	void on_register(bool status);
 
 public:
 	void add_city(const game_pos& pos, TLevel_t lvl);

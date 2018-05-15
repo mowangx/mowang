@@ -42,6 +42,21 @@ bool gate_server::init(TProcessID_t process_id)
 	return true;
 }
 
+void gate_server::net_run(TProcessID_t process_id)
+{
+	TPort_t listen_port = 10300 + process_id;
+	if (!DNetMgr.start_listen<client_handler>(listen_port)) {
+		return;
+	}
+
+	log_info("init socket manager success");
+
+	while (true) {
+		DNetMgr.update(0);
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	}
+}
+
 bool gate_server::connect_game_manager(const char * ip, TPort_t port)
 {
 	return DNetMgr.start_connect<game_manager_handler>(ip, port);
