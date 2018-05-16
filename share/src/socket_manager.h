@@ -110,18 +110,22 @@ bool socket_manager::start_listen(TPort_t port)
 	}
 
 	if (!socket->create()) {
+		DSafeDelete(socket);
 		return false;
 	}
 
 	if (!socket->set_reuse_addr()) {
+		DSafeDelete(socket);
 		return false;
 	}
 
 	if (!socket->bind()) {
+		DSafeDelete(socket);
 		return false;
 	}
 
 	if (!socket->listen(5)) {
+		DSafeDelete(socket);
 		return false;
 	}
 
@@ -136,11 +140,13 @@ bool socket_manager::start_listen(TPort_t port)
 	if (0 != event_assign(&listen_event, m_eventbase, socket->get_socket_fd(), EV_READ | EV_PERSIST,
 		socket_manager::OnAccept, &event_arg)) {
 		log_warning("can't event assign!");
+		DSafeDelete(socket);
 		return false;
 	}
 
 	if (0 != event_add(&listen_event, NULL)) {
 		log_warning("can't event add!errno=%s", strerror(errno));
+		DSafeDelete(socket);
 		return false;
 	}
 
@@ -157,10 +163,12 @@ bool socket_manager::start_connect(const char* host, TPort_t port)
 	}
 
 	if (!socket->create()) {
+		DSafeDelete(socket);
 		return false;
 	}
 
 	if (!socket->connect(host, port, 0)) {
+		DSafeDelete(socket);
 		return false;
 	}
 

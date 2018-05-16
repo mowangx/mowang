@@ -82,7 +82,7 @@ T* ini_file::realloc_array(T* data, uint32 src_len, uint32 dest_len)
 }
 
 template<typename T>
-bool ini_file::read_type_if_exist( const char* section, const char*key, T& result )
+bool ini_file::read_type_if_exist( const char* section, const char* key, T& result )
 {
 	sint32 n = find_index(section);
 	if( n == -1 ) {

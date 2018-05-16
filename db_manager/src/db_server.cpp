@@ -35,22 +35,15 @@ bool db_server::init(TProcessID_t process_id)
 		return false;
 	}
 
-	m_server_info.process_info.server_id = 100;
-	char* ip = "127.0.0.1";
-	memcpy(m_server_info.ip.data(), ip, strlen(ip));
-	m_server_info.port = 10100 + process_id;
-
 	game_server_handler::Setup();
 	game_manager_handler::Setup();
 
 	DRegisterServerRpc(this, db_server, register_server, 2);
 
-	connect_game_manager_loop("127.0.0.1", 10000);
-
 	return true;
 }
 
-void db_server::work_run(TProcessID_t process_id)
+void db_server::work_run()
 {
 	//mongocxx::instance instance{}; // This should be done only once.
 	//mongocxx::uri uri("mongodb://127.0.0.1:27017");
@@ -83,13 +76,13 @@ void db_server::work_run(TProcessID_t process_id)
 	//catch (mongocxx::bulk_write_exception& e) {
 	//	std::cout << e.code() << e.what() << std::endl;
 	//}
-	TBaseType_t::work_run(process_id);
+	connect_game_manager_loop(m_config.get_game_manager_listen_ip(), m_config.get_game_manager_listen_port());
+	TBaseType_t::work_run();
 }
 
-void db_server::net_run(TProcessID_t process_id)
+void db_server::net_run()
 {
-	TPort_t listen_port = 10100 + process_id;
-	if (!DNetMgr.start_listen<game_server_handler>(listen_port)) {
+	if (!DNetMgr.start_listen<game_server_handler>(m_server_info.port)) {
 		return;
 	}
 

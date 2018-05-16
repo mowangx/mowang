@@ -23,13 +23,11 @@ public:
 public:
 	virtual void start(const std::string& module_name, const char* process_id);
 protected:
-	virtual void work_run(TProcessID_t process_id);
-	virtual void net_run(TProcessID_t process_id);
-	virtual void log_run();
-
-public:
+	virtual bool load_config(ini_file& ini, const std::string& module_name);
 	virtual bool init(TProcessID_t process_id);
-	virtual void run();
+	virtual void work_run();
+	virtual void net_run();
+	virtual void log_run();
 
 protected:
 	virtual void do_loop(TGameTime_t diff);

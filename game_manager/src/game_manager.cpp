@@ -12,6 +12,7 @@ game_manager::game_manager() : service(PROCESS_GAME_MANAGER)
 	m_broadcast_flag = false;
 	for (int i = 0; i < MAX_PROCESS_TYPE_NUM; ++i) {
 		m_process_num[i] = 0;
+		m_desire_process_num[i] = 0;
 	}
 }
 
@@ -26,11 +27,6 @@ bool game_manager::init(TProcessID_t process_id)
 		return false;
 	}
 
-	m_server_info.process_info.server_id = 100;
-	char* ip = "127.0.0.1";
-	memcpy(m_server_info.ip.data(), ip, strlen(ip));
-	m_server_info.port = 10000;
-
 	server_handler::Setup();
 
 	DRegisterServerRpc(this, game_manager, register_server, 2);
@@ -40,10 +36,29 @@ bool game_manager::init(TProcessID_t process_id)
 	return true;
 }
 
-void game_manager::net_run(TProcessID_t process_id)
+bool game_manager::load_config(ini_file& ini, const std::string& module_name)
 {
-	TPort_t listen_port = 10000;
-	if (!DNetMgr.start_listen<server_handler>(listen_port)) {
+	if (!ini.read_type_if_exist(module_name.c_str(), "desire_gate", m_desire_process_num[PROCESS_GATE])) {
+		log_error("load config failed for not find desire gate in module %s!", module_name.c_str());
+		return false;
+	}
+
+	if (!ini.read_type_if_exist(module_name.c_str(), "desire_game", m_desire_process_num[PROCESS_GAME])) {
+		log_error("load config failed for not find desire game in module %s!", module_name.c_str());
+		return false;
+	}
+
+	if (!ini.read_type_if_exist(module_name.c_str(), "desire_db", m_desire_process_num[PROCESS_DB])) {
+		log_error("load config failed for not find desire db in module %s!", module_name.c_str());
+		return false;
+	}
+
+	return true;
+}
+
+void game_manager::net_run()
+{
+	if (!DNetMgr.start_listen<server_handler>(m_server_info.port)) {
 		return;
 	}
 
@@ -57,14 +72,10 @@ void game_manager::net_run(TProcessID_t process_id)
 
 bool game_manager::check_all_process_start() const
 {
-	if (m_process_num[PROCESS_DB] < 2) {
-		return false;
-	}
-	if (m_process_num[PROCESS_GAME] < 3) {
-		return false;
-	}
-	if (m_process_num[PROCESS_GATE] < 3) {
-		return false;
+	for (int i = 0; i < MAX_PROCESS_TYPE_NUM; ++i) {
+		if (m_process_num[i] < m_desire_process_num[i]) {
+			return false;
+		}
 	}
 	return true;
 }

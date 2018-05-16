@@ -31,7 +31,7 @@ bool robot_server::init(TProcessID_t process_id)
 	return true;
 }
 
-void robot_server::net_run(TProcessID_t process_id)
+void robot_server::net_run()
 {
 	log_info("init socket manager success");
 	while (true) {
@@ -39,7 +39,7 @@ void robot_server::net_run(TProcessID_t process_id)
 		//DNetMgr.test_kick();
 
 		if (DNetMgr.socket_num() < 1000) {
-			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", DGameRandom.get_rand<int>(10301, 10303))) {
+			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", DGameRandom.get_rand<int>(10010, 10012))) {
 				log_info("connect server failed");
 				break;
 			}

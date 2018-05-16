@@ -17,7 +17,8 @@ public:
 public:
 	bool init(TProcessID_t process_id);
 private:
-	virtual void net_run(TProcessID_t process_id) override;
+	virtual bool load_config(ini_file& ini, const std::string& module_name) override;
+	virtual void net_run() override;
 
 private:
 	bool check_all_process_start() const;
@@ -43,6 +44,7 @@ private:
 private:
 	bool m_broadcast_flag;
 	TProcessNum_t m_process_num[MAX_PROCESS_TYPE_NUM];
+	TProcessNum_t m_desire_process_num[MAX_PROCESS_TYPE_NUM];
 };
 
 #define DGameManager singleton<game_manager>::get_instance()

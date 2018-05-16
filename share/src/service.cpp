@@ -30,36 +30,68 @@ void service::start(const std::string& module_name, const char* process_id)
 	DLogMgr.init(module_name + process_id);
 	gxSetDumpHandler(module_name);
 
-	if (!m_config.load("../config/game.ini")) {
+	std::string config_module_name = module_name + process_id;
+	if (!m_config.load("../config/game.ini", config_module_name, std::bind(&service::load_config, this, std::placeholders::_1, std::placeholders::_2))) {
 		log_error("load ini config failed");
 	}
 	log_info("load ini config success");
+
+	if (!init(pid)) {
+		log_error("Init service failed");
+		return;
+	}
 
 	if (!DNetMgr.init(PROCESS_GATE, pid)) {
 		log_error("init socket manager failed");
 		return ;
 	}
 
-	std::thread log_thread(std::bind(&service::log_run, this));
-	std::thread net_thread(std::bind(&service::net_run, this, std::ref(pid)));
+	log_info("Init service success");
 
-	work_run(pid);
+	std::thread log_thread(std::bind(&service::log_run, this));
+	std::thread net_thread(std::bind(&service::net_run, this));
+	//std::thread net_thread(std::bind(&service::net_run, this, std::ref(pid)));
+
+	work_run();
 
 	log_thread.join();
 	net_thread.join();
 }
 
-void service::work_run(TProcessID_t process_id)
+bool service::load_config(ini_file& ini, const std::string& module_name)
 {
-	if (!init(process_id)) {
-		log_error("Init service failed");
-		return;
-	}
-	log_info("Init service success");
-	run();
+	return true;
 }
 
-void service::net_run(TProcessID_t process_id)
+bool service::init(TProcessID_t process_id)
+{
+	m_server_info.process_info.server_id = m_config.get_server_id();;
+	m_server_info.process_info.process_id = process_id;
+
+	char* ip = "127.0.0.1";
+	memcpy(m_server_info.ip.data(), ip, strlen(ip));
+	m_server_info.port = m_config.get_listen_port();
+
+	DTimer.init();
+
+	return true;
+}
+
+void service::work_run()
+{
+	TAppTime_t before_loop_time(0), after_loop_time(0);
+	TGameTime_t frame_time = m_config.get_frame_time();
+	while (true) {
+		before_loop_time = DTimeMgr.update();
+		do_loop(0);
+		after_loop_time = DTimeMgr.update();
+		if ((after_loop_time - before_loop_time) < frame_time) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(frame_time + before_loop_time - after_loop_time));
+		}
+	}
+}
+
+void service::net_run()
 {
 }
 
@@ -68,26 +100,6 @@ void service::log_run()
 	while (true) {
 		DLogMgr.flush();
 		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
-}
-
-bool service::init(TProcessID_t process_id)
-{
-	m_server_info.process_info.process_id = process_id;
-	DTimer.init();
-	return true;
-}
-
-void service::run()
-{
-	TAppTime_t before_loop_time(0), after_loop_time(0);
-	while (true) {
-		before_loop_time = DTimeMgr.update();
-		do_loop(0);
-		after_loop_time = DTimeMgr.update();
-		if ((after_loop_time - before_loop_time) < PER_FRAME_TIME) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(PER_FRAME_TIME + before_loop_time - after_loop_time));
-		}
 	}
 }
 

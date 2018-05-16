@@ -24,11 +24,6 @@ bool gate_server::init(TProcessID_t process_id)
 		return false;
 	}
 
-	m_server_info.process_info.server_id = 100;
-	char* ip = "127.0.0.1";
-	memcpy(m_server_info.ip.data(), ip, strlen(ip));
-	m_server_info.port = 10300 + process_id;
-
 	DRegisterServerRpc(this, gate_server, register_server, 2);
 	DRegisterServerRpc(this, gate_server, on_register_servers, 4);
 	DRegisterServerRpc(this, gate_server, login_server, 5);
@@ -37,15 +32,18 @@ bool gate_server::init(TProcessID_t process_id)
 	game_server_handler::Setup();
 	client_handler::Setup();
 
-	connect_game_manager_loop("127.0.0.1", 10000);
-
 	return true;
 }
 
-void gate_server::net_run(TProcessID_t process_id)
+void gate_server::work_run()
 {
-	TPort_t listen_port = 10300 + process_id;
-	if (!DNetMgr.start_listen<client_handler>(listen_port)) {
+	connect_game_manager_loop(m_config.get_game_manager_listen_ip(), m_config.get_game_manager_listen_port());
+	TBaseType_t::work_run();
+}
+
+void gate_server::net_run()
+{
+	if (!DNetMgr.start_listen<client_handler>(m_server_info.port)) {
 		return;
 	}
 
