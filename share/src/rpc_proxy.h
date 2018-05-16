@@ -97,27 +97,27 @@ public:
 
 public:
 	template <size_t N, class F1, class F2>
-	void register_func(TRoleID_t role_id, const std::string& func_name, F1 func1, const F2& func2) {
+	void register_func(TEntityID_t entity_id, const std::string& func_name, F1 func1, const F2& func2) {
 		rpc_proxy* proxy = NULL;
-		auto itr = m_proxys.find(role_id);
+		auto itr = m_proxys.find(entity_id);
 		if (itr != m_proxys.end()) {
 			proxy = itr->second;
 		}
 		else {
 			proxy = new rpc_proxy();
-			m_proxys[role_id] = proxy;
+			m_proxys[entity_id] = proxy;
 		}
 		proxy->register_func<N>(func_name, func1, func2);
 	}
 
-	void call(TRoleID_t role_id, uint8 func_index, char* buffer);
-	void call(TRoleID_t role_id, const std::string& func_name, char* buffer);
+	void call(TEntityID_t entity_id, uint8 func_index, char* buffer);
+	void call(TEntityID_t entity_id, const std::string& func_name, char* buffer);
 
 private:
-	rpc_proxy * get_proxy(TRoleID_t role_id) const;
+	rpc_proxy* get_proxy(TEntityID_t entity_id) const;
 
 private:
-	std::map<TRoleID_t, rpc_proxy*> m_proxys;
+	std::map<TEntityID_t, rpc_proxy*> m_proxys;
 };
 
 #define DRpcRole singleton<rpc_role>::get_instance()

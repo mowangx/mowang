@@ -117,6 +117,9 @@ const TPlatformID_t INVALID_PLATFORM_ID = 0;
 
 typedef std::array<char, USER_ID_LEN> TUserID_t;	// ÓÃ»§ID
 
+typedef uint64 TEntityID_t;				// entity id
+const TEntityID_t INVALID_ENTITY_ID = 0;
+
 typedef uint64 TRoleID_t;				// ½ÇÉ«id
 const TRoleID_t INVALID_ROLE_ID = 0;
 

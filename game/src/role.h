@@ -44,12 +44,19 @@ public:
 public:
 	void set_server_id(TServerID_t server_id);
 	TServerID_t get_server_id() const;
+
 	void set_gate_id(TProcessID_t gate_id);
 	TProcessID_t get_gate_id() const;
+	
 	void set_game_id(TProcessID_t game_id);
 	TProcessID_t get_game_id() const;
+	
 	void set_client_id(TSocketIndex_t client_id);
 	TSocketIndex_t get_client_id() const;
+
+	void set_entity_id(TEntityID_t entity_id);
+	TEntityID_t get_entity_id() const;
+	
 	void set_role_id(TRoleID_t role_id);
 	TRoleID_t get_role_id() const;
 
@@ -65,6 +72,7 @@ public:
 	mailbox_info m_mailbox_info;
 	TPlatformID_t m_platform_id;
 	TUserID_t m_user_id;
+	TRoleID_t m_role_id;
 	TLevel_t m_lvl;
 	THonorNum_t m_honor;
 	TRmbNum_t m_rmb;

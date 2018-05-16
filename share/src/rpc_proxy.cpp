@@ -111,30 +111,30 @@ rpc_role::~rpc_role()
 	m_proxys.clear();
 }
 
-void rpc_role::call(TRoleID_t role_id, uint8 func_index, char * buffer)
+void rpc_role::call(TEntityID_t entity_id, uint8 func_index, char * buffer)
 {
-	rpc_proxy* proxy = get_proxy(role_id);
+	rpc_proxy* proxy = get_proxy(entity_id);
 	if (NULL != proxy) {
 		proxy->call(func_index, buffer);
 	}
 	else {
-		log_error("call role func, but not find role id, role id = '%"I64_FMT"u'", role_id);
+		log_error("call role func, but not find role id, role id = '%" I64_FMT "u'", entity_id);
 	}
 }
 
-void rpc_role::call(TRoleID_t role_id, const std::string & func_name, char * buffer)
+void rpc_role::call(TEntityID_t entity_id, const std::string & func_name, char * buffer)
 {
-	rpc_proxy* proxy = get_proxy(role_id);
+	rpc_proxy* proxy = get_proxy(entity_id);
 	if (NULL != proxy) {
 		proxy->call(func_name, buffer);
 	}
 	else {
-		log_error("call role func, but not find role id, role id = '%"I64_FMT"u'", role_id);
+		log_error("call role func, but not find role id, role id = '%" I64_FMT "u'", entity_id);
 	}
 }
 
-rpc_proxy * rpc_role::get_proxy(TRoleID_t role_id) const
+rpc_proxy * rpc_role::get_proxy(TEntityID_t entity_id) const
 {
-	auto itr = m_proxys.find(role_id);
+	auto itr = m_proxys.find(entity_id);
 	return itr != m_proxys.end() ? itr->second : NULL;
 }

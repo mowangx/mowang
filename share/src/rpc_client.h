@@ -25,7 +25,7 @@ init_client_packet(transfer_packet, packet, client_id, func_name);
 transfer_role_packet transfer_packet; \
 role_rpc_by_name_packet packet; \
 int buffer_index = 0; \
-init_role_packet(transfer_packet, packet, server_id, game_server_id, role_id, func_name);
+init_role_packet(transfer_packet, packet, server_id, game_server_id, entity_id, func_name);
 
 #define DRpcCreateStubPacket \
 std::string real_name = class_name + func_name; \
@@ -240,20 +240,20 @@ public:
 
 public:
 	// call role function, will transfer by gate
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name) {
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name) {
 		DRpcCreateRolePacket;
 		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1>
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1) {
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const T1& p1) {
 		DRpcCreateRolePacket;
 		fill_packet(packet.m_buffer, buffer_index, p1);
 		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class T1, class T2>
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const T1& p1,
 		const T2& p2) {
 		DRpcCreateRolePacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2);
@@ -261,7 +261,7 @@ public:
 	}
 
 	template <class T1, class T2, class T3>
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const T1& p1,
 		const T2& p2, const T3& p3) {
 		DRpcCreateRolePacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3);
@@ -269,7 +269,7 @@ public:
 	}
 
 	template <class T1, class T2, class T3, class T4>
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const T1& p1,
 		const T2& p2, const T3& p3, const T4& p4) {
 		DRpcCreateRolePacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4);
@@ -277,7 +277,7 @@ public:
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5>
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const T1& p1,
 		const T2& p2, const T3& p3, const T4& p4, const T5& p5) {
 		DRpcCreateRolePacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5);
@@ -285,7 +285,7 @@ public:
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6>
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const T1& p1,
 		const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6) {
 		DRpcCreateRolePacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6);
@@ -293,7 +293,7 @@ public:
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const T1& p1,
 		const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7) {
 		DRpcCreateRolePacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7);
@@ -301,7 +301,7 @@ public:
 	}
 
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TRoleID_t role_id, const std::string& func_name, const T1& p1,
+	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const T1& p1,
 		const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
 		DRpcCreateRolePacket;
 		fill_packet(packet.m_buffer, buffer_index, p1, p2, p3, p4, p5, p6, p7, p8);
@@ -390,10 +390,10 @@ private:
 		init_packet(packet, func_name);
 	}
 
-	void init_role_packet(transfer_role_packet& transfer_packet, role_rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, TRoleID_t role_id, const std::string& func_name) {
+	void init_role_packet(transfer_role_packet& transfer_packet, role_rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id, const std::string& func_name) {
 		transfer_packet.m_server_id = server_id;
 		transfer_packet.m_game_id = game_id;
-		packet.m_role_id = role_id;
+		packet.m_entity_id = entity_id;
 		init_packet(packet, func_name);
 	}
 

@@ -131,13 +131,13 @@ class role_rpc_by_name_packet : public packet_base
 {
 public:
 	role_rpc_by_name_packet() : packet_base(PACKET_ID_ROLE_RPC_BY_NAME) {
-		m_role_id = INVALID_ROLE_ID;
+		m_entity_id = INVALID_ENTITY_ID;
 		memset(m_rpc_name, 0, 100);
 		memset(m_buffer, 0, 65000);
 	}
 
 public:
-	TRoleID_t m_role_id;
+	TRoleID_t m_entity_id;
 	char m_rpc_name[100];
 	char m_buffer[65000];
 };

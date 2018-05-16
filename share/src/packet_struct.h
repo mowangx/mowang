@@ -85,19 +85,19 @@ struct mailbox_info
 {
 	TServerID_t server_id;
 	TProcessID_t game_id;
-	TRoleID_t role_id;
+	TEntityID_t entity_id;
 	mailbox_info() {
 		clean_up();
 	}
 
 	bool operator != (const mailbox_info& rhs) const {
-		return role_id != rhs.role_id || game_id != rhs.game_id || server_id != rhs.server_id;
+		return entity_id != rhs.entity_id || game_id != rhs.game_id || server_id != rhs.server_id;
 	}
 
 	void clean_up() {
 		server_id = INVALID_SERVER_ID;
 		game_id = INVALID_PROCESS_ID;
-		role_id = INVALID_ROLE_ID;
+		entity_id = INVALID_ENTITY_ID;
 	}
 };
 

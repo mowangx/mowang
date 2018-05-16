@@ -24,9 +24,9 @@ role::~role()
 
 bool role::init()
 {
-	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, login, 2);
-	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, on_register_callback, 3);
-	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, on_relay_ready, 1);
+	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, login, 2);
+	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_register_callback, 3);
+	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_relay_ready, 1);
 	return true;
 }
 
@@ -39,7 +39,7 @@ void role::update(TGameTime_t diff)
 
 void role::login(TPlatformID_t platform_id, const TUserID_t & user_id)
 {
-	log_info("role login, platform id = %u, user id = %s, role id = %" I64_FMT "u, gate id = %u", platform_id, user_id.data(), get_role_id(), get_gate_id());
+	log_info("role login, platform id = %u, user id = %s, entity id = %" I64_FMT "u, gate id = %u", platform_id, user_id.data(), get_entity_id(), get_gate_id());
 	m_platform_id = platform_id;
 	m_user_id = user_id;
 	DRpcWrapper.call_stub("roll_stub", "register_role", get_role_id(), get_proxy_info(), get_mailbox_info());
@@ -167,14 +167,24 @@ TSocketIndex_t role::get_client_id() const
 	return m_proxy_info.client_id;
 }
 
+void role::set_entity_id(TEntityID_t entity_id)
+{
+	m_mailbox_info.entity_id = entity_id;
+}
+
+TEntityID_t role::get_entity_id() const
+{
+	return m_mailbox_info.entity_id;
+}
+
 void role::set_role_id(TRoleID_t role_id)
 {
-	m_mailbox_info.role_id = role_id;
+	m_role_id = role_id;
 }
 
 TRoleID_t role::get_role_id() const
 {
-	return m_mailbox_info.role_id;
+	return m_role_id;
 }
 
 const proxy_info & role::get_proxy_info() const

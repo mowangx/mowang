@@ -113,7 +113,7 @@ public:
 	void call_role(const mailbox_info& mailbox, const std::string& func_name) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name);
+			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name);
 		}
 	}
 
@@ -121,7 +121,7 @@ public:
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1);
+			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, p1);
 		}
 	}
 
@@ -129,7 +129,7 @@ public:
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2);
+			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, p1, p2);
 		}
 	}
 
@@ -137,7 +137,7 @@ public:
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3);
+			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, p1, p2, p3);
 		}
 	}
 
@@ -145,7 +145,7 @@ public:
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4);
+			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, p1, p2, p3, p4);
 		}
 	}
 
@@ -154,7 +154,7 @@ public:
 		const T5& p5) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4, p5);
+			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, p1, p2, p3, p4, p5);
 		}
 	}
 
@@ -163,7 +163,7 @@ public:
 		const T5& p5, const T6& p6) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4, p5, p6);
+			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, p1, p2, p3, p4, p5, p6);
 		}
 	}
 
@@ -172,7 +172,7 @@ public:
 		const T5& p5, const T6& p6, const T7& p7) {
 		rpc_client = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4, p5, p6, p7);
+			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, p1, p2, p3, p4, p5, p6, p7);
 		}
 	}
 
@@ -181,7 +181,7 @@ public:
 		const T5& p5, const T6& p6, const T7& p7, const T8& p8) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.role_id, func_name, p1, p2, p3, p4, p5, p6, p7, p8);
+			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, p1, p2, p3, p4, p5, p6, p7, p8);
 		}
 	}
 

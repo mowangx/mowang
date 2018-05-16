@@ -172,24 +172,19 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 {
 	// send msg to db manager to query role id from db by platform id and user id
 	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
-	static TRoleID_t role_id = ((TRoleID_t)m_server_info.process_info.server_id << 48) + ((TRoleID_t)m_server_info.process_info.process_id << 40);
-	++role_id;
+	static TRoleID_t entity_id = ((TRoleID_t)m_server_info.process_info.server_id << 48) + ((TRoleID_t)m_server_info.process_info.process_id << 40);
+	++entity_id;
 	role* p = new role();
 	p->set_server_id(100);
 	p->set_game_id(m_server_info.process_info.process_id);
 	p->set_client_id(client_id);
 	p->set_gate_id(gate_id);
-	p->set_role_id(role_id);
+	p->set_entity_id(entity_id);
 	p->init();
 	m_client_id_2_role[client_id] = p;
 
-	dynamic_string p1("xiedi");
-	std::array<char, 127> p3;
-	memset(p3.data(), 0, 127);
-	memcpy(p3.data(), "hello world", 11);
-	DRpcWrapper.call_client(p->get_proxy_info(), "robot_rpc_func_1", gate_id, client_id, p1, role_id, p3, test_client_id);
-
-	log_info("login server, client id = %"I64_FMT"u, gate id = %u, role id = %"I64_FMT"u, platform id = %u, user id = %s", client_id, gate_id, role_id, platform_id, user_id.data());
+	log_info("login server, client id = %" I64_FMT "u, gate id = %u, entity id = %" I64_FMT "u, platform id = %u, user id = %s", 
+		client_id, gate_id, entity_id, platform_id, user_id.data());
 }
 
 void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id)
