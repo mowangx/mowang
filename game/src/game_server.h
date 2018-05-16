@@ -54,6 +54,7 @@ private:
 
 public:
 	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id);
+	void logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
 	void create_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name);
 	void on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status);
@@ -66,6 +67,9 @@ public:
 	void create_entity_globally(const dynamic_string& stub_name);
 	void create_entity_locally(const dynamic_string& stub_name);
 
+public:
+	void update_role_process_info(const proxy_info& old_proxy_info, const proxy_info& new_proxy_info, const mailbox_info& new_mailbox_info);
+
 private:
 	TRoleID_t get_role_id_by_client_id(TSocketIndex_t client_id) const;
 
@@ -77,8 +81,7 @@ private:
 	obj_memory_pool<city, 1024> m_city_pool;
 	obj_memory_pool<npc, 1024> m_npc_pool;
 	obj_memory_pool<farmland, 1024> m_farmland_pool;
-	std::unordered_map<TSocketIndex_t, TRoleID_t> m_client_id_2_role_id;
-	std::vector<role*> m_roles;
+	std::unordered_map<TSocketIndex_t, role*> m_client_id_2_role;
 };
 
 #define DGameServer singleton<game_server>::get_instance()

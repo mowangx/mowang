@@ -24,6 +24,8 @@ private:
 	}
 
 public:
+	virtual void handle_close() override;
+
 	bool handle_transfer_server_by_index(packet_base* packet);
 	bool handle_transfer_server_by_name(packet_base* packet);
 

@@ -4,6 +4,7 @@
 #include "city.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
+#include "string_common.h"
 
 role::role()
 {
@@ -24,8 +25,8 @@ role::~role()
 bool role::init()
 {
 	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, login, 2);
-	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, test_func_2, 3);
-	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, on_register, 1);
+	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, on_register_callback, 3);
+	DRegisterRoleRpc(m_mailbox_info.role_id, this, role, on_relay_ready, 1);
 	return true;
 }
 
@@ -38,34 +39,37 @@ void role::update(TGameTime_t diff)
 
 void role::login(TPlatformID_t platform_id, const TUserID_t & user_id)
 {
-	log_info("role login, platform id = %u, user id = %s, role id = %"I64_FMT"u, gate id = %u", platform_id, user_id.data(), m_mailbox_info.role_id, m_proxy_info.gate_id);
+	log_info("role login, platform id = %u, user id = %s, role id = %" I64_FMT "u, gate id = %u", platform_id, user_id.data(), get_role_id(), get_gate_id());
 	m_platform_id = platform_id;
 	m_user_id = user_id;
-	std::array<char, 33> p2_2;
-	memset(p2_2.data(), 0, 33);
-	memcpy(p2_2.data(), "mowang", 6);
-	DRpcWrapper.call_client(get_proxy_info(), "robot_rpc_func_2", m_proxy_info.gate_id, m_proxy_info.client_id, m_mailbox_info.role_id, p2_2);
+	DRpcWrapper.call_stub("roll_stub", "register_role", get_role_id(), get_proxy_info(), get_mailbox_info());
 }
 
-void role::test_func_2(const dynamic_string& s1, TServerID_t server_id, const dynamic_string& s2)
+void role::logout()
 {
-	log_info("role test func 2, server id = %u, s1 = %s, s2 = %s, role id = %"I64_FMT"u, gate id = %u", server_id, s1.data(), s2.data(), m_mailbox_info.role_id, m_proxy_info.gate_id);
-
-	dynamic_string p1("xiedi");
-	std::array<char, 127> p3;
-	memset(p3.data(), 0, 127);
-	memcpy(p3.data(), "hello world", 11);
-	DRpcWrapper.call_client(get_proxy_info(), "robot_rpc_func_1", m_proxy_info.gate_id, m_proxy_info.client_id, p1, m_mailbox_info.role_id, p3, (TSocketIndex_t)0);
+	log_info("role logout, role id = %" I64_FMT "u, gate id = %u", get_role_id(), get_gate_id());
 }
 
-void role::on_register(bool status)
+void role::on_register_callback(bool status, const proxy_info& proxy, const mailbox_info& mailbox)
 {
 	if (status) {
-		log_info("on register success, role id = '%"I64_FMT"u'", m_mailbox_info.role_id);
+		std::string query = gx_to_string("%" I64_FMT " u", get_role_id());
+		DGameServer.db_query("role", query.c_str(), "*", [](bool status, const dynamic_string_array& result) {
+			// init role data from db result
+		});
 	}
 	else {
-		log_info("on register failed, role id = '%"I64_FMT"u'", m_mailbox_info.role_id);
+		if (mailbox != m_mailbox_info) {
+			DRpcWrapper.call_client(get_proxy_info(), "logout", (uint8)LOGOUT_RELAY);
+		}
+		DGameServer.update_role_process_info(m_proxy_info, proxy, mailbox);
+		m_proxy_info = proxy;
+		m_mailbox_info = mailbox;
 	}
+}
+
+void role::on_relay_ready(const proxy_info & proxy)
+{
 }
 
 void role::add_city(const game_pos & pos, TLevel_t lvl)
@@ -128,9 +132,19 @@ void role::set_server_id(TServerID_t server_id)
 	m_mailbox_info.server_id = server_id;
 }
 
+TServerID_t role::get_server_id() const
+{
+	return m_mailbox_info.server_id;
+}
+
 void role::set_gate_id(TProcessID_t gate_id)
 {
 	m_proxy_info.gate_id = gate_id;
+}
+
+TProcessID_t role::get_gate_id() const
+{
+	return m_proxy_info.gate_id;
 }
 
 void role::set_game_id(TProcessID_t game_id)
@@ -138,14 +152,29 @@ void role::set_game_id(TProcessID_t game_id)
 	m_mailbox_info.game_id = game_id;
 }
 
+TProcessID_t role::get_game_id() const
+{
+	return m_mailbox_info.game_id;
+}
+
 void role::set_client_id(TSocketIndex_t client_id)
 {
 	m_proxy_info.client_id = client_id;
 }
 
+TSocketIndex_t role::get_client_id() const
+{
+	return m_proxy_info.client_id;
+}
+
 void role::set_role_id(TRoleID_t role_id)
 {
 	m_mailbox_info.role_id = role_id;
+}
+
+TRoleID_t role::get_role_id() const
+{
+	return m_mailbox_info.role_id;
 }
 
 const proxy_info & role::get_proxy_info() const

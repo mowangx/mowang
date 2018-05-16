@@ -91,8 +91,8 @@ inline std::string gx_to_string(const uint16& val) { return gx_to_string("%hu", 
 inline std::string gx_to_string(const sint16& val) { return gx_to_string("%hd", val); }
 inline std::string gx_to_string(const uint32& val) { return gx_to_string("%u", val); }
 inline std::string gx_to_string(const sint32& val) { return gx_to_string("%d", val); }
-//inline std::string gx_to_string(const uint64& val) { return gx_to_string("%"I64_FMT"u", val); }
-//inline std::string gx_to_string(const sint64& val) { return gx_to_string("%"I64_FMT"d", val); }
+inline std::string gx_to_string(const uint64& val) { return gx_to_string("%" I64_FMT "u", val); }
+inline std::string gx_to_string(const sint64& val) { return gx_to_string("%" I64_FMT "d", val); }
 inline std::string gx_to_string(const float& val) { return gx_to_string("%f", val); }
 inline std::string gx_to_string(const double& val) { return gx_to_string("%lf", val); }
 inline std::string gx_to_string(const bool& val) { return gx_to_string("%u", val ? 1 : 0); }
@@ -147,29 +147,29 @@ struct from_string<uint32>
 	}
 };
 
-//template <>
-//struct from_string<uint64>
-//{
-//	static bool convert(const std::string& str, uint64& val) {
-//		if (sscanf(str.c_str(), "%"I64_FMT"u", &val) == 1) {
-//			return true;
-//		}
-//		val = 0;
-//		return false;
-//	}
-//};
-//
-//template <>
-//struct from_string<sint64>
-//{
-//	static bool convert(const std::string& str, sint64& val) {
-//		if (sscanf(str.c_str(), "%"I64_FMT"d", &val) == 1) {
-//			return true;
-//		}
-//		val = 0;
-//		return false;
-//	}
-//};
+template <>
+struct from_string<uint64>
+{
+	static bool convert(const std::string& str, uint64& val) {
+		if (sscanf(str.c_str(), "%" I64_FMT "u", &val) == 1) {
+			return true;
+		}
+		val = 0;
+		return false;
+	}
+};
+
+template <>
+struct from_string<sint64>
+{
+	static bool convert(const std::string& str, sint64& val) {
+		if (sscanf(str.c_str(), "%" I64_FMT "d", &val) == 1) {
+			return true;
+		}
+		val = 0;
+		return false;
+	}
+};
 
 template <>
 struct from_string<float>

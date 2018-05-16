@@ -90,10 +90,28 @@ struct mailbox_info
 		clean_up();
 	}
 
+	bool operator != (const mailbox_info& rhs) const {
+		return role_id != rhs.role_id || game_id != rhs.game_id || server_id != rhs.server_id;
+	}
+
 	void clean_up() {
 		server_id = INVALID_SERVER_ID;
 		game_id = INVALID_PROCESS_ID;
 		role_id = INVALID_ROLE_ID;
+	}
+};
+
+struct stub_role_info
+{
+	proxy_info proxy;
+	mailbox_info mailbox;
+	stub_role_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		proxy.clean_up();
+		mailbox.clean_up();
 	}
 };
 

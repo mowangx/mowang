@@ -28,6 +28,12 @@ service_interface * client_handler::get_service() const
 	return singleton<gate_server>::get_instance_ptr();
 }
 
+void client_handler::handle_close()
+{
+	DGateServer.logout_server(get_socket_index());
+	TBaseType_t::handle_close();
+}
+
 bool client_handler::handle_transfer_server_by_index(packet_base* packet)
 {
 	transfer_server(packet);

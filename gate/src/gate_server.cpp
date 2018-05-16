@@ -27,6 +27,7 @@ bool gate_server::init(TProcessID_t process_id)
 	DRegisterServerRpc(this, gate_server, register_server, 2);
 	DRegisterServerRpc(this, gate_server, on_register_servers, 4);
 	DRegisterServerRpc(this, gate_server, login_server, 5);
+	DRegisterServerRpc(this, gate_server, update_process_info, 3);
 
 	game_manager_handler::Setup();
 	game_server_handler::Setup();
@@ -88,11 +89,37 @@ void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platfo
 	process_info.process_type = PROCESS_GAME;
 	process_info.process_id = DRpcWrapper.get_random_process_id(process_info.server_id, process_info.process_type);
 	m_client_2_process[socket_index] = process_info;
-	log_info("login server, client id = '%"I64_FMT"u', user id = %s, game id = %u", socket_index, user_id.data(), process_info.process_id);
+	log_info("login, client id = %" I64_FMT "u, user id = %s, game id = %u", socket_index, user_id.data(), process_info.process_id);
 	rpc_client* rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
 		rpc->call_remote_func("login_server", socket_index, platform_id, user_id, test_client_id);
 	}
+	else {
+		log_error("login failed for rpc is NULL! server id = %u, process id = %u, client id = %" I64_FMT "u", 
+			process_info.server_id, process_info.process_id, socket_index);
+	}
+}
+
+void gate_server::logout_server(TSocketIndex_t socket_index)
+{
+	log_info("logout, client id = %" I64_FMT "u", socket_index);
+	auto itr = m_client_2_process.find(socket_index);
+	if (itr != m_client_2_process.end()) {
+		const game_process_info& process_info = itr->second;
+		rpc_client* rpc = DRpcWrapper.get_client(process_info);
+		if (NULL != rpc) {
+			rpc->call_remote_func("logout_server", socket_index);
+		}
+		else {
+			log_error("logout failed for rpc is NULL! server id = %u, process id = %u, client id = %" I64_FMT "u", 
+				process_info.server_id, process_info.process_id, socket_index);
+		}
+	}
+}
+
+void gate_server::update_process_info(TSocketIndex_t socket_index, TSocketIndex_t client_id, const game_process_info & process_info)
+{
+	m_client_2_process[client_id] = process_info;
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

@@ -12,6 +12,11 @@ enum game_process_type
 	PROCESS_ROBOT,
 };
 
+enum logout_type
+{
+	LOGOUT_RELAY = 1,
+};
+
 enum db_operation_type
 {
 	DB_OPT_QUERY = 1,

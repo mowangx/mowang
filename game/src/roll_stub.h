@@ -17,14 +17,14 @@ public:
 	virtual bool init() override;
 
 public:
-	void register_role(TRoleID_t role_id, const mailbox_info& mailbox);
+	void register_role(TRoleID_t role_id, const proxy_info& proxy, const mailbox_info& mailbox);
 	void unregister_role(TRoleID_t role_id);
 
 private:
 	void clean_up();
 
 public:
-	std::unordered_map<TRoleID_t, mailbox_info> m_role_id_2_mailbox;
+	std::unordered_map<TRoleID_t, stub_role_info> m_role_id_2_role_info;
 };
 
 #endif // !_ROLL_STUB_H_

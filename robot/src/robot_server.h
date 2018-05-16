@@ -24,8 +24,7 @@ private:
 	virtual void net_run() override;
 
 public:
-	void robot_rpc_func_1(TProcessID_t process_id, TSocketIndex_t socket_index, const dynamic_string& p1, TRoleID_t role_id, const std::array<char, 127>& p3, TSocketIndex_t client_id);
-	void robot_rpc_func_2(TProcessID_t process_id, TSocketIndex_t socket_index, TRoleID_t role_id, const std::array<char, 33>& p2);
+	void logout(uint8 reason);
 
 private:
 	rpc_client* get_robot_client(TProcessID_t process_id, TSocketIndex_t socket_index);

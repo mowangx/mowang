@@ -23,8 +23,9 @@ public:
 
 public:
 	void login(TPlatformID_t platform_id, const TUserID_t& user_id);
-	void test_func_2(const dynamic_string& s1, TServerID_t server_id, const dynamic_string& s2);
-	void on_register(bool status);
+	void logout();
+	void on_register_callback(bool status, const proxy_info& proxy, const mailbox_info& mailbox);
+	void on_relay_ready(const proxy_info& proxy);
 
 public:
 	void add_city(const game_pos& pos, TLevel_t lvl);
@@ -42,10 +43,15 @@ public:
 
 public:
 	void set_server_id(TServerID_t server_id);
+	TServerID_t get_server_id() const;
 	void set_gate_id(TProcessID_t gate_id);
+	TProcessID_t get_gate_id() const;
 	void set_game_id(TProcessID_t game_id);
+	TProcessID_t get_game_id() const;
 	void set_client_id(TSocketIndex_t client_id);
+	TSocketIndex_t get_client_id() const;
 	void set_role_id(TRoleID_t role_id);
+	TRoleID_t get_role_id() const;
 
 public:
 	const proxy_info& get_proxy_info() const;
