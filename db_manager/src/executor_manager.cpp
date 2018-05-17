@@ -62,14 +62,8 @@ void executor_manager::executor(db_opt_info* opt_info)
 	if (opt_info->opt_type == DB_OPT_QUERY) {
 		//m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
 		dynamic_string_array data;
-		dynamic_string k1("name");
-		dynamic_string v1("xty");
-		dynamic_string k2("level");
-		dynamic_string v2("28");
+		dynamic_string k1("28");
 		data.push_back(k1);
-		data.push_back(v1);
-		data.push_back(k2);
-		data.push_back(v2);
 		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, true, data);
 	}
 	else {
@@ -97,7 +91,6 @@ void executor_manager::add_executor(TSocketIndex_t socket_index, uint8 opt_type,
 	opt_info->table_name = table_name.data();
 	opt_info->condition = query.data();
 	opt_info->fields = fields.data();
-	parse_fields(opt_info);
 	auto itr = m_executors.find(opt_info->table_name);
 	if (itr == m_executors.end()) {
 		m_executors[opt_info->table_name] = std::unordered_map<std::string, db_opt_info*>();
@@ -121,6 +114,7 @@ void executor_manager::parse_fields(db_opt_info* opt_info)
 		return;
 	}
 	char* s = const_cast<char*>(opt_info->fields.data());
+	// strtok not thread safe, should refactor it
 	char* split_fields = strtok(s, ",");
 	while (NULL != split_fields) {
 		parse_key_and_value(opt_info, split_fields);
@@ -131,7 +125,13 @@ void executor_manager::parse_fields(db_opt_info* opt_info)
 void executor_manager::parse_key_and_value(db_opt_info* opt_info, char* split_fields)
 {
 	std::string k = strtok(split_fields, "=");
-	std::string v = strtok(NULL, "=");
+	std::string v;
+	if (opt_info->opt_type == DB_OPT_QUERY) {
+		v = "1";
+	}
+	else {
+		v = strtok(NULL, "=");	
+	}
 	if (k.empty() || v.empty()) {
 		return;
 	}

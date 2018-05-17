@@ -73,6 +73,10 @@ struct proxy_info
 		clean_up();
 	}
 
+	bool operator != (const proxy_info& rhs) const {
+		return client_id != rhs.client_id || gate_id != rhs.gate_id || server_id != rhs.server_id;
+	}
+
 	void clean_up() {
 		server_id = INVALID_SERVER_ID;
 		gate_id = INVALID_PROCESS_ID;

@@ -19,7 +19,7 @@ void sequence::init(const dynamic_array<TSequenceID_t>& data)
 	}
 }
 
-TSequenceID_t sequence::gen_sequence_id(uint8 sequence_type)
+TSequenceID_t sequence::gen_sequence_id(sequence_type sequence_type)
 {
 	++m_sequence_id[sequence_type];
 	save();

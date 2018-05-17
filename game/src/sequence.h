@@ -3,6 +3,7 @@
 #define _SEQUENCE_H_
 
 #include "singleton.h"
+#include "game_enum.h"
 #include "base_util.h"
 #include "dynamic_array.h"
 
@@ -16,7 +17,7 @@ public:
 	void init(const dynamic_array<TSequenceID_t>& data);
 
 public:
-	TSequenceID_t gen_sequence_id(uint8 sequence_type);
+	TSequenceID_t gen_sequence_id(sequence_type sequence_type);
 
 public:
 	void save();

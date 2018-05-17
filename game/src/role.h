@@ -24,14 +24,30 @@ public:
 public:
 	void login(TPlatformID_t platform_id, const TUserID_t& user_id);
 	void logout();
-	void on_register_callback(bool status, const proxy_info& proxy, const mailbox_info& mailbox);
-	void on_relay_ready(const proxy_info& proxy);
+
+public:
+	void on_register_account(const proxy_info& proxy, const mailbox_info& mailbox);
+	void on_register_role(bool status, const proxy_info& proxy, const mailbox_info& mailbox);
+	void on_relay_ready(const proxy_info& proxy, const mailbox_info& mailbox);
+	void on_relay_login();
+
+private:
+	void create_role();
+	void on_account_login_success();
+	void on_role_login_success();
+	void on_role_relay_success(const proxy_info& proxy, const mailbox_info& mailbox);
 
 public:
 	void add_city(const game_pos& pos, TLevel_t lvl);
 	void del_city(const game_pos& pos);
 
 public:
+	void set_login_success(bool login_flag);
+	bool get_login_success() const;
+
+	void set_destroy_flag(bool destroy_flag);
+	bool get_destroy_flag() const;
+
 	TLevel_t get_level() const;
 	void add_level(TLevel_t lvl);
 
@@ -60,14 +76,25 @@ public:
 	void set_role_id(TRoleID_t role_id);
 	TRoleID_t get_role_id() const;
 
+	void set_platform_id(TPlatformID_t platform_id);
+	TPlatformID_t get_platform_id() const;
+
+	void set_user_id(const TUserID_t& user_id);
+	const TUserID_t& get_user_id() const;
+
 public:
 	const proxy_info& get_proxy_info() const;
 	const mailbox_info& get_mailbox_info() const;
 
 private:
+	void save();
+
+private:
 	void clean_up();
 
 public:
+	bool m_login_success;
+	bool m_destroy_flag;
 	proxy_info m_proxy_info;
 	mailbox_info m_mailbox_info;
 	TPlatformID_t m_platform_id;

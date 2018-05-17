@@ -24,13 +24,7 @@ private:
 	virtual void net_run() override;
 
 public:
-	void logout(uint8 reason);
-
-private:
-	rpc_client* get_robot_client(TProcessID_t process_id, TSocketIndex_t socket_index);
-
-private:
-	std::unordered_map<TSocketIndex_t, TSocketIndex_t> m_sockets;
+	void logout(uint8 reason, TSocketIndex_t client_id);
 };
 
 #define DRobotServer singleton<robot_server>::get_instance()

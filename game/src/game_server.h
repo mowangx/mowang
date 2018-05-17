@@ -57,6 +57,7 @@ public:
 	void logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
 	void create_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name);
+	void remove_entity(TSocketIndex_t client_id);
 	void on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status);
 	void on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string_array& data);
 private:

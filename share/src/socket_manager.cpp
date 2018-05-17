@@ -280,6 +280,9 @@ void socket_manager::handle_kick_socket()
 		if (itr != m_sockets.end()) {
 			del_socket(itr->second);
 		}
+		else {
+			log_error("handle kick socket failed for not find socket index! socket index = %" I64_FMT "u", socket_index);
+		}
 	}
 }
 

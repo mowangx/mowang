@@ -25,6 +25,11 @@ enum db_operation_type
 	DB_OPT_DELETE,
 };
 
+enum sequence_type
+{
+	SEQUENCE_ROLE = 1,
+};
+
 enum entity_type
 {
 	ENTITY_ROLL_STUB = 1,

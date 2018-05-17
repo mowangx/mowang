@@ -135,6 +135,7 @@ void service::do_loop(TGameTime_t diff)
 	DNetMgr.swap_login_2_net(m_write_packets, read_packets, m_wait_kick_sockets, del_sockets);
 
 	m_write_packets.clear();
+	m_wait_kick_sockets.clear();
 
 	try_reconnect_server();
 }

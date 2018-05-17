@@ -50,6 +50,8 @@ bool game_server::init(TProcessID_t process_id)
 	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_result, 4);
 
+	DRegisterStubRpc(this, game_server, remove_entity, 1);
+
 	return true;
 }
 
@@ -182,6 +184,7 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 	p->set_entity_id(entity_id);
 	p->init();
 	m_client_id_2_role[client_id] = p;
+	p->login(platform_id, user_id);
 
 	log_info("login server, client id = %" I64_FMT "u, gate id = %u, entity id = %" I64_FMT "u, platform id = %u, user id = %s", 
 		client_id, gate_id, entity_id, platform_id, user_id.data());
@@ -190,14 +193,7 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id)
 {
 	log_info("logout server, client id = %"I64_FMT"u", client_id);
-	auto itr = m_client_id_2_role.find(client_id);
-	if (itr != m_client_id_2_role.end()) {
-		role* p = itr->second;
-		m_client_id_2_role.erase(itr);
-
-		p->logout();
-		delete p;
-	}
+	remove_entity(client_id);
 }
 
 void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
@@ -230,6 +226,23 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 void game_server::create_entity(TSocketIndex_t socket_index, const dynamic_string & stub_name)
 {
 	create_entity_locally(stub_name);
+}
+
+void game_server::remove_entity(TSocketIndex_t client_id)
+{
+	auto itr = m_client_id_2_role.find(client_id);
+	if (itr != m_client_id_2_role.end()) {
+		log_info("remove entity success! client id = %" I64_FMT "u", client_id);
+		role* p = itr->second;
+		m_client_id_2_role.erase(itr);
+
+		p->logout();
+		// should delete after some time to wait db callback
+		//delete p;
+	}
+	else {
+		log_error("remove entity failed for not find client id, client id = %" I64_FMT "u", client_id);
+	}
 }
 
 void game_server::on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status)
