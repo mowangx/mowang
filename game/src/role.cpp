@@ -25,10 +25,9 @@ role::~role()
 
 bool role::init()
 {
-	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_register_account, 2);
-	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_register_role, 3);
-	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_relay_ready, 2);
-	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_relay_login, 0);
+	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_register_account, 4);
+	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_register_role, 4);
+	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_relay_logout, 0);
 	return true;
 }
 
@@ -41,94 +40,65 @@ void role::update(TGameTime_t diff)
 
 void role::login(TPlatformID_t platform_id, const TUserID_t& user_id)
 {
-	log_info("role login, platform id = %u, user id = %s, entity id = %" I64_FMT "u, gate id = %u", platform_id, user_id.data(), get_entity_id(), get_gate_id());
+	log_info("role login, entity id = %" I64_FMT "u", get_entity_id());
 	set_platform_id(platform_id);
 	set_user_id(user_id);
-	DRpcWrapper.call_stub("roll_stub", "register_account", get_platform_id(), get_user_id(), get_proxy_info(), get_mailbox_info());
+	DRpcWrapper.call_stub("roll_stub", "register_account", get_platform_id(), get_user_id(), get_proxy_info(), get_mailbox_info(), get_test_client_id());
 }
 
 void role::logout()
 {
-	log_info("role logout, role id = %" I64_FMT "u, client id = %" I64_FMT "u", get_role_id(), get_client_id());
+	log_info("role logout, entity id = %" I64_FMT "u", get_entity_id());
+	set_destroy_flag(true);
+	if (get_relay_logout_flag()) {
+		return;
+	}
+	log_info("role logout, send unregister account, entity id = %" I64_FMT "u", get_entity_id());
 	if (get_login_success()) {
 		save();
 		DRpcWrapper.call_stub("roll_stub", "unregister_role", get_role_id());
 	}
 	DRpcWrapper.call_stub("roll_stub", "unregister_account", get_platform_id(), get_user_id());
-	set_destroy_flag(true);
 }
 
-void role::on_register_account(const proxy_info& proxy, const mailbox_info& mailbox)
+void role::on_register_account(bool status, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)
 {
 	// what will happen if call the function more than once ?
-	if (proxy != get_proxy_info() || mailbox != get_mailbox_info()) {
-		log_info("on register account success, but has registered! cur client id = %" I64_FMT "u, old client id = %" I64_FMT "u", get_client_id(), proxy.client_id);
-		DRpcWrapper.call_role(mailbox, "on_relay_ready", get_proxy_info(), get_mailbox_info());
-	}
-	else {
-		log_info("on register account success! client id = %" I64_FMT "u", get_client_id());
+	if (status) {
+		log_info("on register account success! entity id = %" I64_FMT "u", get_entity_id());
 		DGameServer.db_query(
 			"user",
 			gx_to_string("user_id = %" I64_FMT "u", get_user_id().data()).c_str(),
 			"role_id",
-			[&](bool status, const dynamic_string_array& result) {
-			if (get_destroy_flag()) {
-				log_info("role will be destroy soon! client id = %" I64_FMT "u", get_client_id());
-				return;
-			}
-			if (!status) {
-				log_error("load from db failed! client id = %" I64_FMT "u", get_client_id());
-				return;
-			}
-			if (result.empty()) {
-				create_role();
-			}
-			else {
-				if (!from_string<TRoleID_t>::convert(result[0]->data(), m_role_id)) {
-					log_error("convert from string failed! data = %s, client id = %" I64_FMT "u", result[0]->data(), get_client_id());
-					return;
-				}
-				on_account_login_success();
-			}
-		});
-	}
-}
-
-void role::on_register_role(bool status, const proxy_info& proxy, const mailbox_info& mailbox)
-{
-	if (status) {
-		log_info("role on register role success! client id = %" I64_FMT "u, role id = %" I64_FMT "u", get_client_id(), get_role_id());
-		std::string query = gx_to_string("%" I64_FMT " u", get_role_id());
-		DGameServer.db_query("role", query.c_str(), "*", [&](bool status, const dynamic_string_array& result) {
-			// init role data from db result
-			on_role_login_success();
-		});
+			std::bind(&role::on_load_account_callback, this, std::placeholders::_1, std::placeholders::_2));
 	}
 	else {
-		log_info("role on register role success, but has registered! old client id = %" I64_FMT "u, role id = %" I64_FMT "u, cur client id = %" I64_FMT "u", 
-			get_client_id(), get_role_id(), proxy.client_id);
-		DRpcWrapper.call_client(get_proxy_info(), "logout", (uint8)LOGOUT_RELAY, get_client_id());
-		rpc_client* rpc = DRpcWrapper.get_random_client(mailbox.server_id, PROCESS_GATE);
-		if (NULL != rpc) {
-			rpc->call_stub(mailbox.server_id, mailbox.game_id, "game_server", "remove_entity", proxy.client_id);
-		}
-
-		on_role_relay_success(proxy, mailbox);
+		log_info("on register account success, but has registered! entity id = %" I64_FMT "u", get_entity_id());
+		on_relay_success(proxy, mailbox, test_client_id);
 	}
 }
 
-void role::on_relay_ready(const proxy_info& proxy, const mailbox_info& mailbox)
+void role::on_register_role(bool status, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)
 {
-	log_info("role on relay ready! client id = %" I64_FMT "u", get_client_id());
-	DRpcWrapper.call_client(get_proxy_info(), "logout", (uint8)LOGOUT_RELAY, get_client_id());
-	DRpcWrapper.call_role(mailbox, "on_relay_login");
-	DGameServer.remove_entity(get_client_id());
+	if (status) {
+		log_info("role on register role success! entity id = %" I64_FMT "u", get_entity_id());
+		DGameServer.db_query(
+			"role", 
+			gx_to_string("%" I64_FMT " u", get_role_id()).c_str(), 
+			"*", 
+			std::bind(&role::on_load_role_callback, this, std::placeholders::_1, std::placeholders::_2));
+	}
+	else {
+		log_info("role on register role success, but has registered! entity id = %" I64_FMT "u", get_entity_id());
+		on_relay_success(proxy, mailbox, test_client_id);
+	}
 }
 
-void role::on_relay_login()
+void role::on_relay_logout()
 {
-	log_info("role on relay login! client id = %" I64_FMT "u", get_client_id());
-	login(m_platform_id, m_user_id);
+	log_info("role on relay logout! entity id = %" I64_FMT "u", get_entity_id());
+	set_relay_logout_flag(true);
+	destroy();
 }
 
 void role::create_role()
@@ -147,29 +117,84 @@ void role::create_role()
 	});
 }
 
-void role::on_account_login_success()
+void role::on_load_account_callback(bool status, const dynamic_string_array& result)
 {
-	log_info("on account login success! platform id = %u, user id = %s, role id = %" I64_FMT "u, client id = %" I64_FMT "u", 
-		get_platform_id(), get_user_id().data(), get_role_id(), get_client_id());
-	DRpcWrapper.call_stub("roll_stub", "register_role", get_platform_id(), get_user_id(),  get_role_id(), get_proxy_info(), get_mailbox_info());
+	if (get_destroy_flag()) {
+		log_info("role will be destroy soon! client id = %" I64_FMT "u", get_client_id());
+		return;
+	}
+	if (!status) {
+		log_error("load from db failed! client id = %" I64_FMT "u", get_client_id());
+		return;
+	}
+	if (result.empty()) {
+		create_role();
+	}
+	else {
+		if (!from_string<TRoleID_t>::convert(result[0]->data(), m_role_id)) {
+			log_error("convert from string failed! data = %s, client id = %" I64_FMT "u", result[0]->data(), get_client_id());
+			return;
+		}
+		on_account_login_success();
+	}
 }
 
-void role::on_role_login_success()
+void role::on_load_role_callback(bool status, const dynamic_string_array& result)
 {
-	log_info("on role login success! client id = %" I64_FMT "u, role id = %" I64_FMT "u", get_client_id(), get_role_id());
-	set_login_success(true);
+	// init role data from db result
+	on_role_login_success();
 }
 
-void role::on_role_relay_success(const proxy_info& proxy, const mailbox_info& mailbox)
+void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)
 {
-	log_info("on role relay success! client id = %" I64_FMT "u, role id = %" I64_FMT "u", get_client_id(), get_role_id());
-	DGameServer.update_role_process_info(get_proxy_info(), proxy, mailbox);
+	log_info("role on relay success! cur entity id = %" I64_FMT "u, kick entity id = %" I64_FMT "u", get_entity_id(), mailbox.entity_id);
+	DRpcWrapper.call_client(get_proxy_info(), "logout", (uint8)LOGOUT_RELAY, get_test_client_id());
+	set_test_client_id(test_client_id);
+
+	if (mailbox.game_id == get_game_id()) {
+		role* p = DGameServer.get_role_by_client_id(proxy.client_id);
+		if (NULL != p) {
+			p->on_relay_logout();
+		}
+		else {
+			log_error("find role by client id failed! client id = %" I64_FMT "u", proxy.client_id);
+		}
+	}
+	else {
+		DRpcWrapper.call_role(mailbox, "on_relay_logout");
+	}
+	DGameServer.update_role_proxy_info(get_proxy_info(), proxy);
 	m_proxy_info = proxy;
-	m_mailbox_info = mailbox;
+
+	game_process_info process_info;
+	process_info.server_id = get_server_id();
+	process_info.process_type = PROCESS_GATE;
+	process_info.process_id = get_gate_id();
+	rpc_client* rpc = DRpcWrapper.get_client(process_info);
+	if (NULL != rpc) {
+		process_info.process_type = PROCESS_GAME;
+		process_info.process_id = get_game_id();
+		rpc->call_remote_func("update_process_info", get_client_id(), process_info);
+	}
+	else {
+		log_error("role update process info failed for rpc is NULL! client id = %" I64_FMT "u, gate id = %u", get_client_id(), get_gate_id());
+	}
 
 	if (get_login_success()) {
 		on_role_login_success();
 	}
+}
+
+void role::on_account_login_success()
+{
+	log_info("on account login success! entity id = %" I64_FMT "u", get_entity_id());
+	DRpcWrapper.call_stub("roll_stub", "register_role", get_platform_id(), get_user_id(),  get_role_id(), get_proxy_info(), get_mailbox_info(), get_test_client_id());
+}
+
+void role::on_role_login_success()
+{
+	log_info("on role login success! entity id = %" I64_FMT "u", get_entity_id());
+	set_login_success(true);
 }
 
 void role::add_city(const game_pos & pos, TLevel_t lvl)
@@ -213,6 +238,16 @@ bool role::get_destroy_flag() const
 	return m_destroy_flag;
 }
 
+void role::set_relay_logout_flag(bool logout_flag)
+{
+	m_relay_logout_flag = logout_flag;
+}
+
+bool role::get_relay_logout_flag() const
+{
+	return m_relay_logout_flag;
+}
+
 TLevel_t role::get_level() const
 {
 	return m_lvl;
@@ -244,6 +279,16 @@ void role::add_rmb(TRmbNum_t num)
 	if (m_rmb < 0) {
 		m_rmb = 0;
 	}
+}
+
+void role::set_test_client_id(TSocketIndex_t client_id)
+{
+	m_test_client_id = client_id;
+}
+
+TSocketIndex_t role::get_test_client_id() const
+{
+	return m_test_client_id;
 }
 
 void role::set_server_id(TServerID_t server_id)
@@ -341,10 +386,16 @@ void role::save()
 {
 }
 
+void role::destroy()
+{
+	DGameServer.remove_entity(get_client_id());
+}
+
 void role::clean_up()
 {
 	m_login_success = false;
 	m_destroy_flag = false;
+	m_relay_logout_flag = false;
 	m_proxy_info.clean_up();
 	m_mailbox_info.clean_up();
 	m_role_id = INVALID_ROLE_ID;

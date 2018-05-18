@@ -119,7 +119,14 @@ void gate_server::logout_server(TSocketIndex_t socket_index)
 
 void gate_server::update_process_info(TSocketIndex_t socket_index, TSocketIndex_t client_id, const game_process_info & process_info)
 {
-	m_client_2_process[client_id] = process_info;
+	auto itr = m_client_2_process.find(client_id);
+	if (itr != m_client_2_process.end()) {
+		log_info("update process info success! client id = %" I64_FMT "u", client_id);
+		itr->second = process_info;
+	}
+	else {
+		log_error("update process info failed for not find client id! client id = %" I64_FMT "u", client_id);
+	}
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

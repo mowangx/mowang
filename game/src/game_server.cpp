@@ -182,6 +182,7 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 	p->set_client_id(client_id);
 	p->set_gate_id(gate_id);
 	p->set_entity_id(entity_id);
+	p->set_test_client_id(test_client_id);
 	p->init();
 	m_client_id_2_role[client_id] = p;
 	p->login(platform_id, user_id);
@@ -193,7 +194,7 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id)
 {
 	log_info("logout server, client id = %"I64_FMT"u", client_id);
-	remove_entity(client_id);
+	remove_entity_core(client_id);
 }
 
 void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
@@ -230,17 +231,7 @@ void game_server::create_entity(TSocketIndex_t socket_index, const dynamic_strin
 
 void game_server::remove_entity(TSocketIndex_t client_id)
 {
-	auto itr = m_client_id_2_role.find(client_id);
-	if (itr != m_client_id_2_role.end()) {
-		log_info("remove entity success! client id = %" I64_FMT "u", client_id);
-		role* p = itr->second;
-		m_client_id_2_role.erase(itr);
-
-		p->logout();
-		// should delete after some time to wait db callback
-		//delete p;
-	}
-	else {
+	if (!remove_entity_core(client_id)) {
 		log_error("remove entity failed for not find client id, client id = %" I64_FMT "u", client_id);
 	}
 }
@@ -274,6 +265,24 @@ void game_server::on_connect(TSocketIndex_t socket_index)
 			DSequence.save();
 		}
 	}
+}
+
+bool game_server::remove_entity_core(TSocketIndex_t client_id)
+{
+	auto itr = m_client_id_2_role.find(client_id);
+	if (itr != m_client_id_2_role.end()) {
+		log_info("remove entity success! client id = %" I64_FMT "u", client_id);
+		role* p = itr->second;
+		m_client_id_2_role.erase(itr);
+
+		p->logout();
+
+		// should delete after some time to wait db callback
+		//delete p;
+
+		return true;
+	}
+	return false;
 }
 
 void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
@@ -321,27 +330,19 @@ void game_server::create_entity_locally(const dynamic_string& stub_name)
 	rpc->call_remote_func("register_entity", stub_name, m_server_info.process_info);
 }
 
-void game_server::update_role_process_info(const proxy_info& old_proxy_info, const proxy_info& new_proxy_info, const mailbox_info& new_mailbox_info)
+role* game_server::get_role_by_client_id(TSocketIndex_t client_id) const
+{
+	auto itr = m_client_id_2_role.find(client_id);
+	return itr != m_client_id_2_role.end() ? itr->second : NULL;
+}
+
+void game_server::update_role_proxy_info(const proxy_info& old_proxy_info, const proxy_info& new_proxy_info)
 {
 	auto itr = m_client_id_2_role.find(old_proxy_info.client_id);
 	if (itr != m_client_id_2_role.end()) {
 		role* p = itr->second;
 		m_client_id_2_role.erase(itr);
 		m_client_id_2_role[new_proxy_info.client_id] = p;
-		game_process_info process_info;
-		process_info.server_id = old_proxy_info.server_id;
-		process_info.process_type = PROCESS_GATE;
-		process_info.process_id = old_proxy_info.gate_id;
-		rpc_client* rpc = DRpcWrapper.get_client(process_info);
-		if (NULL != rpc) {
-			process_info.process_type = PROCESS_GAME;
-			process_info.process_id = new_mailbox_info.game_id;
-			rpc->call_remote_func("update_process_info", old_proxy_info.client_id, process_info);
-		}
-		else {
-			log_error("update role process info failed for rpc is NULL!, old client id = %" I64_FMT "u, new client id = %" I64_FMT "u, old gate id = %u",
-				old_proxy_info.client_id, new_proxy_info.client_id, old_proxy_info.gate_id);
-		}
 	}
 	else {
 		log_error("update role process info failed for not find client id! old client id = %" I64_FMT "u, new client id = %" I64_FMT "u",

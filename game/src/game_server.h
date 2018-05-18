@@ -62,6 +62,7 @@ public:
 	void on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string_array& data);
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;
+	bool remove_entity_core(TSocketIndex_t client_id);
 
 public:
 	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
@@ -69,7 +70,8 @@ public:
 	void create_entity_locally(const dynamic_string& stub_name);
 
 public:
-	void update_role_process_info(const proxy_info& old_proxy_info, const proxy_info& new_proxy_info, const mailbox_info& new_mailbox_info);
+	role* get_role_by_client_id(TSocketIndex_t client_id) const;
+	void update_role_proxy_info(const proxy_info& old_proxy_info, const proxy_info& new_proxy_info);
 
 private:
 	TRoleID_t get_role_id_by_client_id(TSocketIndex_t client_id) const;

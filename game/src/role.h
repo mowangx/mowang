@@ -26,16 +26,17 @@ public:
 	void logout();
 
 public:
-	void on_register_account(const proxy_info& proxy, const mailbox_info& mailbox);
-	void on_register_role(bool status, const proxy_info& proxy, const mailbox_info& mailbox);
-	void on_relay_ready(const proxy_info& proxy, const mailbox_info& mailbox);
-	void on_relay_login();
+	void on_register_account(bool status, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);
+	void on_register_role(bool status, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);
+	void on_relay_logout();
 
 private:
 	void create_role();
+	void on_load_account_callback(bool status, const dynamic_string_array& result);
+	void on_load_role_callback(bool status, const dynamic_string_array& result);
+	void on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);
 	void on_account_login_success();
 	void on_role_login_success();
-	void on_role_relay_success(const proxy_info& proxy, const mailbox_info& mailbox);
 
 public:
 	void add_city(const game_pos& pos, TLevel_t lvl);
@@ -48,6 +49,9 @@ public:
 	void set_destroy_flag(bool destroy_flag);
 	bool get_destroy_flag() const;
 
+	void set_relay_logout_flag(bool logout_flag);
+	bool get_relay_logout_flag() const;
+
 	TLevel_t get_level() const;
 	void add_level(TLevel_t lvl);
 
@@ -58,6 +62,9 @@ public:
 	void add_rmb(TRmbNum_t num);
 
 public:
+	void set_test_client_id(TSocketIndex_t client_id);
+	TSocketIndex_t get_test_client_id() const;
+
 	void set_server_id(TServerID_t server_id);
 	TServerID_t get_server_id() const;
 
@@ -90,13 +97,16 @@ private:
 	void save();
 
 private:
+	void destroy();
 	void clean_up();
 
 public:
 	bool m_login_success;
 	bool m_destroy_flag;
+	bool m_relay_logout_flag;
 	proxy_info m_proxy_info;
 	mailbox_info m_mailbox_info;
+	TSocketIndex_t m_test_client_id;
 	TPlatformID_t m_platform_id;
 	TUserID_t m_user_id;
 	TRoleID_t m_role_id;

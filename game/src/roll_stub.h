@@ -17,9 +17,9 @@ public:
 	virtual bool init() override;
 
 public:
-	void register_account(TPlatformID_t platform_id, TUserID_t user_id, const proxy_info& proxy, const mailbox_info& mailbox);
+	void register_account(TPlatformID_t platform_id, TUserID_t user_id, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);
 	void unregister_account(TPlatformID_t platform_id, TUserID_t user_id);
-	void register_role(TPlatformID_t platform_id, TUserID_t user_id, TRoleID_t role_id, const proxy_info& proxy, const mailbox_info& mailbox);
+	void register_role(TPlatformID_t platform_id, TUserID_t user_id, TRoleID_t role_id, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);
 	void unregister_role(TRoleID_t role_id);
 
 private:
