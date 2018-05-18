@@ -7,10 +7,12 @@
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
 #include "socket_manager.h"
+#include "time_manager.h"
 
 gate_server::gate_server() : service(PROCESS_GATE)
 {
-	m_write_packets.clear();
+	m_delay_kick_sockets.clear();
+	m_client_2_process.clear();
 }
 
 gate_server::~gate_server()
@@ -28,6 +30,7 @@ bool gate_server::init(TProcessID_t process_id)
 	DRegisterServerRpc(this, gate_server, on_register_servers, 4);
 	DRegisterServerRpc(this, gate_server, login_server, 5);
 	DRegisterServerRpc(this, gate_server, update_process_info, 3);
+	DRegisterServerRpc(this, gate_server, kick_socket_delay, 2);
 
 	game_manager_handler::Setup();
 	game_server_handler::Setup();
@@ -59,6 +62,37 @@ void gate_server::net_run()
 bool gate_server::connect_game_manager(const char * ip, TPort_t port)
 {
 	return DNetMgr.start_connect<game_manager_handler>(ip, port);
+}
+
+void gate_server::do_loop(TGameTime_t diff)
+{
+	TBaseType_t::do_loop(diff);
+
+	if (m_delay_kick_sockets.empty()) {
+		return;
+	}
+
+	TGameTime_t cur_time = DTimeMgr.now_sys_time();
+	std::vector<socket_kick_info> del_kick_infos;
+
+	for (auto itr = m_delay_kick_sockets.begin(); itr != m_delay_kick_sockets.end(); ++itr) {
+		const socket_kick_info& kick_info = *itr;
+		if (kick_info.kick_time < cur_time) {
+			kick_socket(kick_info.socket_index);
+			del_kick_infos.push_back(kick_info);
+		}
+	}
+
+	if (del_kick_infos.empty()) {
+		return;
+	}
+
+	for (auto del_itr = del_kick_infos.begin(); del_itr != del_kick_infos.end(); ++del_itr) {
+		auto itr = std::find(m_delay_kick_sockets.begin(), m_delay_kick_sockets.end(), *del_itr);
+		if (itr != m_delay_kick_sockets.end()) {
+			m_delay_kick_sockets.erase(itr);
+		}
+	}
 }
 
 void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
@@ -127,6 +161,14 @@ void gate_server::update_process_info(TSocketIndex_t socket_index, TSocketIndex_
 	else {
 		log_error("update process info failed for not find client id! client id = %" I64_FMT "u", client_id);
 	}
+}
+
+void gate_server::kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t client_id)
+{
+	socket_kick_info kick_info;
+	kick_info.socket_index = client_id;
+	kick_info.kick_time = DTimeMgr.now_sys_time() + DELAY_KICK_SOCKET_TIME;
+	m_delay_kick_sockets.push_back(kick_info);
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

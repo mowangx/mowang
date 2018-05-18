@@ -5,6 +5,7 @@
 #include "service.h"
 #include "singleton.h"
 #include "dynamic_array.h"
+#include "game_struct.h"
 
 class gate_server : public service, public singleton<gate_server>
 {
@@ -20,17 +21,20 @@ private:
 	virtual void work_run() override;
 	virtual void net_run() override;
 	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
+	virtual void do_loop(TGameTime_t diff) override;
 
 public:
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
 	void login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const TUserID_t& user_id, TSocketIndex_t test_client_id);
 	void logout_server(TSocketIndex_t socket_index);
 	void update_process_info(TSocketIndex_t socket_index, TSocketIndex_t client_id, const game_process_info& process_info);
+	void kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 
 public:
 	TSocketIndex_t get_server_socket_index(TSocketIndex_t socket_index) const;
 
 private:
+	std::vector<socket_kick_info> m_delay_kick_sockets;
 	std::unordered_map<TSocketIndex_t, game_process_info> m_client_2_process;
 };
 

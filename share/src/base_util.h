@@ -33,6 +33,8 @@ static const uint32 MAX_SEQUENCE_TYPE_NUM = 8;	// 序列ID数量
 
 static const uint32 MAX_INI_VALUE = 1024;
 
+static const uint32 DELAY_KICK_SOCKET_TIME = 1; // 延迟清理socket的时间
+
 typedef uint32 TTime_t;					// 系统时间
 typedef uint32 TAppTime_t;				// 程序运行的毫秒数
 

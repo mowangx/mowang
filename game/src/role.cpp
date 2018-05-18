@@ -149,6 +149,15 @@ void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox
 {
 	log_info("role on relay success! cur entity id = %" I64_FMT "u, kick entity id = %" I64_FMT "u", get_entity_id(), mailbox.entity_id);
 	DRpcWrapper.call_client(get_proxy_info(), "logout", (uint8)LOGOUT_RELAY, get_test_client_id());
+	game_process_info process_info;
+	process_info.server_id = get_server_id();
+	process_info.process_type = PROCESS_GATE;
+	process_info.process_id = get_gate_id();
+	rpc_client* rpc = DRpcWrapper.get_client(process_info);
+	if (NULL != rpc) {
+		rpc->call_remote_func("kick_socket_delay", get_client_id());
+	}
+
 	set_test_client_id(test_client_id);
 
 	if (mailbox.game_id == get_game_id()) {
@@ -166,11 +175,8 @@ void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox
 	DGameServer.update_role_proxy_info(get_proxy_info(), proxy);
 	m_proxy_info = proxy;
 
-	game_process_info process_info;
-	process_info.server_id = get_server_id();
-	process_info.process_type = PROCESS_GATE;
 	process_info.process_id = get_gate_id();
-	rpc_client* rpc = DRpcWrapper.get_client(process_info);
+	rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
 		process_info.process_type = PROCESS_GAME;
 		process_info.process_id = get_game_id();

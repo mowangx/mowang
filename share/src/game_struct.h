@@ -52,6 +52,24 @@ struct game_pos
 	}
 };
 
+struct socket_kick_info
+{
+	TSocketIndex_t socket_index;
+	TGameTime_t kick_time;
+	socket_kick_info() {
+		clean_up();
+	}
+
+	bool operator == (const socket_kick_info& rhs) const {
+		return socket_index == rhs.socket_index;
+	}
+
+	void clean_up() {
+		socket_index = INVALID_SOCKET_INDEX;
+		kick_time = INVALID_GAME_TIME;
+	}
+};
+
 struct soldier_training_info
 {
 	TSoldierType_t soldier_type;
