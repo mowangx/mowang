@@ -95,6 +95,24 @@ void gate_server::do_loop(TGameTime_t diff)
 	}
 }
 
+void gate_server::on_disconnect(TSocketIndex_t socket_index)
+{
+	TBaseType_t::on_disconnect(socket_index);
+	game_process_info process_info;
+	if (!DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index) ||
+		process_info.process_type != PROCESS_GAME) {
+		return;
+	}
+
+	for (auto itr = m_client_2_process.begin(); itr != m_client_2_process.end(); ++itr) {
+		const game_process_info& tmp_process_info = itr->second;
+		if (tmp_process_info.process_id == process_info.process_id &&
+			tmp_process_info.server_id == process_info.server_id) {
+			kick_socket(itr->first);
+		}
+	}
+}
+
 void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
 {
 	log_info("on_register_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());

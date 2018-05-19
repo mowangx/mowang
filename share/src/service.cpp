@@ -267,10 +267,11 @@ void service::on_disconnect(TSocketIndex_t socket_index)
 {
 }
 
-void service::on_register_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name, const game_process_info& process_info)
+void service::on_register_entity(TSocketIndex_t socket_index, const dynamic_array<game_stub_info>& stub_infos)
 {
-	std::string tmp_stub_name = stub_name.data();
-	DRpcWrapper.register_stub_info(tmp_stub_name, process_info);
+	for (int i = 0; i < stub_infos.size(); ++i) {
+		DRpcWrapper.register_stub_info(stub_infos[i].stub_name.data(), stub_infos[i].process_info);
+	}
 }
 
 rpc_client* service::get_client(TSocketIndex_t socket_index)

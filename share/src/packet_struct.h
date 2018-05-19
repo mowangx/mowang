@@ -4,6 +4,7 @@
 
 #include "socket_util.h"
 #include "base_util.h"
+#include "dynamic_array.h"
 
 #pragma pack(push, 1)
 
@@ -102,6 +103,20 @@ struct mailbox_info
 		server_id = INVALID_SERVER_ID;
 		game_id = INVALID_PROCESS_ID;
 		entity_id = INVALID_ENTITY_ID;
+	}
+};
+
+struct game_stub_info
+{
+	TStubName_t stub_name;
+	game_process_info process_info;
+	game_stub_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		memset(stub_name.data(), 0, STUB_NAME_LEN);
+		process_info.clean_up();
 	}
 };
 

@@ -281,6 +281,7 @@ public:
 public:
 	bool get_server_info(const game_process_info& process_info, game_server_info& server_info) const;
 	void get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const;
+	void get_stub_infos(dynamic_array<game_stub_info>& stub_infos) const;;
 	bool get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const;
 	TSocketIndex_t get_socket_index(const game_process_info& process_info) const;
 	TProcessID_t get_random_process_id(TServerID_t server_id, TProcessType_t process_type) const;

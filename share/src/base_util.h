@@ -35,6 +35,8 @@ static const uint32 MAX_INI_VALUE = 1024;
 
 static const uint32 DELAY_KICK_SOCKET_TIME = 1; // 延迟清理socket的时间
 
+static const uint32 STUB_NAME_LEN = 32;	// stub长度
+
 typedef uint32 TTime_t;					// 系统时间
 typedef uint32 TAppTime_t;				// 程序运行的毫秒数
 
@@ -118,6 +120,8 @@ typedef uint8 TPlatformID_t;			// 平台ID
 const TPlatformID_t INVALID_PLATFORM_ID = 0;
 
 typedef std::array<char, USER_ID_LEN> TUserID_t;	// 用户ID
+
+typedef std::array<char, STUB_NAME_LEN> TStubName_t;
 
 typedef uint64 TEntityID_t;				// entity id
 const TEntityID_t INVALID_ENTITY_ID = 0;

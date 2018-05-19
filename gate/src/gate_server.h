@@ -22,6 +22,7 @@ private:
 	virtual void net_run() override;
 	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 	virtual void do_loop(TGameTime_t diff) override;
+	virtual void on_disconnect(TSocketIndex_t socket_index) override;
 
 public:
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);

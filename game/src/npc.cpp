@@ -13,11 +13,6 @@ npc::~npc()
 	clean_up();
 }
 
-void npc::on_timer(uint8 data)
-{
-	log_info("on timer! data = %u", data);
-}
-
 TNpcIndex_t npc::get_index() const
 {
 	return m_index;

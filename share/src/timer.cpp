@@ -88,10 +88,10 @@ void timer::proc_day_nodes()
 	proc_up_layer_node(m_hour_nodes, m_day_nodes[m_day_index], func);
 }
 
-void timer::add_timer(TGameTime_t delay, bool repeat, entity* e, uint8 data)
+void timer::add_timer(TGameTime_t delay, bool repeat, void* param, const std::function<void(void*)>& callback)
 {
 	timer_node* node = m_node_pool.allocate();
-	add_timer_core(node, delay, repeat, e, data);
+	add_timer_core(node, delay, repeat, param, callback);
 }
 
 void timer::del_timer(timer_node* node)
@@ -105,11 +105,11 @@ void timer::del_timer(timer_node* node)
 	m_node_pool.deallocate(node);
 }
 
-void timer::add_timer_core(timer_node *& node, TGameTime_t delay, bool repeat, entity* e, uint8 data)
+void timer::add_timer_core(timer_node *& node, TGameTime_t delay, bool repeat, void* param, const std::function<void(void*)>& callback)
 {
 	node->delay = delay;
-	node->e = e;
-	node->data = data;
+	node->param = param;
+	node->callback = callback;
 	int day_index = int(delay / SECOND_IN_DAY);
 	int slot_day_index = (day_index + m_day_index) % 30;
 	int hour_index = int(delay / SECOND_IN_HOUR);
@@ -160,11 +160,11 @@ void timer::add_node(timer_node*& cur_node, timer_node* node)
 void timer::proc_node(timer_node* node)
 {
 	while (NULL != node) {
-		node->e->on_timer(node->data);
+		node->callback(node->param);
 		timer_node* tmp_node = node;
 		node = node->next;
 		if ((tmp_node->slot_index_2 & 0x80) > 0) {
-			add_timer_core(tmp_node, tmp_node->delay, true, tmp_node->e, tmp_node->data);
+			add_timer_core(tmp_node, tmp_node->delay, true, tmp_node->param, tmp_node->callback);
 		}
 		else {
 			del_timer(tmp_node);

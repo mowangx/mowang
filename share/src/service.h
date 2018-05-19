@@ -59,7 +59,7 @@ protected:
 	virtual void on_disconnect(TSocketIndex_t socket_index);
 
 protected:
-	void on_register_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name, const game_process_info& process_info);
+	void on_register_entity(TSocketIndex_t socket_index, const dynamic_array<game_stub_info>& stub_infos);
 
 public:
 	rpc_client* get_client(TSocketIndex_t socket_index);

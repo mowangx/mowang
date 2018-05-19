@@ -138,9 +138,12 @@ void game_manager::unicast_to_game(const game_process_info& process_info) const
 {
 	dynamic_array<game_server_info> servers;
 	DRpcWrapper.get_server_infos(process_info.server_id, PROCESS_DB, servers);
+	dynamic_array<game_stub_info> stub_infos;
+	DRpcWrapper.get_stub_infos(stub_infos);
 	rpc_client* rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
 		rpc->call_remote_func("on_register_servers", process_info.server_id, (TProcessType_t)PROCESS_DB, servers);
+		rpc->call_remote_func("on_register_entity", stub_infos);
 	}
 }
 
@@ -154,7 +157,7 @@ void game_manager::unicast_to_gate(const game_process_info& process_info) const
 	}
 }
 
-void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const dynamic_string& stub_name)
+void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TStubName_t& stub_name)
 {
 	dynamic_array<game_server_info> game_servers;
 	DRpcWrapper.get_server_infos(server_id, PROCESS_GAME, game_servers);
@@ -166,16 +169,21 @@ void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server
 	rpc->call_remote_func("create_entity", stub_name);
 }
 
-void game_manager::register_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name, const game_process_info& process_info)
+void game_manager::register_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name, const game_process_info& process_info)
 {
-	TBaseType_t::on_register_entity(socket_index, stub_name, process_info);
+	dynamic_array<game_stub_info> stub_infos;
+	game_stub_info stub_info;
+	stub_info.stub_name = stub_name;
+	stub_info.process_info = process_info;
+	stub_infos.push_back(stub_info);
+	TBaseType_t::on_register_entity(socket_index, stub_infos);
 	dynamic_array<game_server_info> game_servers;
 	DRpcWrapper.get_server_infos(process_info.server_id, PROCESS_GAME, game_servers);
 	for (int i = 0; i < game_servers.size(); ++i) {
 		const game_server_info& server_info = game_servers[i];
 		rpc_client* rpc = DRpcWrapper.get_client(server_info.process_info);
 		if (NULL != rpc) {
-			rpc->call_remote_func("on_register_entity", stub_name, process_info);
+			rpc->call_remote_func("on_register_entity", stub_infos);
 		}
 	}
 }

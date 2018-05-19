@@ -9,6 +9,7 @@
 #include "rpc_wrapper.h"
 #include "socket_manager.h"
 #include "roll_stub.h"
+#include "timer.h"
 
 #include "sequence.h"
 
@@ -46,7 +47,7 @@ bool game_server::init(TProcessID_t process_id)
 	DRegisterServerRpc(this, game_server, login_server, 5);
 	DRegisterServerRpc(this, game_server, logout_server, 2);
 	DRegisterServerRpc(this, game_server, create_entity, 2);
-	DRegisterServerRpc(this, game_server, on_register_entity, 3);
+	DRegisterServerRpc(this, game_server, on_register_entity, 2);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_result, 4);
 
@@ -224,9 +225,9 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 	}
 }
 
-void game_server::create_entity(TSocketIndex_t socket_index, const dynamic_string & stub_name)
+void game_server::create_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name)
 {
-	create_entity_locally(stub_name);
+	create_entity_locally(stub_name.data());
 }
 
 void game_server::remove_entity(TSocketIndex_t client_id)
@@ -267,6 +268,20 @@ void game_server::on_connect(TSocketIndex_t socket_index)
 	}
 }
 
+void game_server::on_disconnect(TSocketIndex_t socket_index)
+{
+	game_process_info process_info;
+	if (!DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index) ||
+		process_info.process_type != PROCESS_GAME) {
+		return;
+	}
+
+	for (auto itr = m_client_id_2_role.begin(); itr != m_client_id_2_role.end(); ++itr) {
+		role* p = itr->second;
+		p->logout();
+	}
+}
+
 bool game_server::remove_entity_core(TSocketIndex_t client_id)
 {
 	auto itr = m_client_id_2_role.find(client_id);
@@ -275,10 +290,10 @@ bool game_server::remove_entity_core(TSocketIndex_t client_id)
 		role* p = itr->second;
 		m_client_id_2_role.erase(itr);
 
-		p->logout();
-
-		// should delete after some time to wait db callback
-		//delete p;
+		DTimer.add_timer(10, false, p, [](void* param) {
+			role* r = (role*)param;
+			delete r;
+		});
 
 		return true;
 	}
@@ -303,17 +318,20 @@ void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 	}
 }
 
-void game_server::create_entity_globally(const dynamic_string& stub_name)
+void game_server::create_entity_globally(const std::string& stub_name)
 {
 	TServerID_t server_id = 100;
 	rpc_client* rpc = DRpcWrapper.get_random_client(server_id, PROCESS_GAME_MANAGER);
 	if (NULL == rpc) {
 		return;
 	}
-	rpc->call_remote_func("create_entity", server_id, stub_name);
+	TStubName_t name;
+	memset(name.data(), 0, STUB_NAME_LEN);
+	memcpy((void*)name.data(), stub_name.c_str(), stub_name.length());
+	rpc->call_remote_func("create_entity", server_id, name);
 }
 
-void game_server::create_entity_locally(const dynamic_string& stub_name)
+void game_server::create_entity_locally(const std::string& stub_name)
 {
 	entity* e = NULL;
 	if (strcmp(stub_name.data(), "roll_stub") == 0) {
@@ -327,7 +345,10 @@ void game_server::create_entity_locally(const dynamic_string& stub_name)
 	if (NULL == rpc) {
 		return;
 	}
-	rpc->call_remote_func("register_entity", stub_name, m_server_info.process_info);
+	TStubName_t name;
+	memset(name.data(), 0, STUB_NAME_LEN);
+	memcpy((void*)name.data(), stub_name.c_str(), stub_name.length());
+	rpc->call_remote_func("register_entity", name, m_server_info.process_info);
 }
 
 role* game_server::get_role_by_client_id(TSocketIndex_t client_id) const

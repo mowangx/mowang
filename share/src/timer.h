@@ -28,10 +28,10 @@ private:
 	void proc_day_nodes();
 
 public:
-	void add_timer(TGameTime_t delay,  bool repeat, entity* e, uint8 data);
+	void add_timer(TGameTime_t delay,  bool repeat, void* param, const std::function<void(void*)>& callback);
 	void del_timer(timer_node* node);
 private:
-	void add_timer_core(timer_node*& node, TGameTime_t delay, bool repeat, entity* e, uint8 data);
+	void add_timer_core(timer_node*& node, TGameTime_t delay, bool repeat, void* param, const std::function<void(void*)>& callback);
 
 private:
 	void add_node(timer_node*& cur_node, timer_node* node);

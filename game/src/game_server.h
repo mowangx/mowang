@@ -56,18 +56,19 @@ public:
 	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id);
 	void logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
-	void create_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name);
+	void create_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name);
 	void remove_entity(TSocketIndex_t client_id);
 	void on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status);
 	void on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string_array& data);
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;
+	virtual void on_disconnect(TSocketIndex_t socket_index) override;
 	bool remove_entity_core(TSocketIndex_t client_id);
 
 public:
 	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
-	void create_entity_globally(const dynamic_string& stub_name);
-	void create_entity_locally(const dynamic_string& stub_name);
+	void create_entity_globally(const std::string& stub_name);
+	void create_entity_locally(const std::string& stub_name);
 
 public:
 	role* get_role_by_client_id(TSocketIndex_t client_id) const;

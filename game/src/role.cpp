@@ -15,6 +15,7 @@ role::role()
 
 role::~role()
 {
+	log_info("role deconstructor! entity id = %" I64_FMT "u", get_entity_id());
 	clean_up();
 
 	for (auto c : m_cities) {
@@ -49,7 +50,7 @@ void role::login(TPlatformID_t platform_id, const TUserID_t& user_id)
 void role::logout()
 {
 	log_info("role logout, entity id = %" I64_FMT "u", get_entity_id());
-	set_destroy_flag(true);
+	destroy();
 	if (get_relay_logout_flag()) {
 		return;
 	}
@@ -98,7 +99,7 @@ void role::on_relay_logout()
 {
 	log_info("role on relay logout! entity id = %" I64_FMT "u", get_entity_id());
 	set_relay_logout_flag(true);
-	destroy();
+	logout();
 }
 
 void role::create_role()
@@ -394,6 +395,7 @@ void role::save()
 
 void role::destroy()
 {
+	set_destroy_flag(true);
 	DGameServer.remove_entity(get_client_id());
 }
 

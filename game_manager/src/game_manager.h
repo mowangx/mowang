@@ -34,8 +34,8 @@ private:
 	void unicast_to_gate(const game_process_info& process_info) const;
 
 public:
-	void create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const dynamic_string& stub_name);
-	void register_entity(TSocketIndex_t socket_index, const dynamic_string& stub_name, const game_process_info& process_info);
+	void create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TStubName_t& stub_name);
+	void register_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name, const game_process_info& process_info);
 
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;

@@ -85,6 +85,17 @@ void rpc_wrapper::get_server_infos(TServerID_t server_id, TProcessType_t process
 	m_server_manager.get_server_infos(server_id, process_type, servers);
 }
 
+void rpc_wrapper::get_stub_infos(dynamic_array<game_stub_info>& stub_infos) const
+{
+	for (auto itr = m_stub_name_2_process_infos.begin(); itr != m_stub_name_2_process_infos.end(); ++itr) {
+		game_stub_info stub_info;
+		const std::string& stub_name = itr->first;
+		memcpy((void*)stub_info.stub_name.data(), stub_name.c_str(), stub_name.length());
+		stub_info.process_info = itr->second;
+		stub_infos.push_back(stub_info);
+	}
+}
+
 bool rpc_wrapper::get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const
 {
 	for (auto itr = m_server_process_id_2_clients.begin(); itr != m_server_process_id_2_clients.end(); ++itr) {

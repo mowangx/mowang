@@ -19,10 +19,6 @@ public:
 	virtual bool init() {
 		return true;
 	}
-
-	virtual void on_timer(uint8 uint16) {
-
-	}
 };
 
 #endif // !_ENTITY_H_
