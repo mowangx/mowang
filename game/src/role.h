@@ -19,11 +19,12 @@ public:
 
 public:
 	bool init() override;
-	void update(TGameTime_t diff);
 
 public:
 	void login(TPlatformID_t platform_id, const TUserID_t& user_id);
 	void logout();
+private:
+	void logout_core(bool need_unregister_flag);
 
 public:
 	void on_register_account(bool status, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);
@@ -48,9 +49,6 @@ public:
 
 	void set_destroy_flag(bool destroy_flag);
 	bool get_destroy_flag() const;
-
-	void set_relay_logout_flag(bool logout_flag);
-	bool get_relay_logout_flag() const;
 
 	TLevel_t get_level() const;
 	void add_level(TLevel_t lvl);
@@ -103,7 +101,6 @@ private:
 public:
 	bool m_login_success;
 	bool m_destroy_flag;
-	bool m_relay_logout_flag;
 	proxy_info m_proxy_info;
 	mailbox_info m_mailbox_info;
 	TSocketIndex_t m_test_client_id;

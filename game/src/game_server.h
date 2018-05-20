@@ -42,6 +42,9 @@ public:
 	farmland* allocate_farmland();
 	void deallocate_farmland(farmland* f);
 
+	soldier_training_info* allocate_soldier_training();
+	void deallocate_soldier_training(soldier_training_info* s);
+
 public:
 	void db_remove(const char* table, const char* query, const std::function<void(bool)>& callback);
 	void db_insert(const char* table, const char* fields, const std::function<void(bool)>& callback);

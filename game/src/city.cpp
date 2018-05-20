@@ -2,16 +2,16 @@
 #include "city.h"
 #include "game_enum.h"
 #include "game_server.h"
-#include "time_manager.h"
 #include "resource.h"
 #include "farmland.h"
 #include "npc.h"
+#include "time_manager.h"
+#include "timer.h"
 
 city::city()
 {
 	clean_up();
 	m_resources.clear();
-	m_up_level_resources.clear();
 	m_npcs.clear();
 	m_farmlands.clear();
 }
@@ -25,11 +25,6 @@ city::~city()
 	}
 	m_resources.clear();
 
-	for (auto res : m_up_level_resources) {
-		DGameServer.deallocate_resource(res);
-	}
-	m_up_level_resources.clear();
-
 	for (auto p : m_npcs) {
 		DGameServer.deallocate_npc(p);
 	}
@@ -39,26 +34,9 @@ city::~city()
 		DGameServer.deallocate_farmland(f);
 	}
 	m_farmlands.clear();
-}
 
-void city::update(TGameTime_t diff)
-{
-	TGameTime_t cur_time = DTimeMgr.now_sys_time();
-	std::vector<resource*> del_resources;
-
-	for (auto res: m_up_level_resources) {
-		if (res->get_level_end_time() > cur_time) {
-			continue;
-		}
-		res->set_level_end_time(INVALID_GAME_TIME);
-		res->add_level(1);
-		del_resources.push_back(res);
-	}
-
-	if (del_resources.size() > 0) {
-		for (auto res : del_resources) {
-			remove_up_level_resource(res);
-		}
+	for (auto itr = m_timer_ids.begin(); itr != m_timer_ids.end(); ++itr) {
+		DTimer.del_timer(*itr);
 	}
 }
 
@@ -68,34 +46,57 @@ void city::random_resources(TLevel_t lvl)
 
 void city::add_training_soldier(TSoldierType_t soldier_type, TSoldierNum_t soldier_num, TConsumeType_t consume_type)
 {
-	soldier_training_info soldier_info;
-	soldier_info.soldier_type = soldier_type;
-	soldier_info.soldier_num = soldier_num;
-	soldier_info.end_time = DTimeMgr.now_sys_time() + calc_soldier_training_time(soldier_type, soldier_num, consume_type);
-	m_soldier_trainings.push_back(soldier_info);
+	TGameTime_t training_time = calc_soldier_training_time(soldier_type, soldier_num, consume_type);
+	soldier_training_info* soldier_info = DGameServer.allocate_soldier_training();
+	soldier_info->soldier_type = soldier_type;
+	soldier_info->soldier_num = soldier_num;
+	soldier_info->end_time = DTimeMgr.now_sys_time() + training_time;
+	m_soldier_trainings.push_back(*soldier_info);
+	TTimerID_t training_timer_id = DTimer.add_timer(training_time, false, (void*)soldier_info, [&](void* param, TTimerID_t timer_id) {
+		soldier_training_info* training_info = (soldier_training_info*)param;
+		on_training_soldier_success(*training_info);
+		DGameServer.deallocate_soldier_training(training_info);
+		remove_timer_id(timer_id);
+	});
+	m_timer_ids.push_back(training_timer_id);
 }
 
 void city::del_training_soldier(TSoldierType_t soldier_type, TSoldierNum_t soldier_num, TGameTime_t end_time)
 {
-	for (auto itr = m_soldier_trainings.begin(); itr != m_soldier_trainings.end(); ++itr) {
-		soldier_training_info& soldier_info = *itr;
-		if (soldier_info.soldier_type != soldier_type || soldier_info.soldier_num != soldier_num || soldier_info.end_time != end_time) {
-			continue;
-		}
+	soldier_training_info training_info(soldier_type, soldier_num, end_time);
+	auto itr = std::find(m_soldier_trainings.begin(), m_soldier_trainings.end(), training_info);
+	if (itr != m_soldier_trainings.end()) {
 		m_soldier_trainings.erase(itr);
-		return;
 	}
 }
 
 void city::up_technology_level(TTechnologyType_t technology_type, TConsumeType_t consume_type)
 {
+	TGameTime_t up_time = calc_research_technology_time(technology_type, consume_type);
 	m_research_technology.technology_type = technology_type;
-	m_research_technology.end_time = DTimeMgr.now_sys_time() + calc_research_technology_time(technology_type, consume_type);
+	m_research_technology.end_time = DTimeMgr.now_sys_time() + up_time;
+	TTimerID_t up_timer_id = DTimer.add_timer(up_time, false, NULL, [&](void* param, TTimerID_t timer_id) {
+		on_up_technology_level_success();
+		remove_timer_id(timer_id);
+	});
+	m_timer_ids.push_back(up_timer_id);
 }
 
 void city::del_up_technology_level()
 {
 	m_research_technology.clean_up();
+}
+
+void city::on_training_soldier_success(const soldier_training_info & training_info)
+{
+	m_soldier_num[training_info.soldier_type] += training_info.soldier_num;
+	del_training_soldier(training_info.soldier_type, training_info.soldier_num, training_info.end_time);
+}
+
+void city::on_up_technology_level_success()
+{
+	m_technologys[m_research_technology.technology_type] += 1;
+	del_up_technology_level();
 }
 
 void city::add_resource(uint8 index, uint8 resource_type)
@@ -131,15 +132,6 @@ void city::del_resource(uint8 index)
 			continue;
 		}
 
-		for (auto del_itr = m_up_level_resources.begin(); del_itr != m_up_level_resources.end(); ++del_itr) {
-			resource* del_res = (*del_itr);
-			if (del_res->get_index() != index) {
-				continue;
-			}
-			m_up_level_resources.erase(del_itr);
-			break;
-		}
-
 		DGameServer.deallocate_resource(res);
 		m_resources.erase(itr);
 		return;
@@ -153,22 +145,16 @@ void city::up_level(uint8 index)
 			continue;
 		}
 
-		if (res->get_level_end_time() > 0) {
-			return;
-		}
-
-		TGameTime_t lvl_end_time = DTimeMgr.now_sys_time() + 10;
-		res->set_level_end_time(lvl_end_time);
-		m_up_level_resources.push_back(res);
+		res->up_level();
 	}
 }
 
-const game_pos & city::get_pos() const
+const game_pos& city::get_pos() const
 {
 	return m_pos;
 }
 
-void city::set_pos(const game_pos & pos)
+void city::set_pos(const game_pos& pos)
 {
 	m_pos = pos;
 }
@@ -226,15 +212,14 @@ TGameTime_t city::calc_research_technology_time(TTechnologyType_t technology_typ
 	return 0;
 }
 
-void city::remove_up_level_resource(resource * res)
+void city::remove_timer_id(TTimerID_t timer_id)
 {
-	for (auto itr = m_up_level_resources.begin(); itr != m_up_level_resources.end(); ++itr) {
-		resource* r = *itr;
-		if (r->get_index() != res->get_index()) {
-			continue;
-		}
-		m_up_level_resources.erase(itr);
-		return;
+	auto itr = std::find(m_timer_ids.begin(), m_timer_ids.end(), timer_id);
+	if (itr != m_timer_ids.end()) {
+		m_timer_ids.erase(itr);
+	}
+	else {
+		log_error("remove timer id failed! timer id = %" I64_FMT "u", timer_id);
 	}
 }
 
@@ -250,4 +235,5 @@ void city::clean_up()
 		m_soldier_num[i] = 0;
 	}
 	m_soldier_trainings.clear();
+	m_timer_ids.clear();
 }

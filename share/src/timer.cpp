@@ -1,7 +1,6 @@
 #include "timer.h"
 #include "common_const.h"
 #include "time_manager.h"
-#include "entity.h"
 
 timer::timer()
 {
@@ -88,24 +87,24 @@ void timer::proc_day_nodes()
 	proc_up_layer_node(m_hour_nodes, m_day_nodes[m_day_index], func);
 }
 
-void timer::add_timer(TGameTime_t delay, bool repeat, void* param, const std::function<void(void*)>& callback)
+TTimerID_t timer::add_timer(TGameTime_t delay, bool repeat, void* param, const std::function<void(void*, TTimerID_t)>& callback)
 {
 	timer_node* node = m_node_pool.allocate();
+	node->timer_id = gen_timer_id();
 	add_timer_core(node, delay, repeat, param, callback);
+	return node->timer_id;
 }
 
-void timer::del_timer(timer_node* node)
+void timer::del_timer(TTimerID_t timer_id)
 {
-	if (NULL != node->pre) {
-		node->pre->next = node->next;
+	auto itr = m_timer_id_2_node.find(timer_id);
+	if (itr != m_timer_id_2_node.end()) {
+		del_timer_core(itr->second);
+		m_timer_id_2_node.erase(itr);
 	}
-	if (NULL != node->next) {
-		node->next->pre = node->pre;
-	}
-	m_node_pool.deallocate(node);
 }
 
-void timer::add_timer_core(timer_node *& node, TGameTime_t delay, bool repeat, void* param, const std::function<void(void*)>& callback)
+void timer::add_timer_core(timer_node*& node, TGameTime_t delay, bool repeat, void* param, const std::function<void(void*, TTimerID_t)>& callback)
 {
 	node->delay = delay;
 	node->param = param;
@@ -141,6 +140,17 @@ void timer::add_timer_core(timer_node *& node, TGameTime_t delay, bool repeat, v
 	}
 }
 
+void timer::del_timer_core(timer_node* node)
+{
+	if (NULL != node->pre) {
+		node->pre->next = node->next;
+	}
+	if (NULL != node->next) {
+		node->next->pre = node->pre;
+	}
+	m_node_pool.deallocate(node);
+}
+
 void timer::add_node(timer_node*& cur_node, timer_node* node)
 {
 	if (NULL == cur_node) {
@@ -160,14 +170,14 @@ void timer::add_node(timer_node*& cur_node, timer_node* node)
 void timer::proc_node(timer_node* node)
 {
 	while (NULL != node) {
-		node->callback(node->param);
+		node->callback(node->param, node->timer_id);
 		timer_node* tmp_node = node;
 		node = node->next;
 		if ((tmp_node->slot_index_2 & 0x80) > 0) {
 			add_timer_core(tmp_node, tmp_node->delay, true, tmp_node->param, tmp_node->callback);
 		}
 		else {
-			del_timer(tmp_node);
+			del_timer_core(tmp_node);
 		}
 	}
 }
@@ -183,8 +193,15 @@ void timer::proc_up_layer_node(std::vector<timer_node*>& cur_node, timer_node*& 
 	node = NULL;
 }
 
+TTimerID_t timer::gen_timer_id()
+{
+	++m_timer_id;
+	return m_timer_id;
+}
+
 void timer::clean_up()
 {
+	m_timer_id = INVALID_TIMER_ID;
 	m_last_time = INVALID_GAME_TIME;
 	m_second_index = 0;
 	m_minute_index = 0;
@@ -194,4 +211,5 @@ void timer::clean_up()
 	m_minute_nodes.clear();
 	m_hour_nodes.clear();
 	m_day_nodes.clear();
+	m_timer_id_2_node.clear();
 }

@@ -51,5 +51,5 @@ void robot_server::net_run()
 void robot_server::logout(uint8 reason, TSocketIndex_t client_id)
 {
 	log_info("logout! reason = %u, client id = %" I64_FMT "u", reason, client_id);
-	kick_socket(client_id);
+	//kick_socket(client_id);
 }

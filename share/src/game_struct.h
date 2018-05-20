@@ -13,7 +13,8 @@ struct timer_node
 	TGameTime_t delay;
 	uint16 slot_index_1;	// 5 bit day index, 5 bit hour index, 6 bit minute index
 	uint8 slot_index_2;	// 1 bit repeate, 6 bit second index
-	std::function<void(void*)> callback;
+	TTimerID_t timer_id;
+	std::function<void(void*, TTimerID_t)> callback;
 	void* param;
 	timer_node() {
 		clean_up();
@@ -25,6 +26,7 @@ struct timer_node
 		delay = INVALID_GAME_TIME;
 		slot_index_1 = 0;
 		slot_index_2 = 0;
+		timer_id = INVALID_TIMER_ID;
 		callback = NULL;
 		param = NULL;
 	}
@@ -77,6 +79,16 @@ struct soldier_training_info
 	TGameTime_t end_time;
 	soldier_training_info() {
 		clean_up();
+	}
+
+	soldier_training_info(TSoldierType_t _soldier_type, TSoldierNum_t _soldier_num, TGameTime_t _end_time) {
+		soldier_type = _soldier_type;
+		soldier_num = _soldier_num;
+		end_time = _end_time;
+	}
+
+	bool operator == (const soldier_training_info& rhs) const {
+		return soldier_type == rhs.soldier_type && soldier_num == rhs.soldier_num && end_time == rhs.end_time;
 	}
 
 	void clean_up() {

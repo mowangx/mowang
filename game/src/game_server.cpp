@@ -127,6 +127,15 @@ void game_server::deallocate_farmland(farmland * f)
 	m_farmland_pool.deallocate(f);
 }
 
+soldier_training_info * game_server::allocate_soldier_training()
+{
+	return nullptr;
+}
+
+void game_server::deallocate_soldier_training(soldier_training_info * s)
+{
+}
+
 void game_server::db_remove(const char* table, const char* query, const std::function<void(bool)>& callback)
 {
 	db_opt_with_status(DB_OPT_DELETE, table, query, NULL, callback);
@@ -290,7 +299,7 @@ bool game_server::remove_entity_core(TSocketIndex_t client_id)
 		role* p = itr->second;
 		m_client_id_2_role.erase(itr);
 
-		DTimer.add_timer(10, false, p, [](void* param) {
+		DTimer.add_timer(10, false, p, [](void* param, TTimerID_t timer_id) {
 			role* r = (role*)param;
 			delete r;
 		});

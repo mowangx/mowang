@@ -3,14 +3,11 @@
 #define _TIMER_H_
 
 #include <vector>
+#include <unordered_map>
 
-#include "base_util.h"
 #include "singleton.h"
-#include "game_struct.h"
 #include "memory_pool.h"
-
-class entity;
-struct timer_node;
+#include "game_struct.h"
 
 class timer : public singleton<timer>
 {
@@ -28,10 +25,11 @@ private:
 	void proc_day_nodes();
 
 public:
-	void add_timer(TGameTime_t delay,  bool repeat, void* param, const std::function<void(void*)>& callback);
-	void del_timer(timer_node* node);
+	TTimerID_t add_timer(TGameTime_t delay, bool repeat, void* param, const std::function<void(void*, TTimerID_t)>& callback);
+	void del_timer(TTimerID_t timer_id);
 private:
-	void add_timer_core(timer_node*& node, TGameTime_t delay, bool repeat, void* param, const std::function<void(void*)>& callback);
+	void add_timer_core(timer_node*& node, TGameTime_t delay, bool repeat, void* param, const std::function<void(void*, TTimerID_t)>& callback);
+	void del_timer_core(timer_node* node);
 
 private:
 	void add_node(timer_node*& cur_node, timer_node* node);
@@ -39,9 +37,13 @@ private:
 	void proc_up_layer_node(std::vector<timer_node*>& cur_node, timer_node*& node, int (*calc_index_func)(uint16, uint8));
 
 private:
+	TTimerID_t gen_timer_id();
+
+private:
 	void clean_up();
 
 private:
+	TTimerID_t m_timer_id;
 	TGameTime_t m_last_time;
 	uint8 m_second_index;
 	uint8 m_minute_index;
@@ -51,6 +53,7 @@ private:
 	std::vector<timer_node*> m_minute_nodes;
 	std::vector<timer_node*> m_hour_nodes;
 	std::vector<timer_node*> m_day_nodes;
+	std::unordered_map<TTimerID_t, timer_node*> m_timer_id_2_node;
 	obj_memory_pool<timer_node, 100> m_node_pool;
 };
 

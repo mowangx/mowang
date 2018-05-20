@@ -20,9 +20,13 @@ public:
 	TLevel_t get_level() const;
 	void add_level(TLevel_t lvl);
 	void set_level(TLevel_t lvl);
+	void up_level();
 
 	TGameTime_t get_level_end_time() const;
 	void set_level_end_time(TGameTime_t time);
+
+private:
+	TGameTime_t calc_up_level_time() const;
 
 private:
 	void clean_up();
@@ -32,6 +36,7 @@ private:
 	TResourceIndex_t m_index;
 	TLevel_t m_lvl;
 	TGameTime_t m_lvl_time;
+	TTimerID_t m_up_timer_id;
 };
 
 #endif // !_RESOURCE_H_

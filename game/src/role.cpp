@@ -32,13 +32,6 @@ bool role::init()
 	return true;
 }
 
-void role::update(TGameTime_t diff)
-{
-	for (auto c : m_cities) {
-		c->update(diff);
-	}
-}
-
 void role::login(TPlatformID_t platform_id, const TUserID_t& user_id)
 {
 	log_info("role login, entity id = %" I64_FMT "u", get_entity_id());
@@ -51,9 +44,17 @@ void role::logout()
 {
 	log_info("role logout, entity id = %" I64_FMT "u", get_entity_id());
 	destroy();
-	if (get_relay_logout_flag()) {
+	logout_core(true);
+}
+
+void role::logout_core(bool need_unregister_flag)
+{
+	destroy();
+	
+	if (!need_unregister_flag) {
 		return;
 	}
+
 	log_info("role logout, send unregister account, entity id = %" I64_FMT "u", get_entity_id());
 	if (get_login_success()) {
 		save();
@@ -98,8 +99,7 @@ void role::on_register_role(bool status, const proxy_info& proxy, const mailbox_
 void role::on_relay_logout()
 {
 	log_info("role on relay logout! entity id = %" I64_FMT "u", get_entity_id());
-	set_relay_logout_flag(true);
-	logout();
+	logout_core(false);
 }
 
 void role::create_role()
@@ -243,16 +243,6 @@ void role::set_destroy_flag(bool destroy_flag)
 bool role::get_destroy_flag() const
 {
 	return m_destroy_flag;
-}
-
-void role::set_relay_logout_flag(bool logout_flag)
-{
-	m_relay_logout_flag = logout_flag;
-}
-
-bool role::get_relay_logout_flag() const
-{
-	return m_relay_logout_flag;
 }
 
 TLevel_t role::get_level() const
@@ -403,7 +393,6 @@ void role::clean_up()
 {
 	m_login_success = false;
 	m_destroy_flag = false;
-	m_relay_logout_flag = false;
 	m_proxy_info.clean_up();
 	m_mailbox_info.clean_up();
 	m_role_id = INVALID_ROLE_ID;
