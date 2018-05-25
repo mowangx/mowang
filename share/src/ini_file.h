@@ -40,7 +40,7 @@ public:
     sint32 read_int(const char *section, const char *key);
     bool read_int_if_exist(const char *section, const char *key, sint32& nResult);
 
-    template<typename T>
+    template<class T>
     bool read_type_if_exist(const char* section, const char*key, T& result);
 
     sint32 read_int(const char *section, sint32 lines);
@@ -72,7 +72,7 @@ private:
 	char m_ret[MAX_INI_VALUE];		//	返回值
 };
 
-template<typename T>
+template<class T>
 T* ini_file::realloc_array(T* data, uint32 src_len, uint32 dest_len)
 {
 	T* temp = new T[dest_len];
@@ -81,7 +81,7 @@ T* ini_file::realloc_array(T* data, uint32 src_len, uint32 dest_len)
 	return temp;
 }
 
-template<typename T>
+template<class T>
 bool ini_file::read_type_if_exist( const char* section, const char* key, T& result )
 {
 	sint32 n = find_index(section);
