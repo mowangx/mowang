@@ -170,7 +170,7 @@ public:
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
 	void call_role(const mailbox_info& mailbox, const std::string& func_name, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
 		const T5& p5, const T6& p6, const T7& p7) {
-		rpc_client = get_random_client(mailbox.server_id, PROCESS_GATE);
+		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
 			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, p1, p2, p3, p4, p5, p6, p7);
 		}

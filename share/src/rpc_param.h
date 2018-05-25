@@ -73,10 +73,11 @@ template <class T>
 struct rpc_param_parse<dynamic_array<T>, T> {
 	static void parse_param(dynamic_array<T>& value, char* buffer, int& buffer_index) {
 		uint16 len = 0;
+		typedef typename template_type<T>::type TValueType_t;
 		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
 			T data;
-			rpc_param_parse<T, template_type<T>::type>::parse_param(data, buffer, buffer_index);
+			rpc_param_parse<T, TValueType_t>::parse_param(data, buffer, buffer_index);
 			value.push_back(data);
 		}
 	}
@@ -116,9 +117,10 @@ template <class T>
 struct rpc_param_fill<dynamic_array<T>, T> {
 	static void fill_param(const dynamic_array<T>& value, char* buffer, int& buffer_index) {
 		uint16 len = value.size();
+		typedef typename template_type<T>::type TValueType_t;
 		rpc_param_fill<uint16, uint16>::fill_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
-			rpc_param_fill<T, template_type<T>::type>::fill_param(value[i], buffer, buffer_index);
+			rpc_param_fill<T, TValueType_t>::fill_param(value[i], buffer, buffer_index);
 		}
 	}
 };
@@ -129,7 +131,8 @@ struct rpc_param_wrapper {
 	static void convert_core(T& params, char* buffer, int& buffer_index) {
 		auto v = std::get<N>(params);
 		typedef decltype(v) TValue_t;
-		rpc_param_parse<TValue_t, template_type<TValue_t>::type>::parse_param(std::get<N>(params), buffer, buffer_index);
+		typedef typename template_type<TValue_t>::type TValueType_t;
+		rpc_param_parse<TValue_t, TValueType_t>::parse_param(std::get<N>(params), buffer, buffer_index);
 	}
 };
 
@@ -167,6 +170,10 @@ struct call_helper<0>
 		return f(std::forward<ArgsF>(args_f)...);
 	}
 };
+
+inline std::string append_string(const std::string& s1, const std::string& s2) {
+	return s1 + s2;
+}
 
 #endif // !_RPC_PARAM_H_
 

@@ -1,5 +1,8 @@
 
 #include "city.h"
+
+#include <algorithm>
+
 #include "game_enum.h"
 #include "game_server.h"
 #include "resource.h"

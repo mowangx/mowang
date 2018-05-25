@@ -1,5 +1,8 @@
 
 #include "resource.h"
+
+#include <algorithm>
+
 #include "timer.h"
 
 resource::resource()

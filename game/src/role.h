@@ -18,7 +18,7 @@ public:
 	virtual ~role();
 
 public:
-	bool init() override;
+	virtual bool init() override;
 
 public:
 	void login(TPlatformID_t platform_id, const TUserID_t& user_id);

@@ -18,7 +18,7 @@ public:
 
 private:
 	rpc_proxy(const rpc_proxy&) {}
-	rpc_proxy& operator = (const rpc_proxy&) {}
+	rpc_proxy& operator = (const rpc_proxy&) const {}
 
 public:
 	template <size_t N, class F1, class F2>
@@ -144,7 +144,7 @@ private:
 
 // call with transfer send, such as game ---> gate ---> game, every stub will has only one in same server
 #define DRegisterStubRpc(obj, class_name, func_name, args_count) { \
-	DRpcStub.register_func<args_count>(#class_name###func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+	DRpcStub.register_func<args_count>(append_string(#class_name, #func_name), &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
 // call with transfer send, such as game ---> gate ---> game, callback will call by role id

@@ -65,7 +65,7 @@ template <class T1, class T2, class T3, class T4, class T5, class T6>
 inline std::string gx_to_string(const char* fmt, const T1& p1, const T2& p2, const T3& p3, const T4& p4,
 	const T5& p5, const T6& p6) {
 	return mw_to_string(fmt, to_base<T1>::convert(p1), to_base<T2>::convert(p2), to_base<T3>::convert(p3),
-		to_base<T4>::convert(p4), to_base<T5>::convert(p5), to_base<T65>::convert(p6));
+		to_base<T4>::convert(p4), to_base<T5>::convert(p5), to_base<T6>::convert(p6));
 }
 
 template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
