@@ -45,14 +45,17 @@ public:
 	soldier_training_info* allocate_soldier_training();
 	void deallocate_soldier_training(soldier_training_info* s);
 
+	resource_up_info* allocate_resource_up_info();
+	void deallocate_resource_up_info(resource_up_info* r);
+
 public:
 	void db_remove(const char* table, const char* query, const std::function<void(bool)>& callback);
 	void db_insert(const char* table, const char* fields, const std::function<void(bool)>& callback);
 	void db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback);
-	void db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string_array&)>& callback);
+	void db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string_array2&)>& callback);
 private:
 	void db_opt_with_status(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback);
-	void db_opt_with_result(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string_array&)>& callback);
+	void db_opt_with_result(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string_array2&)>& callback);
 	void db_opt(uint8 opt_type, const char* table, const char* query, const char* fields);
 
 public:
@@ -62,7 +65,7 @@ public:
 	void create_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name);
 	void remove_entity(TSocketIndex_t client_id);
 	void on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status);
-	void on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string_array& data);
+	void on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string_array2& data);
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;
@@ -82,12 +85,13 @@ private:
 
 private:
 	TDbOptID_t m_db_opt_id;
-	std::unordered_map<TDbOptID_t, std::function<void(bool, const dynamic_string_array&)>> m_db_result_callbacks;
+	std::unordered_map<TDbOptID_t, std::function<void(bool, const dynamic_string_array2&)>> m_db_result_callbacks;
 	std::unordered_map<TDbOptID_t, std::function<void(bool)>> m_db_status_callbacks;
 	obj_memory_pool<resource, 65536> m_resource_pool;
 	obj_memory_pool<city, 1024> m_city_pool;
 	obj_memory_pool<npc, 1024> m_npc_pool;
 	obj_memory_pool<farmland, 1024> m_farmland_pool;
+	obj_memory_pool<resource_up_info, 128> m_resource_up_pool;
 	std::unordered_map<TSocketIndex_t, role*> m_client_id_2_role;
 };
 

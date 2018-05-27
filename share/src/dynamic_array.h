@@ -192,28 +192,29 @@ private:
 	char* m_data;
 };
 
-class dynamic_string_array
+template <class T>
+class dynamic_array2
 {
 public:
-	dynamic_string_array() {
+	dynamic_array2() {
 		m_len = 0;
 		m_max_len = 2;
-		m_data = new dynamic_string*[m_max_len];
+		m_data = new T*[m_max_len];
 		for (sint32 i = 0; i < m_max_len; ++i) {
 			m_data[i] = NULL;
 		}
 	}
 
-	dynamic_string_array(const dynamic_string_array& rhs) {
+	dynamic_array2(const dynamic_array2& rhs) {
 		m_len = rhs.size();
 		m_max_len = m_len;
-		m_data = new dynamic_string*[m_len];
+		m_data = new T*[m_len];
 		for (sint32 i = 0; i < m_len; ++i) {
-			m_data[i] = new dynamic_string(*rhs[i]);
+			m_data[i] = new T(*rhs[i]);
 		}
 	}
 
-	dynamic_string_array& operator = (const dynamic_string_array& rhs) {
+	dynamic_array2& operator = (const dynamic_array2& rhs) {
 		if (&rhs != this) {
 			for (sint32 i = 0; i < m_len; ++i) {
 				if (NULL != m_data[i]) {
@@ -224,15 +225,15 @@ public:
 			delete[] m_data;
 			m_len = rhs.size();
 			m_max_len = m_len;
-			m_data = new dynamic_string*[m_len];
+			m_data = new T*[m_len];
 			for (sint32 i = 0; i < m_len; ++i) {
-				m_data[i] = new dynamic_string(*rhs[i]);
+				m_data[i] = new T(*rhs[i]);
 			}
 		}
 		return *this;
 	}
 
-	~dynamic_string_array() {
+	~dynamic_array2() {
 		m_len = 0;
 		m_max_len = 0;
 		if (NULL != m_data) {
@@ -248,7 +249,7 @@ public:
 	}
 
 public:
-	const dynamic_string* operator [] (size_t pos) const {
+	const T* operator [] (size_t pos) const {
 		if (pos >= m_len) {
 			log_error("pos is invalid! pos = %u, max len = %u", pos, m_len);
 			return NULL;
@@ -256,10 +257,10 @@ public:
 		return m_data[pos];
 	}
 
-	bool push_back(const dynamic_string& data) {
+	bool push_back(const T& data) {
 		if ((m_len + 1) >= m_max_len) {
 			uint16 max_len = (m_max_len << 1);
-			dynamic_string** tmp = new dynamic_string*[max_len];
+			T** tmp = new T*[max_len];
 			for (sint32 i = 0; i < max_len; ++i) {
 				if (i < m_max_len) {
 					tmp[i] = m_data[i];
@@ -272,7 +273,7 @@ public:
 			delete[] m_data;
 			m_data = tmp;
 		}
-		m_data[m_len] = new dynamic_string(data);
+		m_data[m_len] = new T(data);
 		m_len += 1;
 		return true;
 	}
@@ -288,10 +289,12 @@ public:
 private:
 	uint16 m_len;
 	sint32 m_max_len;
-	dynamic_string** m_data;
+	T** m_data;
 };
+
+typedef dynamic_array2<dynamic_string> dynamic_string_array;
+typedef dynamic_array2<dynamic_string_array> dynamic_string_array2;
 
 #pragma pack(pop)
 
 #endif // !_DYNAMIC_ARRAY_H_
-

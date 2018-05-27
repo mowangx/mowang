@@ -37,6 +37,8 @@ static const uint32 DELAY_KICK_SOCKET_TIME = 1; // 延迟清理socket的时间
 
 static const uint32 STUB_NAME_LEN = 32;	// stub长度
 
+static const uint64 MAX_RESOURCE_INDEX = 64; // 建筑索引
+
 typedef uint32 TTime_t;					// 系统时间
 typedef uint32 TAppTime_t;				// 程序运行的毫秒数
 

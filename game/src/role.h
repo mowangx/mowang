@@ -33,11 +33,15 @@ public:
 
 private:
 	void create_role();
-	void on_load_account_callback(bool status, const dynamic_string_array& result);
-	void on_load_role_callback(bool status, const dynamic_string_array& result);
+	void on_load_account_callback(bool status, const dynamic_string_array2& result);
+	void on_load_role_callback(bool status, const dynamic_string_array2& result);
 	void on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);
 	void on_account_login_success();
 	void on_role_login_success();
+
+public:
+	void fight(const game_pos& pos, TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers);
+	void gather(const game_pos& pos, TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers);
 
 public:
 	void add_city(const game_pos& pos, TLevel_t lvl);

@@ -61,9 +61,21 @@ void executor_manager::executor(db_opt_info* opt_info)
 	}
 	if (opt_info->opt_type == DB_OPT_QUERY) {
 		//m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
-		dynamic_string_array data;
-		dynamic_string k1("28");
-		data.push_back(k1);
+		dynamic_string_array s_data_1;
+		dynamic_string k1("level");
+		s_data_1.push_back(k1);
+		dynamic_string v1("28");
+		s_data_1.push_back(v1);
+
+		dynamic_string_array s_data_2;
+		dynamic_string k2("name");
+		s_data_2.push_back(k2);
+		dynamic_string v2("mowang");
+		s_data_2.push_back(v2);
+
+		dynamic_string_array2 data;
+		data.push_back(s_data_1);
+		data.push_back(s_data_2);
 		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, true, data);
 	}
 	else {

@@ -32,28 +32,6 @@ struct timer_node
 	}
 };
 
-struct game_pos
-{
-	TPosValue_t x;
-	TPosValue_t y;
-	game_pos() {
-		clean_up();
-	}
-
-	bool operator == (const game_pos& rhs) const {
-		return x == rhs.x && y == rhs.y;
-	}
-
-	bool operator != (const game_pos& rhs) const {
-		return x != rhs.x || y != rhs.y;
-	}
-
-	void clean_up() {
-		x = INVALID_POS_VALUE;
-		y = INVALID_POS_VALUE;
-	}
-};
-
 struct socket_kick_info
 {
 	TSocketIndex_t socket_index;
@@ -77,24 +55,16 @@ struct soldier_training_info
 	TSoldierType_t soldier_type;
 	TSoldierNum_t soldier_num;
 	TGameTime_t end_time;
+	TTimerID_t timer_id;
 	soldier_training_info() {
 		clean_up();
-	}
-
-	soldier_training_info(TSoldierType_t _soldier_type, TSoldierNum_t _soldier_num, TGameTime_t _end_time) {
-		soldier_type = _soldier_type;
-		soldier_num = _soldier_num;
-		end_time = _end_time;
-	}
-
-	bool operator == (const soldier_training_info& rhs) const {
-		return soldier_type == rhs.soldier_type && soldier_num == rhs.soldier_num && end_time == rhs.end_time;
 	}
 
 	void clean_up() {
 		soldier_type = INVALID_SOLDIER_TYPE;
 		soldier_num = INVALID_SOLDIER_NUM;
 		end_time = INVALID_GAME_TIME;
+		timer_id = INVALID_TIMER_ID;
 	}
 };
 
@@ -102,6 +72,7 @@ struct technology_info
 {
 	TTechnologyType_t technology_type;
 	TGameTime_t end_time;
+	TTimerID_t timer_id;
 	technology_info() {
 		clean_up();
 	}
@@ -109,6 +80,21 @@ struct technology_info
 	void clean_up() {
 		technology_type = INVALID_TECHNOLOGY_TYPE;
 		end_time = INVALID_GAME_TIME;
+		timer_id = INVALID_TIMER_ID;
+	}
+};
+
+struct resource_up_info
+{
+	TResourceIndex_t resource_index;
+	TTimerID_t timer_id;
+	resource_up_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		resource_index = INVALID_RESOURCE_INDEX;
+		timer_id = INVALID_TIMER_ID;
 	}
 };
 

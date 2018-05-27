@@ -25,6 +25,8 @@ public:
 	TGameTime_t get_level_end_time() const;
 	void set_level_end_time(TGameTime_t time);
 
+	TResourceNum_t get_inc_num() const;
+
 private:
 	TGameTime_t calc_up_level_time() const;
 

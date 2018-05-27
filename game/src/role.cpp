@@ -118,7 +118,7 @@ void role::create_role()
 	});
 }
 
-void role::on_load_account_callback(bool status, const dynamic_string_array& result)
+void role::on_load_account_callback(bool status, const dynamic_string_array2& result)
 {
 	if (get_destroy_flag()) {
 		log_info("role will be destroy soon! client id = %" I64_FMT "u", get_client_id());
@@ -132,15 +132,15 @@ void role::on_load_account_callback(bool status, const dynamic_string_array& res
 		create_role();
 	}
 	else {
-		if (!from_string<TRoleID_t>::convert(result[0]->data(), m_role_id)) {
-			log_error("convert from string failed! data = %s, client id = %" I64_FMT "u", result[0]->data(), get_client_id());
-			return;
-		}
+		//if (!from_string<TRoleID_t>::convert(result[0]->data(), m_role_id)) {
+		//	log_error("convert from string failed! data = %s, client id = %" I64_FMT "u", result[0]->data(), get_client_id());
+		//	return;
+		//}
 		on_account_login_success();
 	}
 }
 
-void role::on_load_role_callback(bool status, const dynamic_string_array& result)
+void role::on_load_role_callback(bool status, const dynamic_string_array2& result)
 {
 	// init role data from db result
 	on_role_login_success();
@@ -202,6 +202,14 @@ void role::on_role_login_success()
 {
 	log_info("on role login success! entity id = %" I64_FMT "u", get_entity_id());
 	set_login_success(true);
+}
+
+void role::fight(const game_pos& pos, TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers)
+{
+}
+
+void role::gather(const game_pos& pos, TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers)
+{
 }
 
 void role::add_city(const game_pos & pos, TLevel_t lvl)

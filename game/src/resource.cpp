@@ -75,6 +75,11 @@ void resource::set_level_end_time(TGameTime_t time)
 	m_lvl_time = time;
 }
 
+TResourceNum_t resource::get_inc_num() const
+{
+	return INVALID_RESOURCE_NUM;
+}
+
 TGameTime_t resource::calc_up_level_time() const
 {
 	return INVALID_GAME_TIME;

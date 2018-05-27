@@ -3,7 +3,7 @@
 #define _FARMLAND_H_
 
 #include "entity.h"
-#include "game_struct.h"
+#include "packet_struct.h"
 
 class farmland : public entity
 {

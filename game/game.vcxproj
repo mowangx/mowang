@@ -162,6 +162,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\city.cpp" />
+    <ClCompile Include="src\lbs_stub.cpp" />
     <ClCompile Include="src\db_manager_handler.cpp" />
     <ClCompile Include="src\farmland.cpp" />
     <ClCompile Include="src\game_manager_handler.cpp" />
@@ -176,6 +177,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\city.h" />
+    <ClInclude Include="src\lbs_stub.h" />
     <ClInclude Include="src\db_manager_handler.h" />
     <ClInclude Include="src\farmland.h" />
     <ClInclude Include="src\game_manager_handler.h" />

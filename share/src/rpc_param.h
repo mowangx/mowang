@@ -57,7 +57,7 @@ struct rpc_param_parse<dynamic_string, dynamic_string> {
 };
 
 template <>
-struct rpc_param_parse<dynamic_string_array, dynamic_string_array> {
+struct rpc_param_parse<dynamic_string_array, dynamic_string> {
 	static void parse_param(dynamic_string_array& value, char* buffer, int& buffer_index) {
 		uint16 len = 0;
 		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
@@ -65,6 +65,19 @@ struct rpc_param_parse<dynamic_string_array, dynamic_string_array> {
 			dynamic_string s;
 			rpc_param_parse<dynamic_string, dynamic_string>::parse_param(s, buffer, buffer_index);
 			value.push_back(s);
+		}
+	}
+};
+
+template <>
+struct rpc_param_parse<dynamic_string_array2, dynamic_string_array> {
+	static void parse_param(dynamic_string_array2& value, char* buffer, int& buffer_index) {
+		uint16 len = 0;
+		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
+		for (int i = 0; i < len; ++i) {
+			dynamic_string_array s_array;
+			rpc_param_parse<dynamic_string_array, dynamic_string>::parse_param(s_array, buffer, buffer_index);
+			value.push_back(s_array);
 		}
 	}
 };
@@ -103,12 +116,23 @@ struct rpc_param_fill<dynamic_string, dynamic_string> {
 };
 
 template <>
-struct rpc_param_fill<dynamic_string_array, dynamic_string_array> {
+struct rpc_param_fill<dynamic_string_array, dynamic_string> {
 	static void fill_param(const dynamic_string_array& value, char* buffer, int& buffer_index) {
 		uint16 len = value.size();
 		rpc_param_fill<uint16, uint16>::fill_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
 			rpc_param_fill<dynamic_string, dynamic_string>::fill_param(*value[i], buffer, buffer_index);
+		}
+	}
+};
+
+template <>
+struct rpc_param_fill<dynamic_string_array2, dynamic_string_array> {
+	static void fill_param(const dynamic_string_array2& value, char* buffer, int& buffer_index) {
+		uint16 len = value.size();
+		rpc_param_fill<uint16, uint16>::fill_param(len, buffer, buffer_index);
+		for (int i = 0; i < len; ++i) {
+			rpc_param_fill<dynamic_string_array, dynamic_string>::fill_param(*value[i], buffer, buffer_index);
 		}
 	}
 };
