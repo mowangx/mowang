@@ -170,6 +170,23 @@ struct soldier_info
 	}
 };
 
+struct fight_info
+{
+	TNpcIndex_t npc_id;
+	game_pos pos;
+	TGameTime_t fight_time;
+	dynamic_array<soldier_info> soldiers;
+	fight_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		npc_id = INVALID_NPC_INDEX;
+		pos.clean_up();
+		fight_time = INVALID_GAME_TIME;
+	}
+};
+
 #pragma pack(pop)
 
 #endif // !_PACKET_STRUCT_H_

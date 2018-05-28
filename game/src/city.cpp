@@ -56,6 +56,49 @@ city::~city()
 	clean_up();
 }
 
+void city::fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& pos)
+{
+	if (!check_npc(npc_id) || !check_soldiers(soldiers)) {
+		return;
+	}
+	fight_info f;
+	f.npc_id = npc_id;
+	f.soldiers = soldiers;
+	f.pos = pos;
+	TGameTime_t move_time = calc_fight_time(npc_id, pos);
+	f.fight_time = DTimeMgr.now_sys_time() + move_time;
+	m_fight_infos.push_back(f);
+	DTimer.add_timer(move_time, false, NULL, [&](void* param, TTimerID_t timer_id) {
+
+	});
+}
+
+void city::gather(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& pos)
+{
+
+}
+
+bool city::check_npc(TNpcIndex_t npc_id) const
+{
+	for (auto p : m_npcs) {
+		if (p->get_index() == npc_id) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool city::check_soldiers(dynamic_array<soldier_info>& soldiers) const
+{
+	for (int i = 0; i < soldiers.size(); ++i) {
+		const soldier_info& solider = soldiers[i];
+		if (solider.soldier_num < m_soldier_num[solider.soldier_type]) {
+			return false;
+		}
+	}
+	return true;
+}
+
 void city::random_resources(TLevel_t lvl)
 {
 }
@@ -316,17 +359,22 @@ TResourceNum_t city::get_resource_max_num(TResourceNum_t resource_type) const
 	return INVALID_RESOURCE_NUM;
 }
 
-TGameTime_t city::calc_soldier_training_time(TSoldierType_t soldier_type, TSoldierNum_t soldier_num, TConsumeType_t consume_type)
+TGameTime_t city::calc_soldier_training_time(TSoldierType_t soldier_type, TSoldierNum_t soldier_num, TConsumeType_t consume_type) const
 {
 	return 0;
 }
 
-TGameTime_t city::calc_research_technology_time(TTechnologyType_t technology_type, TConsumeType_t consume_type)
+TGameTime_t city::calc_research_technology_time(TTechnologyType_t technology_type, TConsumeType_t consume_type) const
 {
 	return 0;
 }
 
-TGameTime_t city::calc_resource_up_time(TResourceType_t resoure_type, TLevel_t lvl)
+TGameTime_t city::calc_resource_up_time(TResourceType_t resoure_type, TLevel_t lvl) const
+{
+	return INVALID_GAME_TIME;
+}
+
+TGameTime_t city::calc_fight_time(TNpcIndex_t npc_id, const game_pos & pos) const
 {
 	return INVALID_GAME_TIME;
 }
@@ -362,4 +410,5 @@ void city::clean_up()
 		m_soldier_num[i] = 0;
 	}
 	m_soldier_trainings.clear();
+	m_fight_infos.clear();
 }

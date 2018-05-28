@@ -19,6 +19,13 @@ public:
 	virtual ~city();
 
 public:
+	void fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& pos);
+	void gather(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& pos);
+private:
+	bool check_npc(TNpcIndex_t npc_id) const;
+	bool check_soldiers(dynamic_array<soldier_info>& soldiers) const;
+
+public:
 	void random_resources(TLevel_t lvl);
 
 public:
@@ -66,9 +73,10 @@ public:
 	TResourceNum_t get_resource_max_num(TResourceNum_t resource_type) const;
 
 private:
-	TGameTime_t calc_soldier_training_time(TSoldierType_t soldier_type, TSoldierNum_t soldier_num, TConsumeType_t consume_type);
-	TGameTime_t calc_research_technology_time(TTechnologyType_t technology_type, TConsumeType_t consume_type);
-	TGameTime_t calc_resource_up_time(TResourceType_t resoure_type, TLevel_t lvl);
+	TGameTime_t calc_soldier_training_time(TSoldierType_t soldier_type, TSoldierNum_t soldier_num, TConsumeType_t consume_type) const;
+	TGameTime_t calc_research_technology_time(TTechnologyType_t technology_type, TConsumeType_t consume_type) const;
+	TGameTime_t calc_resource_up_time(TResourceType_t resoure_type, TLevel_t lvl) const;
+	TGameTime_t calc_fight_time(TNpcIndex_t npc_id, const game_pos& pos) const;
 
 private:
 	void calc_resource_num();
@@ -88,6 +96,7 @@ private:
 	std::vector<farmland*> m_farmlands;
 	std::vector<soldier_training_info*> m_soldier_trainings;
 	std::vector<resource_up_info*> m_resource_up_infos;
+	std::vector<fight_info> m_fight_infos;
 };
 
 #endif // !_CITY_H_

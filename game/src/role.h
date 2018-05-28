@@ -40,12 +40,13 @@ private:
 	void on_role_login_success();
 
 public:
-	void fight(const game_pos& pos, TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers);
-	void gather(const game_pos& pos, TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers);
+	void fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos);
+	void gather(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos);
 
 public:
 	void add_city(const game_pos& pos, TLevel_t lvl);
 	void del_city(const game_pos& pos);
+	city* get_city(const game_pos& pos);
 
 public:
 	void set_login_success(bool login_flag);

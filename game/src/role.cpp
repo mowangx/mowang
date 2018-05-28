@@ -132,10 +132,7 @@ void role::on_load_account_callback(bool status, const dynamic_string_array2& re
 		create_role();
 	}
 	else {
-		//if (!from_string<TRoleID_t>::convert(result[0]->data(), m_role_id)) {
-		//	log_error("convert from string failed! data = %s, client id = %" I64_FMT "u", result[0]->data(), get_client_id());
-		//	return;
-		//}
+		m_role_id = 1;
 		on_account_login_success();
 	}
 }
@@ -204,15 +201,25 @@ void role::on_role_login_success()
 	set_login_success(true);
 }
 
-void role::fight(const game_pos& pos, TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers)
+void role::fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos)
 {
+	city* c = get_city(src_pos);
+	if (NULL == c) {
+		return;
+	}
+	c->fight(npc_id, soldiers, dest_pos);
 }
 
-void role::gather(const game_pos& pos, TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers)
+void role::gather(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos)
 {
+	city* c = get_city(src_pos);
+	if (NULL == c) {
+		return;
+	}
+	c->gather(npc_id, soldiers, dest_pos);
 }
 
-void role::add_city(const game_pos & pos, TLevel_t lvl)
+void role::add_city(const game_pos& pos, TLevel_t lvl)
 {
 	city* c = DGameServer.allocate_city();
 	c->set_pos(pos);
@@ -220,7 +227,7 @@ void role::add_city(const game_pos & pos, TLevel_t lvl)
 	m_cities.push_back(c);
 }
 
-void role::del_city(const game_pos & pos)
+void role::del_city(const game_pos& pos)
 {
 	for (auto itr = m_cities.begin(); itr != m_cities.end(); ++itr) {
 		city* c = *itr;
@@ -231,6 +238,19 @@ void role::del_city(const game_pos & pos)
 		m_cities.erase(itr);
 		return;
 	}
+}
+
+city* role::get_city(const game_pos& pos)
+{
+	for (auto itr = m_cities.begin(); itr != m_cities.end(); ++itr) {
+		city* c = *itr;
+		if (c->get_pos() != pos) {
+			continue;
+		}
+		return c;
+	}
+
+	return NULL;
 }
 
 void role::set_login_success(bool login_flag)

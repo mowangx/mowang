@@ -129,10 +129,14 @@ TSocketIndex_t rpc_wrapper::get_socket_index(const game_process_info& process_in
 {
 	rpc_client* rpc = get_client(process_info);
 	if (NULL == rpc) {
+		log_error("get socket index failed for rpc is NULL! server id = %u, process type = %u, process id = %u", 
+			process_info.server_id, process_info.process_type, process_info.process_id);
 		return INVALID_SOCKET_INDEX;
 	}
 	const game_handler* handler = rpc->get_handler();
 	if (NULL == handler) {
+		log_error("get socket index failed for handler is NULL! server id = %u, process type = %u, process id = %u",
+			process_info.server_id, process_info.process_type, process_info.process_id);
 		return INVALID_SOCKET_INDEX;
 	}
 	return handler->get_socket_index();
@@ -142,9 +146,14 @@ TProcessID_t rpc_wrapper::get_random_process_id(TServerID_t server_id, TProcessT
 {
 	auto itr = m_server_process_type_2_clients.find(get_key_id_by_process_type(server_id, process_type));
 	if (itr == m_server_process_type_2_clients.end()) {
+		log_error("get random process id for not find server id! server id = %u, process type = %u", server_id, process_type);
 		return INVALID_PROCESS_ID;
 	}
 	const std::vector<rpc_client_wrapper_info*>& rpc_wrappers = itr->second;
+	if (rpc_wrappers.empty()) {
+		log_error("get random process id for empty! server id = %u, process type = %u", server_id, process_type);
+		return INVALID_PROCESS_ID;
+	}
 	int wrapper_index = DGameRandom.get_rand<int>(0, (int)(rpc_wrappers.size() - 1));
 	return rpc_wrappers[wrapper_index]->process_id;
 }
@@ -163,10 +172,14 @@ rpc_client* rpc_wrapper::get_random_client(TServerID_t server_id, TProcessType_t
 {
 	auto itr = m_server_process_type_2_clients.find(get_key_id_by_process_type(server_id, process_type));
 	if (itr == m_server_process_type_2_clients.end()) {
-		log_error("rpc wrapper get random client failed! server id = %u, process type = %u", server_id, process_type);
+		log_error("rpc wrapper get random client failed for not find server id! server id = %u, process type = %u", server_id, process_type);
 		return NULL;
 	}
 	const std::vector<rpc_client_wrapper_info*>& rpc_wrappers = itr->second;
+	if (rpc_wrappers.empty()) {
+		log_error("rcp wrapper get random client failed for empty! server id = %u, process_type", server_id, process_type);
+		return NULL;
+	}
 	int wrapper_index = DGameRandom.get_rand<int>(0, (int)(rpc_wrappers.size() - 1));
 	return rpc_wrappers[wrapper_index]->rpc;
 }
