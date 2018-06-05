@@ -207,7 +207,10 @@ void role::fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, cons
 	if (NULL == c) {
 		return;
 	}
-	c->fight(npc_id, soldiers, dest_pos);
+	if (c->check_fight(npc_id, soldiers, dest_pos)) {
+		DRpcWrapper.call_stub("fight_stub", "fight", get_role_id(), npc_id, c->get_pos(), dest_pos,
+			soldiers, c->calc_move_time(npc_id, dest_pos));
+	}
 }
 
 void role::gather(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos)

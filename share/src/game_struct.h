@@ -4,7 +4,7 @@
 
 #include <functional>
 
-#include "base_util.h"
+#include "packet_struct.h"
 
 struct timer_node
 {
@@ -95,6 +95,27 @@ struct resource_up_info
 	void clean_up() {
 		resource_index = INVALID_RESOURCE_INDEX;
 		timer_id = INVALID_TIMER_ID;
+	}
+};
+
+struct fight_info
+{
+	TRoleID_t role_id;
+	TNpcIndex_t npc_id;
+	game_pos src_pos;
+	game_pos dest_pos;;
+	TGameTime_t fight_time;
+	dynamic_array<soldier_info> soldiers;
+	fight_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		role_id = INVALID_ROLE_ID;
+		npc_id = INVALID_NPC_INDEX;
+		src_pos.clean_up();
+		dest_pos.clean_up();
+		fight_time = INVALID_GAME_TIME;
 	}
 };
 

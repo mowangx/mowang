@@ -56,21 +56,26 @@ city::~city()
 	clean_up();
 }
 
-void city::fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& pos)
+bool city::check_fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& pos)
 {
-	if (!check_npc(npc_id) || !check_soldiers(soldiers)) {
-		return;
+	if (!check_npc(npc_id)) {
+		return false;
 	}
-	fight_info f;
-	f.npc_id = npc_id;
-	f.soldiers = soldiers;
-	f.pos = pos;
-	TGameTime_t move_time = calc_fight_time(npc_id, pos);
-	f.fight_time = DTimeMgr.now_sys_time() + move_time;
-	m_fight_infos.push_back(f);
-	DTimer.add_timer(move_time, false, NULL, [&](void* param, TTimerID_t timer_id) {
 
-	});
+	if (!check_soldiers(soldiers)) {
+		return false;
+	}
+
+	// set npc fighting status
+
+	// desc soldiers
+
+	return true;
+}
+
+TGameTime_t city::calc_move_time(TNpcIndex_t npc_id, const game_pos & pos) const
+{
+	return INVALID_GAME_TIME;
 }
 
 void city::gather(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& pos)
@@ -374,11 +379,6 @@ TGameTime_t city::calc_resource_up_time(TResourceType_t resoure_type, TLevel_t l
 	return INVALID_GAME_TIME;
 }
 
-TGameTime_t city::calc_fight_time(TNpcIndex_t npc_id, const game_pos & pos) const
-{
-	return INVALID_GAME_TIME;
-}
-
 void city::calc_resource_num()
 {
 	TGameTime_t cur_time = DTimeMgr.now_sys_time();
@@ -410,5 +410,4 @@ void city::clean_up()
 		m_soldier_num[i] = 0;
 	}
 	m_soldier_trainings.clear();
-	m_fight_infos.clear();
 }

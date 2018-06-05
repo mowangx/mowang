@@ -116,6 +116,7 @@ public:
 	THonorNum_t m_honor;
 	TRmbNum_t m_rmb;
 	std::vector<city*> m_cities;
+	std::vector<TNpcIndex_t> m_fight_npc_ids;	// don't need save db
 };
 
 #endif // !_ROLE_H_
