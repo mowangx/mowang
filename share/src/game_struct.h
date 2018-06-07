@@ -105,6 +105,7 @@ struct fight_info
 	game_pos src_pos;
 	game_pos dest_pos;;
 	TGameTime_t fight_time;
+	TTimerID_t timer_id;
 	dynamic_array<soldier_info> soldiers;
 	fight_info() {
 		clean_up();
@@ -116,6 +117,7 @@ struct fight_info
 		src_pos.clean_up();
 		dest_pos.clean_up();
 		fight_time = INVALID_GAME_TIME;
+		timer_id = INVALID_TIMER_ID;
 	}
 };
 

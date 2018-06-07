@@ -140,6 +140,9 @@ const TDbOptID_t INVALID_DB_OPT_ID = 0;
 typedef uint64 TTimerID_t;				// 计时器ID
 const TTimerID_t INVALID_TIMER_ID = 0;
 
+typedef uint8 TDbVersion_t;				// 数据库版本号
+const TDbVersion_t INVALID_DB_VERSION = 0;
+
 //根据指针值删除内存
 #ifndef DSafeDelete
 #define DSafeDelete(x)	if( (x)!=NULL ) { delete (x); (x)=NULL; }

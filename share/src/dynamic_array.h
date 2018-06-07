@@ -156,7 +156,7 @@ public:
 	}
 
 public:
-	char * data() {
+	char* data() {
 		return m_data;
 	}
 
