@@ -86,7 +86,7 @@ struct parse_binary_string<T, false>
 			number_2_binary_char(str_head[i], out_data.data(), index);
 		}
 		char* in = (char*)&data;
-		for (uint32 i = 0; i<str_head.real_len; ++i) {
+		for (uint32 i = 0; i<head.real_len; ++i) {
 			number_2_binary_char(in[i], out_data.data(), index);
 		}
 		out_data[index] = '\0';
@@ -106,6 +106,31 @@ struct parse_binary_string<T, true>
 	}
 };
 
+static char	value_2_ascii(uint8 in_value)
+{
+	static const char value_2_asccii_array[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
+	if (in_value > 15) {
+		gxAssert(false);
+		return '?';
+	}
+	return value_2_asccii_array[in_value];
+}
+
+static uint8 ascii_2_value(char in_value)
+{
+	sint32 ascii_value = (sint32)in_value;
+	if (ascii_value >= '0' && ascii_value <= '9') {
+		return in_value - '0';	// 把字符‘0’到‘9’转化为相应的数字0-9
+	}
+	else if (ascii_value >= 'A' && ascii_value <= 'F') {
+		return in_value - 55;	// 把字符‘A’到‘F’转化为相应的数字10－15
+	}
+	else {
+		gxAssert(false);
+		return '?';
+	}
+}
+
 // 把数据库读到到的字符串转化成相应的结构体数据
 template<typename T>
 inline bool bstr_2_struct(T& data, const char* bstr)
@@ -115,8 +140,7 @@ inline bool bstr_2_struct(T& data, const char* bstr)
 	}
 	binary_string_head head;
 	uint32 head_len = sizeof(head);
-	if (strlen(bstr) <= head_len)
-	{
+	if (strlen(bstr) <= head_len) {
 		log_error("Binary string length is too short!!! It must larger than %u!", head_len);
 		gxAssert(false);
 		return false;	// 该字符串的长度一定得大于等于字符串头的长度
@@ -124,27 +148,25 @@ inline bool bstr_2_struct(T& data, const char* bstr)
 	uint32 index = 0;
 	char* str_head = (char*)&head;
 	for (uint32 i = 0; i<head_len; ++i) {
-		str_head[i] = BinaryCharToNumber(index, pBStr);
+		str_head[i] = binary_char_2_number(index, bstr);
 	}
-	if (str_head.db_version == data.db_version)
-	{
-		return parse_bstr(data, index, str_head.real_len, bstr);
+	if (head.db_version == data.db_version) {
+		return parse_bstr(data, index, head.real_len, bstr);
 	}
-	if (str_head.db_version > data.db_version)
-	{
-		gxError("Binary string database version is larger than current version!!! old version = %u, new version = %u", str_head.db_version, data.db_version);
+	if (head.db_version > data.db_version) {
+		log_error("Binary string database version is larger than current version!!! old version = %u, new version = %u", head.db_version, data.db_version);
 		gxAssert(false);
 		return false;
 	}
 	db_struct_parse<T> db_parse;
-	return db_parse.parse_version(data, str_head.db_version, index, str_head.real_len, bstr);
+	return db_parse.parse_version(data, head.db_version, index, head.real_len, bstr);
 }
 
-// 把结构体转化成相应的二进制字符串,isArray为true代表结构体有且只有一个可变列表(如CArray)
+// 把结构体转化成相应的二进制字符串,is_array为true代表结构体有且只有一个可变列表(如CArray)
 template <typename T, bool is_array>
 inline bool	struct_2_bstr(binary_string<T>& out_data, const T& data, bool is_empty = false)
 {
-	return parse_binary_string<T, is_array>::change_struct_2_bstr(outData, data, is_empty);
+	return parse_binary_string<T, is_array>::change_struct_2_bstr(out_data, data, is_empty);
 }
 
 inline uint8 binary_char_2_number(uint32& index, const char* bstr)
@@ -155,48 +177,17 @@ inline uint8 binary_char_2_number(uint32& index, const char* bstr)
 
 inline void number_2_binary_char(uint8 n, char* ary, uint32& index)
 {
-	for (uint32 i = 0; i<2; ++i)
-	{
+	for (uint32 i = 0; i<2; ++i) {
 		// 高四位存储在低四位的后面，比如18，是把1存储在后4位中，2存储在前4位中,即0010 0001
 		ary[index] = value_2_ascii((n >> (4 * i)) & 0xF);
 		++index;
 	}
 }
 
-static char	value_2_ascii(uint8 in_value)
-{
-	static const char value_2_asccii_array[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
-	if (in_value > 15)
-	{
-		gxAssert(false);
-		return '?';
-	}
-	return value_2_asccii_array[in_value];
-}
-
-static uint8 ascii_2_value(char in_value)
-{
-	sint32 ascii_value = (sint32)in_value;
-	if (ascii_value >= '0' && ascii_value <= '9')
-	{
-		return in_value - '0';	// 把字符‘0’到‘9’转化为相应的数字0-9
-	}
-	else if (ascii_value >= 'A' && ascii_value <= 'F')
-	{
-		return in_value - 55;	// 把字符‘A’到‘F’转化为相应的数字10－15
-	}
-	else
-	{
-		gxAssert(false);
-		return '?';
-	}
-}
-
 static void	change_2_hex(char* outBuff, const char* inBuff, uint32 len)
 {
 	uint32 index = 0;
-	for (; index<len; ++index)
-	{
+	for (; index<len; ++index) {
 		uint8 highIndex = inBuff[index] >> 4;
 		uint8 lowIndex = inBuff[index] & 0xF;
 		outBuff[2 * index] = value_2_ascii(highIndex);
@@ -208,14 +199,12 @@ static void	change_2_hex(char* outBuff, const char* inBuff, uint32 len)
 template<typename T>
 inline bool parse_bstr(T& data, uint32 index, uint32 len, const char* bstr)
 {
-	if (sizeof(data) != len)
-	{
+	if (sizeof(data) != len) {
 		log_error("Binary string length is not equal the struct size!!!");
 		return false;
 	}
 	char* temp_data = (char*)&data;
-	for (uint32 i = 0; i<len; ++i)
-	{
+	for (uint32 i = 0; i<len; ++i) {
 		temp_data[i] = binary_char_2_number(index, bstr);
 	}
 	return true;
