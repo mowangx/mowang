@@ -4,6 +4,7 @@
 
 #include "dynamic_array.h"
 #include "packet_struct.h"
+#include "binary_string.h"
 
 template <class T>
 struct func_param : func_param<decltype(&T::operator())> {};
@@ -38,7 +39,7 @@ struct template_type<C<T>>
 
 template <class T1, class T2>
 struct rpc_param_parse {
-	static void parse_param(T1& value, char* buffer, int& buffer_index) {
+	static void parse_param(T1& value, const char* buffer, int& buffer_index) {
 		value = *(T1*)(buffer + buffer_index);
 		buffer_index += sizeof(T1);
 	}
@@ -46,7 +47,7 @@ struct rpc_param_parse {
 
 template <>
 struct rpc_param_parse<dynamic_string, dynamic_string> {
-	static void parse_param(dynamic_string& value, char* buffer, int& buffer_index) {
+	static void parse_param(dynamic_string& value, const char* buffer, int& buffer_index) {
 		uint16 len = 0;
 		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
@@ -58,7 +59,7 @@ struct rpc_param_parse<dynamic_string, dynamic_string> {
 
 template <>
 struct rpc_param_parse<dynamic_string_array, dynamic_string> {
-	static void parse_param(dynamic_string_array& value, char* buffer, int& buffer_index) {
+	static void parse_param(dynamic_string_array& value, const char* buffer, int& buffer_index) {
 		uint16 len = 0;
 		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
@@ -71,7 +72,7 @@ struct rpc_param_parse<dynamic_string_array, dynamic_string> {
 
 template <>
 struct rpc_param_parse<dynamic_string_array2, dynamic_string_array> {
-	static void parse_param(dynamic_string_array2& value, char* buffer, int& buffer_index) {
+	static void parse_param(dynamic_string_array2& value, const char* buffer, int& buffer_index) {
 		uint16 len = 0;
 		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
 		for (int i = 0; i < len; ++i) {
@@ -84,7 +85,7 @@ struct rpc_param_parse<dynamic_string_array2, dynamic_string_array> {
 
 template <class T>
 struct rpc_param_parse<dynamic_array<T>, T> {
-	static void parse_param(dynamic_array<T>& value, char* buffer, int& buffer_index) {
+	static void parse_param(dynamic_array<T>& value, const char* buffer, int& buffer_index) {
 		uint16 len = 0;
 		typedef typename template_type<T>::type TValueType_t;
 		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
@@ -96,6 +97,25 @@ struct rpc_param_parse<dynamic_array<T>, T> {
 	}
 };
 
+template <class T1, class T2>
+struct db_param_parse {
+	static void parse_param(T1& value, const char* buffer, int& buffer_index) {
+		char* bstr = (char*)(buffer + buffer_index);
+		bstr_2_flat_struct(value, bstr);
+		buffer_index += (strlen(bstr) + 1);
+	}
+};
+
+template <class T>
+struct db_param_parse<dynamic_array<T>, T> {
+	static void parse_param(dynamic_array<T>& value, const char* buffer, int& buffer_index) {
+		uint16 len = 0;
+		rpc_param_parse<uint16, uint16>::parse_param(len, buffer, buffer_index);
+		char* bstr = (char*)(buffer + buffer_index);
+		bstr_2_dynamic_struct(value, bstr);
+		buffer_index += len;
+	}
+};
 
 template <class T1, class T2>
 struct rpc_param_fill {
@@ -197,6 +217,18 @@ struct call_helper<0>
 
 inline std::string append_string(const std::string& s1, const std::string& s2) {
 	return s1 + s2;
+}
+
+template <class T>
+inline void fill_packet(char* buffer, int& buffer_index, const T& p) {
+	typedef typename template_type<T>::type TValueType_t;
+	rpc_param_fill<T, TValueType_t>::fill_param(p, buffer, buffer_index);
+}
+
+template <class T, class... Args>
+inline void fill_packet(char* buffer, int& buffer_index, const T& p, const Args&... args) {
+	fill_packet(buffer, buffer_index, p);
+	fill_packet(buffer, buffer_index, args...);
 }
 
 #endif // !_RPC_PARAM_H_

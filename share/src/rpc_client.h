@@ -150,18 +150,18 @@ private:
 		m_handler->send_packet(transfer_packet);
 	}
 
-private:
-	template <class T>
-	void fill_packet(char* buffer, int& buffer_index, const T& p) {
-		typedef typename template_type<T>::type TValueType_t;
-		rpc_param_fill<T, TValueType_t>::fill_param(p, buffer, buffer_index);
-	}
-
-	template <class T, class... Args>
-	void fill_packet(char* buffer, int& buffer_index, const T& p, const Args&... args) {
-		fill_packet(buffer, buffer_index, p);
-		fill_packet(buffer, buffer_index, args...);
-	}
+//private:
+//	template <class T>
+//	void fill_packet(char* buffer, int& buffer_index, const T& p) {
+//		typedef typename template_type<T>::type TValueType_t;
+//		rpc_param_fill<T, TValueType_t>::fill_param(p, buffer, buffer_index);
+//	}
+//
+//	template <class T, class... Args>
+//	void fill_packet(char* buffer, int& buffer_index, const T& p, const Args&... args) {
+//		fill_packet(buffer, buffer_index, p);
+//		fill_packet(buffer, buffer_index, args...);
+//	}
 
 public:
 	const game_handler* get_handler() const {

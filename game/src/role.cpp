@@ -118,7 +118,7 @@ void role::create_role()
 	});
 }
 
-void role::on_load_account_callback(bool status, const dynamic_string_array2& result)
+void role::on_load_account_callback(bool status, const dynamic_string& result)
 {
 	if (get_destroy_flag()) {
 		log_info("role will be destroy soon! client id = %" I64_FMT "u", get_client_id());
@@ -137,7 +137,7 @@ void role::on_load_account_callback(bool status, const dynamic_string_array2& re
 	}
 }
 
-void role::on_load_role_callback(bool status, const dynamic_string_array2& result)
+void role::on_load_role_callback(bool status, const dynamic_string& result)
 {
 	// init role data from db result
 	on_role_login_success();

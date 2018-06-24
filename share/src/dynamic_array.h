@@ -119,8 +119,13 @@ public:
 			m_data[m_len] = '\0';
 		}
 		else {
-			m_len = 0;
-			m_max_len = 64;
+			if (len > 0) {
+				m_len = len;
+			}
+			else {
+				m_len = 63;
+			}
+			m_max_len = m_len + 1;
 			m_data = new char[m_max_len];
 			m_data[m_len] = '\0';
 		}

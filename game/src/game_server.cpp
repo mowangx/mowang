@@ -10,6 +10,7 @@
 #include "socket_manager.h"
 #include "lbs_stub.h"
 #include "roll_stub.h"
+#include "fight_stub.h"
 #include "timer.h"
 
 #include "sequence.h"
@@ -161,7 +162,7 @@ void game_server::db_update(const char* table, const char* query, const char* fi
 	db_opt_with_status(DB_OPT_UPDATE, table, query, fields, callback);
 }
 
-void game_server::db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string_array2&)>& callback)
+void game_server::db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string&)>& callback)
 {
 	db_opt_with_result(DB_OPT_QUERY, table, query, fields, callback);
 }
@@ -172,7 +173,7 @@ void game_server::db_opt_with_status(uint8 opt_type, const char* table, const ch
 	m_db_status_callbacks[m_db_opt_id] = callback;
 }
 
-void game_server::db_opt_with_result(uint8 opt_type, const char * table, const char * query, const char * fields, const std::function<void(bool, const dynamic_string_array2&)>& callback)
+void game_server::db_opt_with_result(uint8 opt_type, const char * table, const char * query, const char * fields, const std::function<void(bool, const dynamic_string&)>& callback)
 {
 	db_opt(opt_type, table, query, fields);
 	m_db_result_callbacks[m_db_opt_id] = callback;
@@ -241,6 +242,7 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 	if (m_server_info.process_info.process_id == 1) {
 		create_entity_globally("roll_stub");
 		create_entity_globally("lbs_stub");
+		create_entity_globally("fight_stub");
 	}
 }
 
@@ -266,13 +268,13 @@ void game_server::on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t 
 	callback(status);
 }
 
-void game_server::on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string_array2& data)
+void game_server::on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string& data)
 {
 	auto itr = m_db_result_callbacks.find(opt_id);
 	if (itr == m_db_result_callbacks.end()) {
 		return;
 	}
-	const std::function<void(bool, const dynamic_string_array2&)>& callback = itr->second;
+	const std::function<void(bool, const dynamic_string&)>& callback = itr->second;
 	callback(status, data);
 }
 
@@ -358,6 +360,9 @@ void game_server::create_entity_locally(const std::string& stub_name)
 	}
 	else if (strcmp(stub_name.data(), "lbs_stub") == 0) {
 		e = new lbs_stub();
+	}
+	else if (strcmp(stub_name.data(), "fight_stub") == 0) {
+		e = new fight_stub();
 	}
 	if (NULL != e) {
 		e->init();

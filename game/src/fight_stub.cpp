@@ -5,6 +5,7 @@
 #include "time_manager.h"
 #include "string_common.h"
 #include "rpc_param.h"
+#include "binary_string.h"
 
 fight_stub::fight_stub()
 {
@@ -22,7 +23,7 @@ fight_stub::~fight_stub()
 
 bool fight_stub::init()
 {
-	DGameServer.db_query("fight", NULL, "role_id, npc_id, src_x, src_y, dest_x, dest_y, soldiers, fight_time", [&](bool status, char* buffer, TPacketLen_t len) {
+	DGameServer.db_query("fight", NULL, "role_id, npc_id, src_x, src_y, dest_x, dest_y, soldiers, fight_time", [&](bool status, const dynamic_string& result) {
 		if (!status) {
 			log_error("load fight data from db failed!");
 			return;
@@ -30,17 +31,19 @@ bool fight_stub::init()
 
 		int buffer_index = 0;
 		uint16 num = 0;
-		rpc_param_parse<uint16, uint16>::parse_param(num, buffer, buffer_index);
+		rpc_param_parse<uint16, uint16>::parse_param(num, result.data(), buffer_index);
 		for (int i = 0; i < num; ++i) {
 			fight_info fight_data;
-			rpc_param_parse<TRoleID_t, TRoleID_t>::parse_param(fight_data.role_id, buffer, buffer_index);
-			rpc_param_parse<TNpcIndex_t, TNpcIndex_t>::parse_param(fight_data.npc_id, buffer, buffer_index);
-			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.src_pos.x, buffer, buffer_index);
-			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.src_pos.y, buffer, buffer_index);
-			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.dest_pos.x, buffer, buffer_index);
-			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.dest_pos.y, buffer, buffer_index);
-			rpc_param_parse<dynamic_array<soldier_info>, soldier_info>::parse_param(fight_data.soldiers, buffer, buffer_index);
-			rpc_param_parse<TGameTime_t, TGameTime_t>::parse_param(fight_data.fight_time, buffer, buffer_index);
+			rpc_param_parse<TRoleID_t, TRoleID_t>::parse_param(fight_data.role_id, result.data(), buffer_index);
+			rpc_param_parse<TNpcIndex_t, TNpcIndex_t>::parse_param(fight_data.npc_id, result.data(), buffer_index);
+			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.src_pos.x, result.data(), buffer_index);
+			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.src_pos.y, result.data(), buffer_index);
+			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.dest_pos.x, result.data(), buffer_index);
+			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.dest_pos.y, result.data(), buffer_index);
+			db_param_parse<dynamic_array<soldier_info>, soldier_info>::parse_param(fight_data.soldiers, result.data(), buffer_index);
+			rpc_param_parse<TGameTime_t, TGameTime_t>::parse_param(fight_data.fight_time, result.data(), buffer_index);
+			log_info("fight stub init data! role id = %" I64_FMT "u, src pox x = %d, dest pos x = %d, fight time = %u",
+				fight_data.role_id, fight_data.src_pos.x, fight_data.dest_pos.x, fight_data.fight_time);
 		}
 		
 	});

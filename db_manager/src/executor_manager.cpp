@@ -61,22 +61,32 @@ void executor_manager::executor(db_opt_info* opt_info)
 	}
 	if (opt_info->opt_type == DB_OPT_QUERY) {
 		//m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
-		dynamic_string_array s_data_1;
-		dynamic_string k1("level");
-		s_data_1.push_back(k1);
-		dynamic_string v1("28");
-		s_data_1.push_back(v1);
-
-		dynamic_string_array s_data_2;
-		dynamic_string k2("name");
-		s_data_2.push_back(k2);
-		dynamic_string v2("mowang");
-		s_data_2.push_back(v2);
-
-		dynamic_string_array2 data;
-		data.push_back(s_data_1);
-		data.push_back(s_data_2);
-		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, true, data);
+		char buffer[60000];
+		int buffer_index = 0;
+		fill_packet(buffer, buffer_index, (uint16)3);
+		dynamic_array<soldier_info> soldiers;
+		soldier_info soldier_1;
+		soldier_1.soldier_type = 1;
+		soldier_1.soldier_num = 100;
+		soldiers.push_back(soldier_1);
+		soldier_info soldier_2;
+		soldier_2.soldier_type = 2;
+		soldier_2.soldier_num = 200;
+		soldiers.push_back(soldier_2);
+		soldier_info soldier_3;
+		soldier_3.soldier_type = 3;
+		soldier_3.soldier_num = 300;
+		soldiers.push_back(soldier_3);
+		dynamic_string* bstr = allocate_binary_string(sizeof(soldier_info)* soldiers.size() + sizeof(uint16));
+		dynamic_struct_2_bstr(bstr->data(), soldiers);
+		fill_packet(buffer, buffer_index, (TRoleID_t)0xF1F2F3F4F5F6F7F8, (TNpcIndex_t)0xA1A2, 
+			(TPosValue_t)0x1B2B,(TPosValue_t)0x1C2C, (TPosValue_t)0x1D2D,(TPosValue_t)0x1E2E, *bstr, (TGameTime_t)123456);
+		fill_packet(buffer, buffer_index, (TRoleID_t)0xE1E2E3E4E5E6E7E8, (TNpcIndex_t)0xB2A3,
+			(TPosValue_t)0x2B3B, (TPosValue_t)0x2C3C, (TPosValue_t)0x2D3D, (TPosValue_t)0x2E3E, *bstr, (TGameTime_t)234567);
+		fill_packet(buffer, buffer_index, (TRoleID_t)0xD1D2D3D4D5D6D7D8, (TNpcIndex_t)0xA2A3,
+			(TPosValue_t)0x2B3B, (TPosValue_t)0x2C3C, (TPosValue_t)0x2D3D, (TPosValue_t)0x2E3E, *bstr, (TGameTime_t)345678);
+		dynamic_string result(buffer, buffer_index);
+		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, true, result);
 	}
 	else {
 		if (opt_info->opt_type == DB_OPT_UPDATE) {

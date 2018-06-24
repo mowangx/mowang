@@ -177,6 +177,8 @@
     <ClInclude Include="src\binary_string.h" />
     <ClInclude Include="src\bit_set.h" />
     <ClInclude Include="src\common_const.h" />
+    <ClInclude Include="src\db_parser.h" />
+    <ClInclude Include="src\db_struct.h" />
     <ClInclude Include="src\debug.h" />
     <ClInclude Include="src\dynamic_array.h" />
     <ClInclude Include="src\entity.h" />
