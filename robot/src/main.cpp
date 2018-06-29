@@ -57,9 +57,9 @@ int main(int argc, char* argv[])
 	dynamic_string* bstr = allocate_binary_string(sizeof(soldier_info)* soldiers.size() + sizeof(uint16));
 	dynamic_struct_2_bstr(bstr->data(), soldiers);
 
-	buffer_index = 0;
-	dynamic_array<soldier_info> out_soldiers;
-	db_param_parse<dynamic_array<soldier_info>, soldier_info>::parse_param(out_soldiers, bstr->data(), buffer_index);
+	//buffer_index = 0;
+	//dynamic_array<soldier_info> out_soldiers;
+	//db_param_parse<dynamic_array<soldier_info>, soldier_info>::parse_param(out_soldiers, bstr->data(), buffer_index);
 
 	fill_packet(buffer, buffer_index, (TRoleID_t)0xF1F2F3F4F5F6F7F8, (TNpcIndex_t)0xA1A2,
 		(TPosValue_t)0x1B2B, (TPosValue_t)0x1C2C, (TPosValue_t)0x1D2D, (TPosValue_t)0x1E2E, *bstr, (TGameTime_t)123456);

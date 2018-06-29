@@ -77,6 +77,13 @@ static void dynamic_struct_2_bstr(char* buffer, const dynamic_array<T>& data)
 	TDbVersion_t db_version = global_get_struct_version(data);
 	uint16 len = sizeof(uint16) + sizeof(T) * data.size();
 	create_db_head(buffer, index, db_version, len);
+
+	uint16 data_size = data.size();
+	char* str_data_size = (char*)&data_size;
+	for (uint32 i = 0; i < sizeof(data_size); ++i) {
+		value_2_binary_char(str_data_size[i], buffer, index);
+	}
+
 	for (uint32 i = 0; i < data.size(); ++i) {
 		char* in = (char*)&data[i];
 		for (int j = 0; j < sizeof(data[i]); ++j) {

@@ -74,17 +74,6 @@ inline bool parse_bstr(T& data, int index, uint32 len, const char* bstr)
 template<class T>
 inline bool parse_dynamic_bstr(dynamic_array<T>& data, int index, uint32 len, const char* bstr)
 {
-	uint16 data_len = 0;
-	if (len < sizeof(data_len)) {
-		log_error("Binarystring length is less the struct len!!!");
-		return false;
-	}
-	len -= sizeof(data_len);
-	char* str_data_len = (char*)&data_len;
-	for (int i = 0; i < sizeof(data_len); ++i) {
-		str_data_len[i] = binary_char_2_value(index, bstr);
-	}
-
 	uint16 data_size = 0;
 	if (len < sizeof(data_size)) {
 		log_error("Binary string length is less than the struct size!!!");

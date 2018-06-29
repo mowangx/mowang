@@ -41,7 +41,7 @@ void service::start(const std::string& module_name, const char* process_id)
 		return;
 	}
 
-	if (!DNetMgr.init(PROCESS_GATE, pid)) {
+	if (!DNetMgr.init(m_server_info.process_info.process_type, pid)) {
 		log_error("init socket manager failed");
 		return ;
 	}
