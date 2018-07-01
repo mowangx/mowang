@@ -14,6 +14,7 @@ game_manager::game_manager() : service(PROCESS_GAME_MANAGER)
 		m_process_num[i] = 0;
 		m_desire_process_num[i] = 0;
 	}
+	m_stub_name_2_process_id.clear();
 }
 
 game_manager::~game_manager()
@@ -164,8 +165,15 @@ void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server
 	if (game_servers.empty()) {
 		return;
 	}
-	int index = DGameRandom.get_rand<int>(0, (int)(game_servers.size() - 1));
-	rpc_client* rpc = DRpcWrapper.get_client(game_servers[index].process_info);
+	std::string tmp_stub_name = stub_name.data();
+	auto itr = m_stub_name_2_process_id.find(tmp_stub_name);
+	if (itr != m_stub_name_2_process_id.end()) {
+		log_info("create entity repeat! stub name %s has create on game %d", tmp_stub_name.c_str(), itr->second);
+		return;
+	}
+	TProcessID_t process_id = DGameRandom.get_rand<int>(0, (int)(game_servers.size() - 1));
+	m_stub_name_2_process_id[tmp_stub_name] = process_id;
+	rpc_client* rpc = DRpcWrapper.get_client(game_servers[process_id].process_info);
 	rpc->call_remote_func("create_entity", stub_name);
 }
 

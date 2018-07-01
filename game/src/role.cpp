@@ -199,6 +199,14 @@ void role::on_role_login_success()
 {
 	log_info("on role login success! entity id = %" I64_FMT "u", get_entity_id());
 	set_login_success(true);
+	// recv fight stub notify fight result first, then start load from fight data from db
+	DGameServer.db_query(
+		"fight",
+		gx_to_string("%" I64_FMT " u", get_role_id()).c_str(),
+		"*",
+		[&](bool status, const dynamic_string& result) {
+
+	});
 }
 
 void role::fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos)

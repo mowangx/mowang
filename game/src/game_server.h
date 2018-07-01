@@ -61,6 +61,7 @@ private:
 public:
 	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id);
 	void logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id);
+	virtual void register_server(TSocketIndex_t socket_index, const game_server_info& server_info) override;
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
 	void create_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name);
 	void remove_entity(TSocketIndex_t client_id);

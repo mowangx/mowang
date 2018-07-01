@@ -218,6 +218,16 @@ void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t clie
 	remove_entity_core(client_id);
 }
 
+void game_server::register_server(TSocketIndex_t socket_index, const game_server_info & server_info)
+{
+	TBaseType_t::register_server(socket_index, server_info);
+	if (server_info.process_info.process_type == PROCESS_DB) {
+		create_entity_globally("roll_stub");
+		create_entity_globally("lbs_stub");
+		create_entity_globally("fight_stub");
+	}
+}
+
 void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
 {
 	log_info("on_register_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
@@ -236,13 +246,6 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 		else {
 			log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
 		}
-	}
-	
-
-	if (m_server_info.process_info.process_id == 1) {
-		create_entity_globally("roll_stub");
-		create_entity_globally("lbs_stub");
-		create_entity_globally("fight_stub");
 	}
 }
 

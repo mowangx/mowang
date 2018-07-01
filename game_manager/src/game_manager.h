@@ -45,6 +45,7 @@ private:
 	bool m_broadcast_flag;
 	TProcessNum_t m_process_num[MAX_PROCESS_TYPE_NUM];
 	TProcessNum_t m_desire_process_num[MAX_PROCESS_TYPE_NUM];
+	std::map<std::string, TProcessID_t> m_stub_name_2_process_id;
 };
 
 #define DGameManager singleton<game_manager>::get_instance()
