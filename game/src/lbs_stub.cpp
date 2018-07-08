@@ -19,7 +19,7 @@ bool lbs_stub::init()
 	DRegisterStubRpc(this, lbs_stub, query_city, 3);
 	DRegisterStubRpc(this, lbs_stub, update_city, 2);
 
-	DGameServer.db_query("lbs", NULL, "owner_id, pos_x, pos_y", [&](bool status, const dynamic_string& result) {
+	DGameServer.db_query("lbs", NULL, "owner_id, pos_x, pos_y", [&](bool status, const binary_data& result) {
 		if (!status) {
 			log_error("load lbs info from db failed!");
 			return;

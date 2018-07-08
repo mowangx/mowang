@@ -22,16 +22,20 @@ executor_manager::~executor_manager()
 
 bool executor_manager::init()
 {
-	//m_db = new mysql_conn();
-	//if (NULL == m_db) {
-	//	return false;
-	//}
+	m_db = new mysql_conn();
+	if (NULL == m_db) {
+		return false;
+	}
 
-	//bool result = m_db->init("127.0.0.1", 3306, "root", "123456", "test");
-	//if (!result) {
-	//	log_error("connect db failed!");
-	//	return false;
-	//}
+	bool status = m_db->init("127.0.0.1", 3306, "mwrootdb", "a23A5678!", "test");
+	if (!status) {
+		log_error("connect db failed!");
+		return false;
+	}
+
+	//char result[65500];
+	//int len = 0;
+	//m_db->query("role", "", "`id`, `name`, unix_timestamp(birthday)", result, len);
 
 	DRegisterServerRpc(this, executor_manager, add_executor, 6);
 	return true;
@@ -60,33 +64,37 @@ void executor_manager::executor(db_opt_info* opt_info)
 		return;
 	}
 	if (opt_info->opt_type == DB_OPT_QUERY) {
-		//m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
-		char buffer[60000];
-		int buffer_index = 0;
-		fill_packet(buffer, buffer_index, (uint16)3);
-		dynamic_array<soldier_info> soldiers;
-		soldier_info soldier_1;
-		soldier_1.soldier_type = 1;
-		soldier_1.soldier_num = 100;
-		soldiers.push_back(soldier_1);
-		soldier_info soldier_2;
-		soldier_2.soldier_type = 2;
-		soldier_2.soldier_num = 200;
-		soldiers.push_back(soldier_2);
-		soldier_info soldier_3;
-		soldier_3.soldier_type = 3;
-		soldier_3.soldier_num = 300;
-		soldiers.push_back(soldier_3);
-		dynamic_string* bstr = allocate_binary_string(sizeof(soldier_info)* soldiers.size() + sizeof(uint16));
-		dynamic_struct_2_bstr(bstr->data(), soldiers);
-		fill_packet(buffer, buffer_index, (TRoleID_t)0xF1F2F3F4F5F6F7F8, (TNpcIndex_t)0xA1A2, 
-			(TPosValue_t)0x1B2B,(TPosValue_t)0x1C2C, (TPosValue_t)0x1D2D,(TPosValue_t)0x1E2E, *bstr, (TGameTime_t)123456);
-		fill_packet(buffer, buffer_index, (TRoleID_t)0xE1E2E3E4E5E6E7E8, (TNpcIndex_t)0xB2A3,
-			(TPosValue_t)0x2B3B, (TPosValue_t)0x2C3C, (TPosValue_t)0x2D3D, (TPosValue_t)0x2E3E, *bstr, (TGameTime_t)234567);
-		fill_packet(buffer, buffer_index, (TRoleID_t)0xD1D2D3D4D5D6D7D8, (TNpcIndex_t)0xC2C3,
-			(TPosValue_t)0x2C3C, (TPosValue_t)0x2D3D, (TPosValue_t)0x2E3E, (TPosValue_t)0x2F3F, *bstr, (TGameTime_t)345678);
-		dynamic_string result(buffer, buffer_index);
-		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, true, result);
+		char db_result[65000];
+		memset(db_result, 0, 65000);
+		int len = 0;
+		bool status = m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str(), db_result, len);
+		binary_data result(db_result, len);
+		//char buffer[60000];
+		//int buffer_index = 0;
+		//fill_packet(buffer, buffer_index, (uint16)3);
+		//dynamic_array<soldier_info> soldiers;
+		//soldier_info soldier_1;
+		//soldier_1.soldier_type = 1;
+		//soldier_1.soldier_num = 100;
+		//soldiers.push_back(soldier_1);
+		//soldier_info soldier_2;
+		//soldier_2.soldier_type = 2;
+		//soldier_2.soldier_num = 200;
+		//soldiers.push_back(soldier_2);
+		//soldier_info soldier_3;
+		//soldier_3.soldier_type = 3;
+		//soldier_3.soldier_num = 300;
+		//soldiers.push_back(soldier_3);
+		//dynamic_string* bstr = allocate_binary_string(sizeof(soldier_info)* soldiers.size() + sizeof(uint16));
+		//dynamic_struct_2_bstr(bstr->data(), soldiers);
+		//fill_packet(buffer, buffer_index, (TRoleID_t)0xF1F2F3F4F5F6F7F8, (TNpcIndex_t)0xA1A2, 
+		//	(TPosValue_t)0x1B2B,(TPosValue_t)0x1C2C, (TPosValue_t)0x1D2D,(TPosValue_t)0x1E2E, *bstr, (TGameTime_t)123456);
+		//fill_packet(buffer, buffer_index, (TRoleID_t)0xE1E2E3E4E5E6E7E8, (TNpcIndex_t)0xB2A3,
+		//	(TPosValue_t)0x2B3B, (TPosValue_t)0x2C3C, (TPosValue_t)0x2D3D, (TPosValue_t)0x2E3E, *bstr, (TGameTime_t)234567);
+		//fill_packet(buffer, buffer_index, (TRoleID_t)0xD1D2D3D4D5D6D7D8, (TNpcIndex_t)0xC2C3,
+		//	(TPosValue_t)0x2C3C, (TPosValue_t)0x2D3D, (TPosValue_t)0x2E3E, (TPosValue_t)0x2F3F, *bstr, (TGameTime_t)345678);
+		//dynamic_string result(buffer, buffer_index);
+		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, status, result);
 	}
 	else {
 		if (opt_info->opt_type == DB_OPT_UPDATE) {

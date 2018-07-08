@@ -17,6 +17,20 @@ public:
 		m_data = new T[m_max_len];
 	}
 
+	dynamic_array(T* data, uint16 len) {
+		if (NULL == data) {
+			m_len = 0;
+			m_max_len = 16;
+			m_data = new T[m_max_len];
+		}
+		else {
+			m_len = len;
+			m_max_len = m_len + 1;
+			m_data = new T[m_max_len];
+			memcpy(m_data, data, m_len);
+		}
+	}
+
 	dynamic_array(const dynamic_array& rhs) {
 		m_len = rhs.size();
 		m_max_len = m_len + 1;
@@ -119,13 +133,8 @@ public:
 			m_data[m_len] = '\0';
 		}
 		else {
-			if (len > 0) {
-				m_len = len;
-			}
-			else {
-				m_len = 63;
-			}
-			m_max_len = m_len + 1;
+			m_len = len;
+			m_max_len = std::max<int>(m_len + 1, 64);
 			m_data = new char[m_max_len];
 			m_data[m_len] = '\0';
 		}
@@ -297,6 +306,7 @@ private:
 	T** m_data;
 };
 
+typedef dynamic_array<char> binary_data;
 typedef dynamic_array2<dynamic_string> dynamic_string_array;
 typedef dynamic_array2<dynamic_string_array> dynamic_string_array2;
 

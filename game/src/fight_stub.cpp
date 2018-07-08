@@ -23,7 +23,7 @@ fight_stub::~fight_stub()
 
 bool fight_stub::init()
 {
-	DGameServer.db_query("fight", NULL, "role_id, npc_id, src_x, src_y, dest_x, dest_y, soldiers, fight_time", [&](bool status, const dynamic_string& result) {
+	DGameServer.db_query("fight", NULL, "role_id, npc_id, src_x, src_y, dest_x, dest_y, soldiers, unix_timestamp(fight_time)", [&](bool status, const binary_data& result) {
 		if (!status) {
 			log_error("load fight data from db failed!");
 			return;
@@ -41,7 +41,9 @@ bool fight_stub::init()
 			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.dest_pos.x, result.data(), buffer_index);
 			rpc_param_parse<TPosValue_t, TPosValue_t>::parse_param(fight_data.dest_pos.y, result.data(), buffer_index);
 			db_param_parse<dynamic_array<soldier_info>, soldier_info>::parse_param(fight_data.soldiers, result.data(), buffer_index);
-			rpc_param_parse<TGameTime_t, TGameTime_t>::parse_param(fight_data.fight_time, result.data(), buffer_index);
+			uint64 fight_time = 0;
+			rpc_param_parse<uint64, uint64>::parse_param(fight_time, result.data(), buffer_index);
+			fight_data.fight_time = fight_time;
 			log_info("fight stub init data! role id = %" I64_FMT "u, src pox x = %d, dest pos x = %d, fight time = %u",
 				fight_data.role_id, fight_data.src_pos.x, fight_data.dest_pos.x, fight_data.fight_time);
 		}

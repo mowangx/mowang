@@ -52,10 +52,10 @@ public:
 	void db_remove(const char* table, const char* query, const std::function<void(bool)>& callback);
 	void db_insert(const char* table, const char* fields, const std::function<void(bool)>& callback);
 	void db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback);
-	void db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string&)>& callback);
+	void db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const binary_data&)>& callback);
 private:
 	void db_opt_with_status(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback);
-	void db_opt_with_result(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string&)>& callback);
+	void db_opt_with_result(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool, const binary_data&)>& callback);
 	void db_opt(uint8 opt_type, const char* table, const char* query, const char* fields);
 
 public:
@@ -66,7 +66,7 @@ public:
 	void create_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name);
 	void remove_entity(TSocketIndex_t client_id);
 	void on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status);
-	void on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string& data);
+	void on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const binary_data& result);
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;
@@ -86,7 +86,7 @@ private:
 
 private:
 	TDbOptID_t m_db_opt_id;
-	std::unordered_map<TDbOptID_t, std::function<void(bool, const dynamic_string&)>> m_db_result_callbacks;
+	std::unordered_map<TDbOptID_t, std::function<void(bool, const binary_data&)>> m_db_result_callbacks;
 	std::unordered_map<TDbOptID_t, std::function<void(bool)>> m_db_status_callbacks;
 	obj_memory_pool<resource, 65536> m_resource_pool;
 	obj_memory_pool<city, 1024> m_city_pool;

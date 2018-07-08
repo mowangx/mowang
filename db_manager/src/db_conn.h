@@ -12,7 +12,7 @@ public:
 	virtual bool remove(const char* table, const char* query) = 0;
 	virtual bool insert(const char* table, const char* fields) = 0;
 	virtual bool update(const char* table, const char* query, const char* fields) = 0;
-	virtual bool query(const char* table, const char* query, const char* fields) = 0;
+	virtual bool query(const char* table, const char* query, const char* fields, char* result, int& len) = 0;
 };
 
 #endif

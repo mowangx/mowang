@@ -33,8 +33,8 @@ public:
 
 private:
 	void create_role();
-	void on_load_account_callback(bool status, const dynamic_string& result);
-	void on_load_role_callback(bool status, const dynamic_string& result);
+	void on_load_account_callback(bool status, const binary_data& result);
+	void on_load_role_callback(bool status, const binary_data& result);
 	void on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);
 	void on_account_login_success();
 	void on_role_login_success();

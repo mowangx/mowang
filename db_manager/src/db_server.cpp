@@ -76,6 +76,8 @@ void db_server::work_run()
 	//catch (mongocxx::bulk_write_exception& e) {
 	//	std::cout << e.code() << e.what() << std::endl;
 	//}
+
+
 	connect_game_manager_loop(m_config.get_game_manager_listen_ip(), m_config.get_game_manager_listen_port());
 	TBaseType_t::work_run();
 }

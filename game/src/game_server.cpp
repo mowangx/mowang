@@ -162,7 +162,7 @@ void game_server::db_update(const char* table, const char* query, const char* fi
 	db_opt_with_status(DB_OPT_UPDATE, table, query, fields, callback);
 }
 
-void game_server::db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const dynamic_string&)>& callback)
+void game_server::db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const binary_data&)>& callback)
 {
 	db_opt_with_result(DB_OPT_QUERY, table, query, fields, callback);
 }
@@ -173,7 +173,7 @@ void game_server::db_opt_with_status(uint8 opt_type, const char* table, const ch
 	m_db_status_callbacks[m_db_opt_id] = callback;
 }
 
-void game_server::db_opt_with_result(uint8 opt_type, const char * table, const char * query, const char * fields, const std::function<void(bool, const dynamic_string&)>& callback)
+void game_server::db_opt_with_result(uint8 opt_type, const char * table, const char * query, const char * fields, const std::function<void(bool, const binary_data&)>& callback)
 {
 	db_opt(opt_type, table, query, fields);
 	m_db_result_callbacks[m_db_opt_id] = callback;
@@ -271,14 +271,14 @@ void game_server::on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t 
 	callback(status);
 }
 
-void game_server::on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const dynamic_string& data)
+void game_server::on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const binary_data& result)
 {
 	auto itr = m_db_result_callbacks.find(opt_id);
 	if (itr == m_db_result_callbacks.end()) {
 		return;
 	}
-	const std::function<void(bool, const dynamic_string&)>& callback = itr->second;
-	callback(status, data);
+	const std::function<void(bool, const binary_data&)>& callback = itr->second;
+	callback(status, result);
 }
 
 void game_server::on_connect(TSocketIndex_t socket_index)
