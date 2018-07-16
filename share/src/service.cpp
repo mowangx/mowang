@@ -48,14 +48,7 @@ void service::start(const std::string& module_name, const char* process_id)
 
 	log_info("Init service success");
 
-	std::thread log_thread(std::bind(&service::log_run, this));
-	std::thread net_thread(std::bind(&service::net_run, this));
-	//std::thread net_thread(std::bind(&service::net_run, this, std::ref(pid)));
-
-	work_run();
-
-	log_thread.join();
-	net_thread.join();
+	init_threads();
 }
 
 bool service::load_config(ini_file& ini, const std::string& module_name)
@@ -75,6 +68,18 @@ bool service::init(TProcessID_t process_id)
 	DTimer.init();
 
 	return true;
+}
+
+void service::init_threads()
+{
+	std::thread log_thread(std::bind(&service::log_run, this));
+	std::thread net_thread(std::bind(&service::net_run, this));
+	//std::thread net_thread(std::bind(&service::net_run, this, std::ref(pid)));
+
+	work_run();
+
+	log_thread.join();
+	net_thread.join();
 }
 
 void service::work_run()

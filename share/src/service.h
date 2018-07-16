@@ -22,9 +22,10 @@ public:
 
 public:
 	virtual void start(const std::string& module_name, const char* process_id);
-protected:
+public:
 	virtual bool load_config(ini_file& ini, const std::string& module_name);
 	virtual bool init(TProcessID_t process_id);
+	virtual void init_threads();
 	virtual void work_run();
 	virtual void net_run();
 	virtual void log_run();
