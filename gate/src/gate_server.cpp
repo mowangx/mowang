@@ -7,6 +7,7 @@
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
 #include "socket_manager.h"
+#include "ws_manager.h"
 #include "time_manager.h"
 
 gate_server::gate_server() : service(PROCESS_GATE)
@@ -52,14 +53,20 @@ bool gate_server::init(TProcessID_t process_id)
 
 void gate_server::init_threads()
 {
+	if (!DWSNetMgr.init(m_server_info.process_info.process_type, m_server_info.process_info.process_id)) {
+		log_error("init websocket manager failed");
+		return;
+	}
+
 	std::thread log_thread(std::bind(&service::log_run, this));
 	std::thread net_thread(std::bind(&service::net_run, this));
-	std::thread net_ws_thread(std::bind(&gate_server::ws_net_run, this));
+	std::thread ws_thread(std::bind(&gate_server::websocket_run, this));
 
 	work_run();
 
 	log_thread.join();
 	net_thread.join();
+	ws_thread.join();
 }
 
 void gate_server::work_run()
@@ -78,6 +85,18 @@ void gate_server::net_run()
 
 	while (true) {
 		DNetMgr.update(0);
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	}
+}
+
+void gate_server::websocket_run()
+{
+	DWSNetMgr.start_listen(m_ws_list_port);
+
+	log_info("init websocket manager success");
+
+	while (true) {
+		DWSNetMgr.update(0);
 		std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}
 }
@@ -134,44 +153,6 @@ void gate_server::on_disconnect(TSocketIndex_t socket_index)
 			kick_socket(itr->first);
 		}
 	}
-}
-
-void gate_server::ws_net_run()
-{
-	WebsocketServer server;
-	server.set_access_channels(websocketpp::log::alevel::all);
-	server.clear_access_channels(websocketpp::log::alevel::frame_payload);
-
-	server.init_asio();
-
-	server.set_open_handler(std::bind(&gate_server::ws_on_open, this, &server, std::placeholders::_1));
-	server.set_close_handler(std::bind(&gate_server::ws_on_close, this, &server, std::placeholders::_1));
-	server.set_message_handler(std::bind(&gate_server::ws_on_message, this, &server, std::placeholders::_1, std::placeholders::_2));
-
-	server.listen(m_ws_list_port);
-	server.start_accept();
-	server.run();
-}
-
-void gate_server::ws_on_open(WebsocketServer * server, websocketpp::connection_hdl hdl)
-{
-	std::cout << "have client connected" << std::endl;
-}
-
-void gate_server::ws_on_close(WebsocketServer * server, websocketpp::connection_hdl hdl)
-{
-	std::cout << "have client disconnected" << std::endl;
-}
-
-void gate_server::ws_on_message(WebsocketServer * server, websocketpp::connection_hdl hdl, message_ptr msg)
-{
-	std::string str_msg = msg->get_payload();
-	std::cout << str_msg << std::endl;
-
-	std::string str_response = "receive: ";
-	str_response.append(str_msg);
-
-	server->send(hdl, str_response, websocketpp::frame::opcode::text);
 }
 
 void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)

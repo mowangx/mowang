@@ -98,8 +98,7 @@ class socket_base;
 class socket_wrapper;
 class socket_manager;
 
-typedef struct socket_wrapper_event_arg
-{
+typedef struct socket_wrapper_event_arg {
 	socket_wrapper* s;
 	socket_manager* mgr;
 	socket_wrapper_event_arg() {
@@ -112,8 +111,7 @@ typedef struct socket_wrapper_event_arg
 	}
 }socket_wrapper_event_arg_t;
 
-typedef struct socket_event_arg
-{
+typedef struct socket_event_arg {
 	socket_base* s;
 	socket_manager* mgr;
 	socket_event_arg() {

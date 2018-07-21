@@ -10,9 +10,9 @@ class rpc_client;
 class service_interface
 {
 public:
-	virtual TPacketSendInfo_t* allocate_packet_info() = 0;
+	virtual packet_send_info* allocate_packet_info() = 0;
 	virtual char* allocate_memory(int n) = 0;
-	virtual void push_write_packets(TPacketSendInfo_t* packet_info) = 0;
+	virtual void push_write_packets(packet_send_info* packet_info) = 0;
 
 public:
 	virtual void kick_socket(TSocketIndex_t socket_index) = 0;

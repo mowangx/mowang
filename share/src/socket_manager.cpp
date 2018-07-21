@@ -86,8 +86,8 @@ uint32 socket_manager::socket_num() const
 }
 
 void socket_manager::swap_net_2_logic(
-	std::vector<TPacketRecvInfo_t*>& read_packets, 
-	std::vector<TPacketSendInfo_t*>& finish_write_packets, 
+	std::vector<packet_recv_info*>& read_packets, 
+	std::vector<packet_send_info*>& finish_write_packets, 
 	std::vector<socket_base*>& new_sockets, 
 	std::vector<socket_base*>& del_sockets)
 {
@@ -106,8 +106,8 @@ void socket_manager::swap_net_2_logic(
 }
 
 void socket_manager::swap_login_2_net(
-	const std::vector<TPacketSendInfo_t*>& write_packets, 
-	const std::vector<TPacketRecvInfo_t*>& finish_read_packets, 
+	const std::vector<packet_send_info*>& write_packets, 
+	const std::vector<packet_recv_info*>& finish_read_packets, 
 	const std::vector<TSocketIndex_t>& kick_sockets, 
 	const std::vector<socket_base*>& del_sockets)
 {
@@ -223,12 +223,12 @@ void socket_manager::handle_socket_unpacket(socket_base* socket)
 		log_error("socket index = '%"I64_FMT"u', read len is not equal cache len, read len = %d, cache len = %d", socket->get_socket_index(), cur_len, len);
 	}
 
-	std::vector<TPacketRecvInfo_t*> packets;
+	std::vector<packet_recv_info*> packets;
 	packet_base* packet = socket_handler->unpacket();
 	while (NULL != packet) {
 		char* packet_pool = m_mem_pool.allocate(packet->get_packet_len());
 		memcpy(packet_pool, packet, packet->get_packet_len());
-		TPacketRecvInfo_t* packet_info = m_packet_info_pool.allocate();
+		packet_recv_info* packet_info = m_packet_info_pool.allocate();
 		packet_info->socket = socket;
 		packet_info->packet = (packet_base*)packet_pool;
 		packets.push_back(packet_info);
@@ -246,8 +246,8 @@ void socket_manager::handle_socket_unpacket(socket_base* socket)
 
 void socket_manager::handle_write_msg()
 {
-	std::vector<TPacketSendInfo_t*> packets;
-	std::vector<TPacketSendInfo_t*> finish_packets;
+	std::vector<packet_send_info*> packets;
+	std::vector<packet_send_info*> finish_packets;
 
 	{
 		auto_lock lock(&m_mutex);
@@ -323,7 +323,7 @@ void socket_manager::handle_release_socket()
 
 void socket_manager::handle_release_packet()
 {
-	std::vector<TPacketRecvInfo_t*> packets;
+	std::vector<packet_recv_info*> packets;
 	{
 		auto_lock lock(&m_mutex);
 		packets.insert(packets.begin(), m_finish_read_packets.begin(), m_finish_read_packets.end());

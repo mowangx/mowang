@@ -7,12 +7,6 @@
 #include "dynamic_array.h"
 #include "game_struct.h"
 
-#include <websocketpp/config/asio_no_tls.hpp>
-#include <websocketpp/server.hpp>
-
-typedef websocketpp::server<websocketpp::config::asio> WebsocketServer;
-typedef WebsocketServer::message_ptr message_ptr;
-
 class gate_server : public service, public singleton<gate_server>
 {
 	typedef service TBaseType_t;
@@ -28,14 +22,10 @@ private:
 	virtual void init_threads() override;
 	virtual void work_run() override;
 	virtual void net_run() override;
+	void websocket_run();
 	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 	virtual void do_loop(TGameTime_t diff) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;
-private:
-	void ws_net_run();
-	void ws_on_open(WebsocketServer *server, websocketpp::connection_hdl hdl);
-	void ws_on_close(WebsocketServer *server, websocketpp::connection_hdl hdl);
-	void ws_on_message(WebsocketServer *server, websocketpp::connection_hdl hdl, message_ptr msg);
 
 public:
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);

@@ -33,7 +33,7 @@ bool game_server_handler::handle_transfer_role(packet_base * packet)
 {
 	transfer_role_packet* role_packet = (transfer_role_packet*)packet;
 	packet_base* rpc_packet = (packet_base*)role_packet->m_buffer;
-	TPacketSendInfo_t* packet_info = DGateServer.allocate_packet_info();
+	packet_send_info* packet_info = DGateServer.allocate_packet_info();
 	packet_info->socket_index = DRpcWrapper.get_socket_index(game_process_info(role_packet->m_server_id, PROCESS_GAME, role_packet->m_game_id));
 	role_rpc_by_name_packet* transfer_packet = (role_rpc_by_name_packet*)DGateServer.allocate_memory(rpc_packet->get_packet_len());
 	packet_info->packet = transfer_packet;
@@ -46,7 +46,7 @@ bool game_server_handler::handle_transfer_stub(packet_base * packet)
 {
 	transfer_stub_packet* stub_packet = (transfer_stub_packet*)packet;
 	packet_base* rpc_packet = (packet_base*)stub_packet->m_buffer;
-	TPacketSendInfo_t* packet_info = DGateServer.allocate_packet_info();
+	packet_send_info* packet_info = DGateServer.allocate_packet_info();
 	packet_info->socket_index = DRpcWrapper.get_socket_index(game_process_info(stub_packet->m_server_id, PROCESS_GAME, stub_packet->m_game_id));
 	rpc_by_name_packet* transfer_packet = (rpc_by_name_packet*)DGateServer.allocate_memory(rpc_packet->get_packet_len());
 	packet_info->packet = transfer_packet;
@@ -59,7 +59,7 @@ bool game_server_handler::handle_transfer_client(packet_base * packet)
 {
 	transfer_client_packet* client_packet = (transfer_client_packet*)packet;
 	packet_base* rpc_packet = (packet_base*)client_packet->m_buffer;
-	TPacketSendInfo_t* packet_info = DGateServer.allocate_packet_info();
+	packet_send_info* packet_info = DGateServer.allocate_packet_info();
 	packet_info->socket_index = client_packet->m_client_id;
 	packet_base* transfer_packet = (packet_base*)DGateServer.allocate_memory(rpc_packet->get_packet_len());
 	packet_info->packet = transfer_packet;

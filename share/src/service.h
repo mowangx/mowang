@@ -42,9 +42,9 @@ public:
 	virtual const game_server_info& get_server_info() const override;
 
 public:
-	virtual TPacketSendInfo_t * allocate_packet_info() override;
+	virtual packet_send_info * allocate_packet_info() override;
 	virtual char* allocate_memory(int n) override;
-	virtual void push_write_packets(TPacketSendInfo_t* packet_info) override;
+	virtual void push_write_packets(packet_send_info* packet_info) override;
 
 	virtual void kick_socket(TSocketIndex_t socket_index) override;
 
@@ -70,10 +70,10 @@ protected:
 	TGameTime_t m_next_reconnect_time;
 	game_server_info m_server_info;
 	service_config m_config;
-	obj_memory_pool<TPacketSendInfo_t, 1000> m_packet_pool;
+	obj_memory_pool<packet_send_info, 1000> m_packet_pool;
 	memory_pool m_mem_pool;
 	std::vector<TSocketIndex_t> m_wait_kick_sockets;
-	std::vector<TPacketSendInfo_t*> m_write_packets;
+	std::vector<packet_send_info*> m_write_packets;
 	std::vector<game_server_info> m_disconnect_server_infos;
 	std::unordered_map<TSocketIndex_t, rpc_client*> m_clients;
 };

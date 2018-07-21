@@ -37,15 +37,15 @@ public:
 
 
 	void	swap_net_2_logic(
-		std::vector<TPacketRecvInfo_t*>& read_packets, 
-		std::vector<TPacketSendInfo_t*>& finish_write_packets, 
+		std::vector<packet_recv_info*>& read_packets, 
+		std::vector<packet_send_info*>& finish_write_packets, 
 		std::vector<socket_base*>& new_sockets, 
 		std::vector<socket_base*>& del_sockets
 	);
 
 	void	swap_login_2_net(
-		const std::vector<TPacketSendInfo_t*>& write_packets, 
-		const std::vector<TPacketRecvInfo_t*>& finish_read_packets, 
+		const std::vector<packet_send_info*>& write_packets, 
+		const std::vector<packet_recv_info*>& finish_read_packets, 
 		const std::vector<TSocketIndex_t>& kick_sockets,
 		const std::vector<socket_base*>& del_sockets
 	);
@@ -87,12 +87,12 @@ private:
 	SocketEventBase_t* m_eventbase;
 	memory_allocator<MAX_PACKET_BUFFER_SIZE, 100> m_packet_buffer_pool;
 	obj_memory_pool<socket_handler, 100> m_socket_handler_pool;
-	obj_memory_pool<TPacketRecvInfo_t, 1000> m_packet_info_pool;
+	obj_memory_pool<packet_recv_info, 1000> m_packet_info_pool;
 	memory_pool	m_mem_pool;
-	std::vector<TPacketRecvInfo_t*> m_read_packets;
-	std::vector<TPacketRecvInfo_t*> m_finish_read_packets;
-	std::vector<TPacketSendInfo_t*> m_write_packets;
-	std::vector<TPacketSendInfo_t*> m_finish_write_packets;
+	std::vector<packet_recv_info*> m_read_packets;
+	std::vector<packet_recv_info*> m_finish_read_packets;
+	std::vector<packet_send_info*> m_write_packets;
+	std::vector<packet_send_info*> m_finish_write_packets;
 	std::vector<socket_base*> m_new_sockets;
 	std::vector<socket_base*> m_wait_init_sockets;
 	std::vector<TSocketIndex_t> m_wait_kick_sockets;

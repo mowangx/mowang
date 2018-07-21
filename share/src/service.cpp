@@ -113,8 +113,8 @@ void service::do_loop(TGameTime_t diff)
 	// 
 	DTimer.update(diff);
 
-	std::vector<TPacketRecvInfo_t*> read_packets;
-	std::vector<TPacketSendInfo_t*> finish_write_packets;
+	std::vector<packet_recv_info*> read_packets;
+	std::vector<packet_send_info*> finish_write_packets;
 	std::vector<socket_base*> add_sockets;
 	std::vector<socket_base*> del_sockets;
 
@@ -206,7 +206,7 @@ const game_server_info & service::get_server_info() const
 	return m_server_info;
 }
 
-TPacketSendInfo_t * service::allocate_packet_info()
+packet_send_info * service::allocate_packet_info()
 {
 	return m_packet_pool.allocate();
 }
@@ -216,7 +216,7 @@ char * service::allocate_memory(int n)
 	return m_mem_pool.allocate(n);
 }
 
-void service::push_write_packets(TPacketSendInfo_t * packet_info)
+void service::push_write_packets(packet_send_info * packet_info)
 {
 	m_write_packets.push_back(packet_info);
 }

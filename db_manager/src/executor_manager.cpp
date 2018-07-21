@@ -27,11 +27,11 @@ bool executor_manager::init()
 		return false;
 	}
 
-	bool status = m_db->init("127.0.0.1", 3306, "mwrootdb", "a23A5678!", "test");
-	if (!status) {
-		log_error("connect db failed!");
-		return false;
-	}
+	//bool status = m_db->init("127.0.0.1", 3306, "mwrootdb", "a23A5678!", "test");
+	//if (!status) {
+	//	log_error("connect db failed!");
+	//	return false;
+	//}
 
 	//char result[65500];
 	//int len = 0;

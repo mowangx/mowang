@@ -94,7 +94,7 @@ public:
 	virtual void send_packet(packet_base* packet) const override {
 		if (is_valid()) {
 			service_interface* s = get_service();
-			TPacketSendInfo_t* packet_info = s->allocate_packet_info();
+			packet_send_info* packet_info = s->allocate_packet_info();
 			packet_info->socket_index = get_socket_index();
 			packet_info->packet = (packet_base*)s->allocate_memory(packet->get_packet_len());
 			memcpy(packet_info->packet, packet, packet->get_packet_len());

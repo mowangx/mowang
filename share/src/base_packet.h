@@ -213,11 +213,11 @@ public:
 
 #pragma pack(pop)
 
-typedef struct PacketRecvInfo
+struct packet_recv_info
 {
 	packet_base* packet;
 	socket_base* socket;
-	PacketRecvInfo() {
+	packet_recv_info() {
 		clean_up();
 	}
 
@@ -226,13 +226,27 @@ typedef struct PacketRecvInfo
 		socket = NULL;
 	}
 
-}TPacketRecvInfo_t;
+};
 
-typedef struct PacketSendInfo
+struct ws_packet_recv_info
+{
+	packet_base* packet;
+	TSocketIndex_t client_id;
+	ws_packet_recv_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		packet = NULL;
+		client_id = INVALID_SOCKET_INDEX;
+	}
+};
+
+struct packet_send_info
 {
 	packet_base* packet;
 	TSocketIndex_t socket_index;
-	PacketSendInfo() {
+	packet_send_info() {
 		clean_up();
 	}
 
@@ -241,6 +255,6 @@ typedef struct PacketSendInfo
 		socket_index = INVALID_SOCKET_INDEX;
 	}
 
-}TPacketSendInfo_t;
+};
 
 #endif

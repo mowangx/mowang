@@ -48,7 +48,7 @@ bool client_handler::handle_transfer_server_by_name(packet_base* packet)
 
 void client_handler::transfer_server(packet_base* packet) const
 {
-	TPacketSendInfo_t* packet_info = DGateServer.allocate_packet_info();
+	packet_send_info* packet_info = DGateServer.allocate_packet_info();
 	packet_info->socket_index = DGateServer.get_server_socket_index(get_socket_index());
 	TPacketLen_t len = (TPacketLen_t)(sizeof(transfer_client_packet) - 65000 + packet->get_packet_len());
 	transfer_client_packet* transfer_packet = (transfer_client_packet*)DGateServer.allocate_memory(len);
