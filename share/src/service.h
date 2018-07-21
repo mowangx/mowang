@@ -45,8 +45,10 @@ public:
 	virtual packet_send_info * allocate_packet_info() override;
 	virtual char* allocate_memory(int n) override;
 	virtual void push_write_packets(packet_send_info* packet_info) override;
+	virtual void push_ws_write_packets(packet_send_info* packet_info) override;
 
 	virtual void kick_socket(TSocketIndex_t socket_index) override;
+	virtual void kick_ws_socket(TSocketIndex_t socket_index) override;
 
 public:
 	virtual void register_client(rpc_client* client) override;
@@ -73,7 +75,9 @@ protected:
 	obj_memory_pool<packet_send_info, 1000> m_packet_pool;
 	memory_pool m_mem_pool;
 	std::vector<TSocketIndex_t> m_wait_kick_sockets;
+	std::vector<TSocketIndex_t> m_wait_kick_ws_sockets;
 	std::vector<packet_send_info*> m_write_packets;
+	std::vector<packet_send_info*> m_write_ws_packets;
 	std::vector<game_server_info> m_disconnect_server_infos;
 	std::unordered_map<TSocketIndex_t, rpc_client*> m_clients;
 };

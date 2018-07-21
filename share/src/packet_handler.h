@@ -23,7 +23,7 @@ public:
 
 	virtual void kick() const;
 
-	virtual void handle_init() const;
+	virtual void handle_init();
 	virtual void handle_close();
 
 	virtual bool handle_rpc_by_index(packet_base* packet) const;

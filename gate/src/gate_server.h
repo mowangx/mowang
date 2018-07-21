@@ -7,6 +7,8 @@
 #include "dynamic_array.h"
 #include "game_struct.h"
 
+class game_server_handler;
+
 class gate_server : public service, public singleton<gate_server>
 {
 	typedef service TBaseType_t;
@@ -26,6 +28,11 @@ private:
 	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 	virtual void do_loop(TGameTime_t diff) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;
+private:
+	void do_ws_loop(TGameTime_t diff);
+
+public:
+	void set_game_server_handler(game_server_handler* handler);
 
 public:
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
@@ -39,6 +46,7 @@ public:
 
 private:
 	TPort_t m_ws_list_port;
+	game_server_handler* m_game_server_handler;
 	std::vector<socket_kick_info> m_delay_kick_sockets;
 	std::unordered_map<TSocketIndex_t, game_process_info> m_client_2_process;
 };

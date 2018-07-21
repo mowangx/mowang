@@ -13,6 +13,7 @@
 gate_server::gate_server() : service(PROCESS_GATE)
 {
 	m_ws_list_port = 0;
+	m_game_server_handler = NULL;
 	m_delay_kick_sockets.clear();
 	m_client_2_process.clear();
 }
@@ -110,6 +111,8 @@ void gate_server::do_loop(TGameTime_t diff)
 {
 	TBaseType_t::do_loop(diff);
 
+	do_ws_loop(diff);
+
 	if (m_delay_kick_sockets.empty()) {
 		return;
 	}
@@ -153,6 +156,43 @@ void gate_server::on_disconnect(TSocketIndex_t socket_index)
 			kick_socket(itr->first);
 		}
 	}
+}
+
+void gate_server::do_ws_loop(TGameTime_t diff)
+{
+	std::vector<ws_packet_recv_info*> read_packets;
+	std::vector<packet_send_info*> finish_write_packets;
+	std::vector<TSocketIndex_t> add_sockets;
+	std::vector<TSocketIndex_t> del_sockets;
+
+	DWSNetMgr.swap_net_2_logic(read_packets, finish_write_packets, add_sockets, del_sockets);
+
+	for (auto packet_info : finish_write_packets) {
+		m_mem_pool.deallocate((char*)packet_info->packet);
+		m_packet_pool.deallocate(packet_info);
+	}
+
+	for (auto socket_index : add_sockets) {
+		m_game_server_handler->handle_client_init(socket_index);
+	}
+
+	for (auto packet_info : read_packets) {
+		m_game_server_handler->handle(packet_info->packet);
+	}
+
+	for (auto socket_index : del_sockets) {
+		m_game_server_handler->handle_client_close(socket_index);
+	}
+
+	DWSNetMgr.swap_login_2_net(m_write_ws_packets, read_packets, m_wait_kick_ws_sockets, del_sockets);
+
+	m_write_ws_packets.clear();
+	m_wait_kick_ws_sockets.clear();
+}
+
+void gate_server::set_game_server_handler(game_server_handler * handler)
+{
+	m_game_server_handler = handler;
 }
 
 void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)

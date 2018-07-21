@@ -21,7 +21,7 @@ private:
 	}
 
 public:
-	virtual void handle_init() const override;
+	virtual void handle_init() override;
 	virtual void handle_close() override;
 
 	virtual bool handle_rpc_by_index(packet_base* packet) const override;

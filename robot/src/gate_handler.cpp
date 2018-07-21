@@ -21,7 +21,7 @@ service_interface * gate_handler::get_service() const
 	return singleton<robot_server>::get_instance_ptr();
 }
 
-void gate_handler::handle_init() const
+void gate_handler::handle_init()
 {
 	log_info("'%"I64_FMT"u', gate connect success, handle init", get_socket_index());
 	DRobotServer.register_client(m_rpc_client);

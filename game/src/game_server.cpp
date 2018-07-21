@@ -17,7 +17,7 @@
 
 game_server::game_server() :service(PROCESS_GAME)
 {
-	m_write_packets.clear();
+
 }
 
 game_server::~game_server()

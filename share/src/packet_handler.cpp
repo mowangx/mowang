@@ -24,7 +24,7 @@ void game_handler::kick() const
 	get_service()->kick_socket(get_socket_index());
 }
 
-void game_handler::handle_init() const
+void game_handler::handle_init()
 {
 	log_info("connect success, handle init, socket index = '%"I64_FMT"u'", m_socket_index);
 	get_service()->register_client(m_rpc_client);

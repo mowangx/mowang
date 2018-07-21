@@ -12,7 +12,9 @@ service::service(game_process_type process_type)
 	m_reconnect_interval_time = 1;
 	m_next_reconnect_time = INVALID_GAME_TIME;
 	m_wait_kick_sockets.clear();
+	m_wait_kick_ws_sockets.clear();
 	m_write_packets.clear();
+	m_write_ws_packets.clear();
 	m_disconnect_server_infos.clear();
 	m_clients.clear();
 	m_server_info.process_info.process_type = process_type;
@@ -221,9 +223,19 @@ void service::push_write_packets(packet_send_info * packet_info)
 	m_write_packets.push_back(packet_info);
 }
 
+void service::push_ws_write_packets(packet_send_info * packet_info)
+{
+	m_write_ws_packets.push_back(packet_info);
+}
+
 void service::kick_socket(TSocketIndex_t socket_index)
 {
 	m_wait_kick_sockets.push_back(socket_index);
+}
+
+void service::kick_ws_socket(TSocketIndex_t socket_index)
+{
+	m_wait_kick_ws_sockets.push_back(socket_index);
 }
 
 void service::register_client(rpc_client * client)

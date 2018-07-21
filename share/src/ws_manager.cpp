@@ -120,14 +120,6 @@ void WebSocketManager::on_close(websocketpp::connection_hdl hdl)
 
 void WebSocketManager::on_message(websocketpp::connection_hdl hdl, message_ptr msg)
 {
-	std::string str_msg = msg->get_payload();
-	std::cout << str_msg << std::endl;
-
-	std::string str_response = "receive: ";
-	str_response.append(str_msg);
-
-	m_server.send(hdl, str_response, websocketpp::frame::opcode::text);
-
 	auto itr = m_handle_2_info_map.find(hdl);
 	if (itr == m_handle_2_info_map.end()) {
 		return;
@@ -285,6 +277,13 @@ void WebSocketManager::del_socket(websocketpp::connection_hdl hdl)
 
 void WebSocketManager::send_packet(TSocketIndex_t socket_index, char * msg, uint32 len)
 {
+	auto itr = m_index_2_handle_map.find(socket_index);
+	if (itr == m_index_2_handle_map.end()) {
+		log_error("send packet failed for not find socket index! socket index = '%" I64_FMT "u'", socket_index);
+		return;
+	}
+
+	m_server.send(itr->second, msg, len, websocketpp::frame::opcode::binary);
 }
 
 TSocketIndex_t WebSocketManager::gen_socket_index()
