@@ -21,13 +21,6 @@ private:
 	virtual service_interface* get_service() const override;
 
 public:
-	virtual void handle_init() override;
-
-public:
-	void handle_client_init(TSocketIndex_t client_id);
-	void handle_client_close(TSocketIndex_t client_id);
-
-public:
 	bool handle_transfer_role(packet_base* packet);
 	bool handle_transfer_stub(packet_base* packet);
 	bool handle_transfer_client(packet_base* packet);

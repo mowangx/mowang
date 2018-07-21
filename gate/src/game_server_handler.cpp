@@ -29,20 +29,6 @@ service_interface * game_server_handler::get_service() const
 	return singleton<gate_server>::get_instance_ptr();
 }
 
-void game_server_handler::handle_init()
-{
-	TBaseType_t::handle_init();
-	DGateServer.set_game_server_handler(this);
-}
-
-void game_server_handler::handle_client_init(TSocketIndex_t client_id)
-{
-}
-
-void game_server_handler::handle_client_close(TSocketIndex_t client_id)
-{
-}
-
 bool game_server_handler::handle_transfer_role(packet_base * packet)
 {
 	transfer_role_packet* role_packet = (transfer_role_packet*)packet;

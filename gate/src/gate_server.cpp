@@ -13,7 +13,6 @@
 gate_server::gate_server() : service(PROCESS_GATE)
 {
 	m_ws_list_port = 0;
-	m_game_server_handler = NULL;
 	m_delay_kick_sockets.clear();
 	m_client_2_process.clear();
 }
@@ -172,27 +171,18 @@ void gate_server::do_ws_loop(TGameTime_t diff)
 		m_packet_pool.deallocate(packet_info);
 	}
 
-	for (auto socket_index : add_sockets) {
-		m_game_server_handler->handle_client_init(socket_index);
-	}
-
 	for (auto packet_info : read_packets) {
-		m_game_server_handler->handle(packet_info->packet);
+		process_ws_packet(packet_info);
 	}
 
 	for (auto socket_index : del_sockets) {
-		m_game_server_handler->handle_client_close(socket_index);
+		logout_server(socket_index);
 	}
 
 	DWSNetMgr.swap_login_2_net(m_write_ws_packets, read_packets, m_wait_kick_ws_sockets, del_sockets);
 
 	m_write_ws_packets.clear();
 	m_wait_kick_ws_sockets.clear();
-}
-
-void gate_server::set_game_server_handler(game_server_handler * handler)
-{
-	m_game_server_handler = handler;
 }
 
 void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
@@ -251,6 +241,21 @@ void gate_server::logout_server(TSocketIndex_t socket_index)
 	}
 }
 
+void gate_server::transfer_server(TSocketIndex_t socket_index, packet_base * packet)
+{
+	packet_send_info* packet_info = allocate_packet_info();
+	packet_info->socket_index = get_server_socket_index(socket_index);
+	TPacketLen_t len = (TPacketLen_t)(sizeof(transfer_client_packet) - 65000 + packet->get_packet_len());
+	transfer_client_packet* transfer_packet = (transfer_client_packet*)allocate_memory(len);
+	packet_info->packet = transfer_packet;
+	transfer_packet->m_len = len;
+	transfer_packet->m_id = PACKET_ID_TRANSFER_CLIENT;
+	transfer_packet->m_client_id = socket_index;
+	memcpy(transfer_packet->m_buffer, packet, packet->get_packet_len());
+	push_write_packets(packet_info);
+	log_info("transfer client packet to server! client id = '%"I64_FMT"u', socket index = '%"I64_FMT"u'", packet_info->socket_index, socket_index);
+}
+
 void gate_server::update_process_info(TSocketIndex_t socket_index, TSocketIndex_t client_id, const game_process_info & process_info)
 {
 	auto itr = m_client_2_process.find(client_id);
@@ -269,6 +274,17 @@ void gate_server::kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t 
 	kick_info.socket_index = client_id;
 	kick_info.kick_time = DTimeMgr.now_sys_time() + DELAY_KICK_SOCKET_TIME;
 	m_delay_kick_sockets.push_back(kick_info);
+}
+
+void gate_server::process_ws_packet(ws_packet_recv_info * packet_info)
+{
+	if (packet_info->packet->get_packet_id() == PACKET_ID_LOGIN) {
+		login_packet* login_info = (login_packet*)packet_info->packet;
+		login_server(packet_info->socket_index, login_info->m_platform_id, login_info->m_server_id, login_info->m_user_id, INVALID_SOCKET_INDEX);
+	}
+	else {
+		transfer_server(packet_info->socket_index, packet_info->packet);
+	}
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

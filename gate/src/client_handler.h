@@ -28,9 +28,6 @@ public:
 
 	bool handle_transfer_server_by_index(packet_base* packet);
 	bool handle_transfer_server_by_name(packet_base* packet);
-
-private:
-	void transfer_server(packet_base* packet) const;
 };
 
 #endif // !_CLIENT_HANDLER_H_

@@ -32,21 +32,20 @@ private:
 	void do_ws_loop(TGameTime_t diff);
 
 public:
-	void set_game_server_handler(game_server_handler* handler);
-
-public:
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
 	void login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const TUserID_t& user_id, TSocketIndex_t test_client_id);
 	void logout_server(TSocketIndex_t socket_index);
+	void transfer_server(TSocketIndex_t socket_index, packet_base* packet);
 	void update_process_info(TSocketIndex_t socket_index, TSocketIndex_t client_id, const game_process_info& process_info);
 	void kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t client_id);
+private:
+	void process_ws_packet(ws_packet_recv_info* packet_info);
 
 public:
 	TSocketIndex_t get_server_socket_index(TSocketIndex_t socket_index) const;
 
 private:
 	TPort_t m_ws_list_port;
-	game_server_handler* m_game_server_handler;
 	std::vector<socket_kick_info> m_delay_kick_sockets;
 	std::unordered_map<TSocketIndex_t, game_process_info> m_client_2_process;
 };

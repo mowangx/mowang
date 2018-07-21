@@ -12,6 +12,8 @@ class socket_base;
 
 enum packet_id_type
 {
+	PACKET_ID_LOGIN = 0x1,
+
 	PACKET_ID_RPC_BY_INDEX = 0x65,
 	PACKET_ID_RPC_BY_NAME = 0x66,
 	PACKET_ID_STUB_RPC_BY_INDEX = 0x67,
@@ -58,6 +60,21 @@ public:
 	TPacketLen_t m_len;
 	TPacketID_t m_id;
 	uint32 m_check;
+};
+
+class login_packet : public packet_base
+{
+public:
+	login_packet() : packet_base(PACKET_ID_LOGIN) {
+		m_platform_id = INVALID_PLATFORM_ID;
+		m_server_id = INVALID_SERVER_ID;
+		memset(m_user_id.data(), 0, USER_ID_LEN);
+	}
+
+public:
+	TPlatformID_t m_platform_id;
+	TServerID_t m_server_id;
+	TUserID_t m_user_id;
 };
 
 class rpc_by_index_packet : public packet_base
@@ -231,14 +248,14 @@ struct packet_recv_info
 struct ws_packet_recv_info
 {
 	packet_base* packet;
-	TSocketIndex_t client_id;
+	TSocketIndex_t socket_index;
 	ws_packet_recv_info() {
 		clean_up();
 	}
 
 	void clean_up() {
 		packet = NULL;
-		client_id = INVALID_SOCKET_INDEX;
+		socket_index = INVALID_SOCKET_INDEX;
 	}
 };
 

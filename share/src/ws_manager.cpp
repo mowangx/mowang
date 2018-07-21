@@ -135,7 +135,7 @@ void WebSocketManager::on_message(websocketpp::connection_hdl hdl, message_ptr m
 		char* packet_pool = m_mem_pool.allocate(packet->get_packet_len());
 		memcpy(packet_pool, packet, packet->get_packet_len());
 		ws_packet_recv_info* packet_info = m_packet_info_pool.allocate();
-		packet_info->client_id = socket_info.client_id;
+		packet_info->socket_index = socket_info.client_id;
 		packet_info->packet = (packet_base*)packet_pool;
 		packets.push_back(packet_info);
 		packet = socket_info.handler->unpacket();
