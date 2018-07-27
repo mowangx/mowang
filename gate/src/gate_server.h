@@ -40,6 +40,7 @@ public:
 	void kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 private:
 	void process_ws_packet(ws_packet_recv_info* packet_info);
+	void parse_ws_packet(ws_packet_recv_info* packet_info);
 
 public:
 	TSocketIndex_t get_server_socket_index(TSocketIndex_t socket_index) const;

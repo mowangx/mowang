@@ -7,6 +7,7 @@
 #include "packet_struct.h"
 
 class socket_base;
+class web_socket_wrapper_base;
 
 #pragma pack(push, 1)
 
@@ -239,23 +240,39 @@ struct packet_recv_info
 	}
 
 	void clean_up() {
-		packet = NULL;
-		socket = NULL;
+		packet = nullptr;
+		socket = nullptr;
 	}
 
+};
+
+struct ws_buffer_info
+{
+	char* buffer;
+	int len;
+	ws_buffer_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		buffer = nullptr;
+		len = 0;
+	}
 };
 
 struct ws_packet_recv_info
 {
 	packet_base* packet;
-	TSocketIndex_t socket_index;
+	web_socket_wrapper_base* socket;
+	ws_buffer_info* buffer_info;
 	ws_packet_recv_info() {
 		clean_up();
 	}
 
 	void clean_up() {
-		packet = NULL;
-		socket_index = INVALID_SOCKET_INDEX;
+		packet = nullptr;
+		socket = nullptr;
+		buffer_info = nullptr;
 	}
 };
 

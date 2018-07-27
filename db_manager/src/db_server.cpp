@@ -11,7 +11,7 @@
 
 #include "game_manager_handler.h"
 #include "game_server_handler.h"
-#include "socket_manager.h"
+#include "tcp_manager.h"
 #include "rpc_proxy.h"
 #include "executor_manager.h"
 

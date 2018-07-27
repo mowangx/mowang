@@ -17,6 +17,8 @@ static const uint32 MAX_PACKET_READ_SIZE = 30000;		// 一次读取的数据的字节数
 static const uint32 MAX_PACKET_BUFFER_SIZE = 196608;	// 196608 = 65536 * 3
 static const uint32 MAX_PACKET_BUFFER_MOVE_FORWARD_SIZE = 100000;	// MAX_PACKET_BUFFER_SIZE - 65535(单个包最大的字节数) - MAX_PACKET_READ_SIZE, 需要注意MAX_PACKET_BUFFER_MOVE_FORWARD_SIZE + MAX_PACKET_READ_SIZE  * 2 < MAX_PACKET_BUFFER_SIZE
 
+static const uint32 MAX_WEB_SOCKET_OUTPUT_BUFFER_SIZE = 655360; // 10 * 65536, websocket发送缓存字节数
+
 static const uint32 MAX_ATTR_NUM = 6;	// 属性数量
 
 static const uint32 MAX_RESOURCE_TYPE_NUM = 5;	// 资源类型总数

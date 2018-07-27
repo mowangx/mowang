@@ -96,11 +96,11 @@ static const uint32 SOCKADDR_IN_LEN = sizeof(SOCKADDR_IN);              // µÿ÷∑≥
 
 class socket_base;
 class socket_wrapper;
-class socket_manager;
+class tcp_manager;
 
 typedef struct socket_wrapper_event_arg {
 	socket_wrapper* s;
-	socket_manager* mgr;
+	tcp_manager* mgr;
 	socket_wrapper_event_arg() {
 		clean_up();
 	}
@@ -113,7 +113,7 @@ typedef struct socket_wrapper_event_arg {
 
 typedef struct socket_event_arg {
 	socket_base* s;
-	socket_manager* mgr;
+	tcp_manager* mgr;
 	socket_event_arg() {
 		clean_up();
 	}

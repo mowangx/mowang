@@ -6,7 +6,7 @@
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
 #include "game_random.h"
-#include "socket_manager.h"
+#include "tcp_manager.h"
 
 robot_server::robot_server() : service(PROCESS_ROBOT)
 {

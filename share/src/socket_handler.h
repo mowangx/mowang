@@ -3,6 +3,7 @@
 #define _SOCKET_HANDLER_H_
 
 class packet_base;
+struct ws_buffer_info;
 
 class socket_handler
 {
@@ -11,12 +12,17 @@ public:
 	~socket_handler();
 
 public:
+	int get_unpack_len() const;
+
+public:
 	char* buffer(int len);
 
 	char* buffer();
 	void set_buffer(char* p);
 
-	packet_base* unpacket();
+	packet_base* unpack_packet();
+
+	bool unpack_ws_packet(ws_buffer_info* packet);
 
 private:
 	void clean_up();

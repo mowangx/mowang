@@ -14,6 +14,16 @@ socket_handler::~socket_handler()
 	clean_up();
 }
 
+int socket_handler::get_unpack_len() const
+{
+	if (m_write_index >= m_read_index) {
+		return m_write_index - m_read_index;
+	}
+	else {
+		return m_max_index - m_read_index + m_write_index;
+	}
+}
+
 char* socket_handler::buffer(int len)
 {
 	if ((m_write_index + len) >= MAX_PACKET_BUFFER_SIZE) {
@@ -44,7 +54,7 @@ void socket_handler::set_buffer(char* p)
 	m_buffer = p;
 }
 
-packet_base* socket_handler::unpacket()
+packet_base* socket_handler::unpack_packet()
 {
 	if (m_read_index == m_max_index) {
 		if (m_read_index > m_write_index) {
@@ -68,6 +78,47 @@ packet_base* socket_handler::unpacket()
 		m_read_index = 0;
 	}
 	return packet;
+}
+
+bool socket_handler::unpack_ws_packet(ws_buffer_info* packet)
+{
+	if (m_read_index == m_max_index) {
+		if (m_read_index > m_write_index) {
+			m_read_index = 0;
+			m_max_index = m_write_index;
+		}
+	}
+
+	int start_index = -1;
+	int end_index = -1;
+	for (int i=m_read_index; i < m_max_index; ++i) {
+		char c = *(char*)(m_buffer + i);
+		if (c == 0x2) {
+			start_index = i + 1;
+		}
+		else if (start_index >= 0 && c == 0x3) {
+			end_index = i;
+			break;
+		}
+	}
+
+	if (end_index < 0) {
+		return false;
+	}
+
+	int len = end_index - start_index;
+	packet->buffer = (char*)(m_buffer + start_index);
+	packet->len = end_index - start_index;
+
+	m_read_index = end_index + 1;
+	if (m_read_index > MAX_PACKET_BUFFER_MOVE_FORWARD_SIZE) {
+		memcpy(m_buffer, (char*)(m_buffer + m_read_index), (m_max_index - m_read_index));
+		m_max_index -= m_read_index;
+		m_write_index -= m_read_index;
+		m_read_index = 0;
+	}
+
+	return true;
 }
 
 void socket_handler::clean_up()

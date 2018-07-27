@@ -2,7 +2,7 @@
 #include "service.h"
 #include "debug.h"
 #include "time_manager.h"
-#include "socket_manager.h"
+#include "tcp_manager.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
 #include "timer.h"

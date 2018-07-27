@@ -1,12 +1,16 @@
 
 #include "gate_server.h"
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #include "game_manager_handler.h"
 #include "game_server_handler.h"
 #include "client_handler.h"
 #include "rpc_client.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
-#include "socket_manager.h"
+#include "tcp_manager.h"
 #include "ws_manager.h"
 #include "time_manager.h"
 
@@ -161,8 +165,8 @@ void gate_server::do_ws_loop(TGameTime_t diff)
 {
 	std::vector<ws_packet_recv_info*> read_packets;
 	std::vector<packet_send_info*> finish_write_packets;
-	std::vector<TSocketIndex_t> add_sockets;
-	std::vector<TSocketIndex_t> del_sockets;
+	std::vector<web_socket_wrapper_base*> add_sockets;
+	std::vector<web_socket_wrapper_base*> del_sockets;
 
 	DWSNetMgr.swap_net_2_logic(read_packets, finish_write_packets, add_sockets, del_sockets);
 
@@ -175,8 +179,8 @@ void gate_server::do_ws_loop(TGameTime_t diff)
 		process_ws_packet(packet_info);
 	}
 
-	for (auto socket_index : del_sockets) {
-		logout_server(socket_index);
+	for (auto socket : del_sockets) {
+		logout_server(socket->get_socket_index());
 	}
 
 	DWSNetMgr.swap_login_2_net(m_write_ws_packets, read_packets, m_wait_kick_ws_sockets, del_sockets);
@@ -276,15 +280,28 @@ void gate_server::kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t 
 	m_delay_kick_sockets.push_back(kick_info);
 }
 
-void gate_server::process_ws_packet(ws_packet_recv_info * packet_info)
+void gate_server::process_ws_packet(ws_packet_recv_info* packet_info)
 {
+	parse_ws_packet(packet_info);
+	if (nullptr == packet_info->packet) {
+		return;
+	}
+
 	if (packet_info->packet->get_packet_id() == PACKET_ID_LOGIN) {
 		login_packet* login_info = (login_packet*)packet_info->packet;
-		login_server(packet_info->socket_index, login_info->m_platform_id, login_info->m_server_id, login_info->m_user_id, INVALID_SOCKET_INDEX);
+		login_server(packet_info->socket->get_socket_index(), login_info->m_platform_id, login_info->m_server_id, login_info->m_user_id, INVALID_SOCKET_INDEX);
 	}
 	else {
-		transfer_server(packet_info->socket_index, packet_info->packet);
+		transfer_server(packet_info->socket->get_socket_index(), packet_info->packet);
 	}
+}
+
+void gate_server::parse_ws_packet(ws_packet_recv_info* packet_info)
+{
+	std::string str(packet_info->buffer_info->buffer, packet_info->buffer_info->len);
+	std::stringstream json_stream(str);
+	boost::property_tree::ptree* json = new boost::property_tree::ptree();
+	boost::property_tree::read_json(json_stream, *json);
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

@@ -206,15 +206,19 @@
     <ClInclude Include="src\socket_handler.h" />
     <ClInclude Include="src\socket_input_stream.h" />
     <ClInclude Include="src\socket_manager.h" />
+    <ClInclude Include="src\socket_manager.hpp" />
     <ClInclude Include="src\socket_output_stream.h" />
     <ClInclude Include="src\socket_util.h" />
     <ClInclude Include="src\socket_wrapper.h" />
     <ClInclude Include="src\stdcore.h" />
     <ClInclude Include="src\string_common.h" />
+    <ClInclude Include="src\tcp_manager.h" />
     <ClInclude Include="src\timer.h" />
     <ClInclude Include="src\time_manager.h" />
     <ClInclude Include="src\types_def.h" />
     <ClInclude Include="src\ws_manager.h" />
+    <ClInclude Include="src\ws_wrapper.h" />
+    <ClInclude Include="src\ws_wrapper.hpp" />
     <ClInclude Include="src\xml_loader.h" />
   </ItemGroup>
   <ItemGroup>
@@ -232,11 +236,12 @@
     <ClCompile Include="src\socket_api.cpp" />
     <ClCompile Include="src\socket_handler.cpp" />
     <ClCompile Include="src\socket_input_stream.cpp" />
-    <ClCompile Include="src\socket_manager.cpp" />
     <ClCompile Include="src\socket_output_stream.cpp" />
+    <ClCompile Include="src\tcp_manager.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\time_manager.cpp" />
     <ClCompile Include="src\ws_manager.cpp" />
+    <ClCompile Include="src\ws_wrapper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,7 +5,7 @@
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
 #include "game_random.h"
-#include "socket_manager.h"
+#include "tcp_manager.h"
 
 game_manager::game_manager() : service(PROCESS_GAME_MANAGER)
 {

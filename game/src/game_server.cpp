@@ -7,7 +7,7 @@
 #include "rpc_proxy.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
-#include "socket_manager.h"
+#include "tcp_manager.h"
 #include "lbs_stub.h"
 #include "roll_stub.h"
 #include "fight_stub.h"
