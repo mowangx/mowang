@@ -96,8 +96,9 @@ public:
 			service_interface* s = get_service();
 			packet_send_info* packet_info = s->allocate_packet_info();
 			packet_info->socket_index = get_socket_index();
-			packet_info->packet = (packet_base*)s->allocate_memory(packet->get_packet_len());
-			memcpy(packet_info->packet, packet, packet->get_packet_len());
+			packet_info->buffer_info.len = packet->get_packet_len();
+			packet_info->buffer_info.buffer = s->allocate_memory(packet_info->buffer_info.len);
+			memcpy(packet_info->buffer_info.buffer, packet, packet_info->buffer_info.len);
 			s->push_write_packets(packet_info);
 		}
 		else {

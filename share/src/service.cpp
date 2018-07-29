@@ -123,7 +123,7 @@ void service::do_loop(TGameTime_t diff)
 	DNetMgr.swap_net_2_logic(read_packets, finish_write_packets, add_sockets, del_sockets);
 
 	for (auto packet_info : finish_write_packets) {
-		m_mem_pool.deallocate((char*)packet_info->packet);
+		m_mem_pool.deallocate((char*)packet_info->buffer_info.buffer);
 		m_packet_pool.deallocate(packet_info);
 	}
 

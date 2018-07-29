@@ -189,7 +189,8 @@ void socket_manager<socket_type, packet_type>::handle_write_msg()
 	}
 
 	for (auto packet_info : packets) {
-		send_packet(packet_info->socket_index, (char*)packet_info->packet, packet_info->packet->get_packet_len());
+		log_debug("send packet!!!!!!!!! len %d", packet_info->buffer_info.len);
+		send_packet(packet_info->socket_index, packet_info->buffer_info.buffer, packet_info->buffer_info.len);
 		finish_packets.push_back(packet_info);
 	}
 

@@ -36,8 +36,9 @@ bool game_server_handler::handle_transfer_role(packet_base * packet)
 	packet_send_info* packet_info = DGateServer.allocate_packet_info();
 	packet_info->socket_index = DRpcWrapper.get_socket_index(game_process_info(role_packet->m_server_id, PROCESS_GAME, role_packet->m_game_id));
 	role_rpc_by_name_packet* transfer_packet = (role_rpc_by_name_packet*)DGateServer.allocate_memory(rpc_packet->get_packet_len());
-	packet_info->packet = transfer_packet;
-	memcpy(transfer_packet, rpc_packet, rpc_packet->get_packet_len());
+	packet_info->buffer_info.len = rpc_packet->get_packet_len();
+	packet_info->buffer_info.buffer = (char*)transfer_packet;
+	memcpy(transfer_packet, rpc_packet, packet_info->buffer_info.len);
 	DGateServer.push_write_packets(packet_info);
 	return true;
 }
@@ -49,8 +50,9 @@ bool game_server_handler::handle_transfer_stub(packet_base * packet)
 	packet_send_info* packet_info = DGateServer.allocate_packet_info();
 	packet_info->socket_index = DRpcWrapper.get_socket_index(game_process_info(stub_packet->m_server_id, PROCESS_GAME, stub_packet->m_game_id));
 	rpc_by_name_packet* transfer_packet = (rpc_by_name_packet*)DGateServer.allocate_memory(rpc_packet->get_packet_len());
-	packet_info->packet = transfer_packet;
-	memcpy(transfer_packet, rpc_packet, rpc_packet->get_packet_len());
+	packet_info->buffer_info.len = rpc_packet->get_packet_len();
+	packet_info->buffer_info.buffer = (char*)transfer_packet;
+	memcpy(transfer_packet, rpc_packet, packet_info->buffer_info.len);
 	DGateServer.push_write_packets(packet_info);
 	return true;
 }
@@ -62,8 +64,9 @@ bool game_server_handler::handle_transfer_client(packet_base * packet)
 	packet_send_info* packet_info = DGateServer.allocate_packet_info();
 	packet_info->socket_index = client_packet->m_client_id;
 	packet_base* transfer_packet = (packet_base*)DGateServer.allocate_memory(rpc_packet->get_packet_len());
-	packet_info->packet = transfer_packet;
-	memcpy(packet_info->packet, rpc_packet, rpc_packet->get_packet_len());
+	packet_info->buffer_info.len = rpc_packet->get_packet_len();
+	packet_info->buffer_info.buffer = (char*)transfer_packet;
+	memcpy(transfer_packet, rpc_packet, packet_info->buffer_info.len);
 	DGateServer.push_write_packets(packet_info);
 	log_info("transfer server packet to client! client id = '%"I64_FMT"u', socket index = '%"I64_FMT"u'", client_packet->m_client_id, get_socket_index());
 	return true;

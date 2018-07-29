@@ -246,11 +246,11 @@ struct packet_recv_info
 
 };
 
-struct ws_buffer_info
+struct packet_buffer_info
 {
 	char* buffer;
-	int len;
-	ws_buffer_info() {
+	uint32 len;
+	packet_buffer_info() {
 		clean_up();
 	}
 
@@ -264,7 +264,7 @@ struct ws_packet_recv_info
 {
 	packet_base* packet;
 	web_socket_wrapper_base* socket;
-	ws_buffer_info* buffer_info;
+	packet_buffer_info buffer_info;
 	ws_packet_recv_info() {
 		clean_up();
 	}
@@ -272,21 +272,21 @@ struct ws_packet_recv_info
 	void clean_up() {
 		packet = nullptr;
 		socket = nullptr;
-		buffer_info = nullptr;
+		buffer_info.clean_up();
 	}
 };
 
 struct packet_send_info
 {
-	packet_base* packet;
 	TSocketIndex_t socket_index;
+	packet_buffer_info buffer_info;
 	packet_send_info() {
 		clean_up();
 	}
 
 	void clean_up() {
-		packet = NULL;
 		socket_index = INVALID_SOCKET_INDEX;
+		buffer_info.clean_up();
 	}
 
 };

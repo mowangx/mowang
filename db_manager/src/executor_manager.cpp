@@ -64,11 +64,11 @@ void executor_manager::executor(db_opt_info* opt_info)
 		return;
 	}
 	if (opt_info->opt_type == DB_OPT_QUERY) {
-		char db_result[65000];
-		memset(db_result, 0, 65000);
-		int len = 0;
-		bool status = m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str(), db_result, len);
-		binary_data result(db_result, len);
+		//char db_result[65000];
+		//memset(db_result, 0, 65000);
+		//int len = 0;
+		//bool status = m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str(), db_result, len);
+		//binary_data result(db_result, len);
 		//char buffer[60000];
 		//int buffer_index = 0;
 		//fill_packet(buffer, buffer_index, (uint16)3);
@@ -94,7 +94,7 @@ void executor_manager::executor(db_opt_info* opt_info)
 		//fill_packet(buffer, buffer_index, (TRoleID_t)0xD1D2D3D4D5D6D7D8, (TNpcIndex_t)0xC2C3,
 		//	(TPosValue_t)0x2C3C, (TPosValue_t)0x2D3D, (TPosValue_t)0x2E3E, (TPosValue_t)0x2F3F, *bstr, (TGameTime_t)345678);
 		//dynamic_string result(buffer, buffer_index);
-		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, status, result);
+		//rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, status, result);
 	}
 	else {
 		if (opt_info->opt_type == DB_OPT_UPDATE) {

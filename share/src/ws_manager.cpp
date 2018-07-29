@@ -2,12 +2,12 @@
 #include "ws_manager.h"
 #include "auto_lock.h"
 
-WebSocketManager::WebSocketManager()
+web_socket_manager::web_socket_manager()
 {
-	m_buffer_info = new ws_buffer_info();
+	m_buffer_info = new packet_buffer_info();
 }
 
-WebSocketManager::~WebSocketManager()
+web_socket_manager::~web_socket_manager()
 {
 	m_client.stop_perpetual();
 
@@ -21,17 +21,66 @@ WebSocketManager::~WebSocketManager()
 	}
 }
 
-void WebSocketManager::start_listen(TPort_t port)
+websocketpp::lib::shared_ptr<websocketpp::lib::thread> web_socket_manager::init_client()
+{
+	m_client.clear_access_channels(websocketpp::log::alevel::all);
+	m_client.clear_error_channels(websocketpp::log::elevel::all);
+
+	m_client.init_asio();
+	m_client.start_perpetual();
+	return websocketpp::lib::make_shared<websocketpp::lib::thread>(&web_socket_client::run, &m_client);
+}
+
+void web_socket_manager::init_server()
+{
+	m_server.set_access_channels(websocketpp::log::alevel::all);
+	m_server.clear_access_channels(websocketpp::log::alevel::frame_payload);
+
+	m_server.init_asio();
+
+	m_server.set_open_handler(std::bind(&web_socket_manager::on_accept, this, std::placeholders::_1));
+	m_server.set_close_handler(std::bind(&web_socket_manager::on_close, this, std::placeholders::_1));
+	//m_server.set_message_handler(std::bind(&WebSocketManager::on_message, this, std::placeholders::_1, std::placeholders::_2));
+	//return websocketpp::lib::make_shared<websocketpp::lib::thread>(&web_socket_server::run, &m_server);
+}
+
+bool web_socket_manager::init(TProcessType_t process_type, TProcessID_t process_id)
+{
+	if (!TBaseType_t::init(process_type, process_id)) {
+		return false;
+	}
+
+	init_server();
+	return true;
+}
+
+void web_socket_manager::update(uint32 diff)
+{
+	m_server.run_one();
+	//m_client.run_one();
+
+	TBaseType_t::update(diff);
+}
+
+void web_socket_manager::update_client(uint32 diff)
+{
+	//m_server.run_one();
+	//m_client.run_one();
+
+	TBaseType_t::update(diff);
+}
+
+void web_socket_manager::start_listen(TPort_t port)
 {
 	m_server.listen(port);
 	m_server.start_accept();
 }
 
-void WebSocketManager::start_connect(const std::string& uri)
+void web_socket_manager::start_connect(const std::string& uri)
 {
 	websocketpp::lib::error_code err;
 
-	WebSocketClient::connection_ptr con = m_client.get_connection(uri, err);
+	web_socket_client::connection_ptr con = m_client.get_connection(uri, err);
 
 	if (err) {
 		std::cout << "Connect initialization error: " << err.message() << std::endl;
@@ -39,23 +88,23 @@ void WebSocketManager::start_connect(const std::string& uri)
 	}
 
 	//std::shared_ptr<web_socket_client_wrapper> socket = std::make_shared<web_socket_client_wrapper>(gen_socket_index(), nullptr, nullptr, con->get_handle(), uri);
-	web_socket_client_wrapper* socket = new web_socket_client_wrapper(gen_socket_index(), con->get_handle(), uri);
+	web_socket_client_wrapper* socket = new web_socket_client_wrapper(gen_socket_index(), &m_client, con->get_handle(), uri);
 	con->set_open_handler(websocketpp::lib::bind(
-		&web_socket_client_wrapper::on_open,
+		&web_socket_manager::on_client_open,
+		this,
 		socket,
-		&m_client,
 		websocketpp::lib::placeholders::_1
 	));
 	con->set_fail_handler(websocketpp::lib::bind(
-		&web_socket_client_wrapper::on_fail,
+		&web_socket_manager::on_client_fail,
+		this,
 		socket,
-		&m_client,
 		websocketpp::lib::placeholders::_1
 	));
 	con->set_close_handler(websocketpp::lib::bind(
-		&web_socket_client_wrapper::on_close,
+		&web_socket_manager::on_client_close,
+		this,
 		socket,
-		&m_client,
 		websocketpp::lib::placeholders::_1
 	));
 	con->set_message_handler(websocketpp::lib::bind(
@@ -68,64 +117,56 @@ void WebSocketManager::start_connect(const std::string& uri)
 	m_client.connect(con);
 }
 
-bool WebSocketManager::init(TProcessType_t process_type, TProcessID_t process_id)
+void web_socket_manager::on_accept(websocketpp::connection_hdl hdl)
 {
-	if (!TBaseType_t::init(process_type, process_id)) {
-		return false;
-	}
-
-	m_client.clear_access_channels(websocketpp::log::alevel::all);
-	m_client.clear_error_channels(websocketpp::log::elevel::all);
-
-	m_client.init_asio();
-	m_client.start_perpetual();
-
-	m_server.set_access_channels(websocketpp::log::alevel::all);
-	m_server.clear_access_channels(websocketpp::log::alevel::frame_payload);
-
-	m_server.init_asio();
-
-	m_server.set_open_handler(std::bind(&WebSocketManager::on_accept, this, std::placeholders::_1));
-	m_server.set_close_handler(std::bind(&WebSocketManager::on_close, this, std::placeholders::_1));
-	//m_server.set_message_handler(std::bind(&WebSocketManager::on_message, this, std::placeholders::_1, std::placeholders::_2));
-
-	return true;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
-}
-
-void WebSocketManager::update(uint32 diff)
-{
-	m_server.run_one();
-
-	TBaseType_t::update(diff);
-}
-
-void WebSocketManager::on_accept(websocketpp::connection_hdl hdl)
-{
-	WebSocketServer::connection_ptr con = m_server.get_con_from_hdl(hdl);
-	web_socket_server_wrapper* socket = new web_socket_server_wrapper(gen_socket_index(), hdl);
+	web_socket_server::connection_ptr con = m_server.get_con_from_hdl(hdl);
+	web_socket_server_wrapper* socket = new web_socket_server_wrapper(gen_socket_index(), &m_server, hdl);
 	con->set_message_handler(std::bind(&web_socket_server_wrapper::on_message, socket, std::placeholders::_1, std::placeholders::_2));
 	m_new_sockets.push_back(socket);
 	std::cout << "have client connected" << std::endl;
 }
 
-void WebSocketManager::on_close(websocketpp::connection_hdl hdl)
+void web_socket_manager::on_close(websocketpp::connection_hdl hdl)
 {
 	std::cout << "have client disconnected" << std::endl;
 }
 
-void WebSocketManager::unpack_packets(std::vector<ws_packet_recv_info*>& packets, web_socket_wrapper_base* socket)
+void web_socket_manager::on_client_open(web_socket_wrapper_base* socket, websocketpp::connection_hdl hdl)
+{
+	socket->set_active(true);
+	m_new_sockets.push_back(socket);
+	std::cout << "connect server success" << std::endl;
+}
+
+void web_socket_manager::on_client_fail(web_socket_wrapper_base* socket, websocketpp::connection_hdl hdl)
+{
+	std::cout << "on client failed" << std::endl;
+}
+
+void web_socket_manager::on_client_close(web_socket_wrapper_base* socket, websocketpp::connection_hdl hdl)
+{
+	socket->set_active(false);
+	std::cout << "disconnect server" << std::endl;
+}
+
+void web_socket_manager::unpack_packets(std::vector<ws_packet_recv_info*>& packets, web_socket_wrapper_base* socket)
 {
 	while (socket->read(m_buffer_info)) {
 		char* packet_pool = m_mem_pool.allocate(m_buffer_info->len);
 		memcpy(packet_pool, m_buffer_info->buffer, m_buffer_info->len);
 		ws_packet_recv_info* packet_info = m_packet_info_pool.allocate();
 		packet_info->socket = socket;
-		packet_info->buffer_info->buffer = packet_pool;
+		packet_info->buffer_info.buffer = packet_pool;
 		packets.push_back(packet_info);
 	}
 }
 
-void WebSocketManager::del_socket(web_socket_wrapper_base* socket)
+void web_socket_manager::on_send_packet(web_socket_wrapper_base* socket)
+{
+	socket->flush();
+}
+
+void web_socket_manager::del_socket(web_socket_wrapper_base* socket)
 {
 	// 将数据全部写出
 	socket->flush();

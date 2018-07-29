@@ -80,7 +80,7 @@ packet_base* socket_handler::unpack_packet()
 	return packet;
 }
 
-bool socket_handler::unpack_ws_packet(ws_buffer_info* packet)
+bool socket_handler::unpack_ws_packet(packet_buffer_info* packet)
 {
 	if (m_read_index == m_max_index) {
 		if (m_read_index > m_write_index) {

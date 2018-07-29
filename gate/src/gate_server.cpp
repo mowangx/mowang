@@ -171,7 +171,7 @@ void gate_server::do_ws_loop(TGameTime_t diff)
 	DWSNetMgr.swap_net_2_logic(read_packets, finish_write_packets, add_sockets, del_sockets);
 
 	for (auto packet_info : finish_write_packets) {
-		m_mem_pool.deallocate((char*)packet_info->packet);
+		m_mem_pool.deallocate((char*)packet_info->buffer_info.buffer);
 		m_packet_pool.deallocate(packet_info);
 	}
 
@@ -251,7 +251,8 @@ void gate_server::transfer_server(TSocketIndex_t socket_index, packet_base * pac
 	packet_info->socket_index = get_server_socket_index(socket_index);
 	TPacketLen_t len = (TPacketLen_t)(sizeof(transfer_client_packet) - 65000 + packet->get_packet_len());
 	transfer_client_packet* transfer_packet = (transfer_client_packet*)allocate_memory(len);
-	packet_info->packet = transfer_packet;
+	packet_info->buffer_info.len = len;
+	packet_info->buffer_info.buffer = (char*)transfer_packet;
 	transfer_packet->m_len = len;
 	transfer_packet->m_id = PACKET_ID_TRANSFER_CLIENT;
 	transfer_packet->m_client_id = socket_index;
@@ -298,10 +299,11 @@ void gate_server::process_ws_packet(ws_packet_recv_info* packet_info)
 
 void gate_server::parse_ws_packet(ws_packet_recv_info* packet_info)
 {
-	std::string str(packet_info->buffer_info->buffer, packet_info->buffer_info->len);
+	std::string str(packet_info->buffer_info.buffer, packet_info->buffer_info.len);
 	std::stringstream json_stream(str);
 	boost::property_tree::ptree* json = new boost::property_tree::ptree();
 	boost::property_tree::read_json(json_stream, *json);
+	log_debug("parse ws packet! %s", json_stream.str());
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const
