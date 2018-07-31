@@ -48,6 +48,13 @@ public:
 		}
 	}
 
+	void call_ws_client(const proxy_info& proxy, const std::string& msg) {
+		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
+		if (NULL != rpc) {
+			rpc->call_ws_client(proxy.client_id, msg);
+		}
+	}
+
 public:
 	void call_role(const mailbox_info& mailbox, const std::string& func_name) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);

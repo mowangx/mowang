@@ -26,10 +26,17 @@ role::~role()
 
 bool role::init()
 {
-	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_register_account, 4);
-	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_register_role, 4);
-	DRegisterRoleRpc(m_mailbox_info.entity_id, this, role, on_relay_logout, 0);
+	DRegisterRoleRpc(get_role_id(), this, role, test, 2);
+	DRegisterRoleRpc(get_role_id(), this, role, on_register_account, 4);
+	DRegisterRoleRpc(get_role_id(), this, role, on_register_role, 4);
+	DRegisterRoleRpc(get_role_id(), this, role, on_relay_logout, 0);
 	return true;
+}
+
+void role::test(uint8 param_1, uint16 param_2)
+{
+	log_debug("role test! param_1 %d, param_2 %d", param_1, param_2);
+	DRpcWrapper.call_ws_client(get_proxy_info(), "{\"cmd\":\"response\", \"ret_code\": 9, \"user_id\": \"xiedi\"}");
 }
 
 void role::login(TPlatformID_t platform_id, const TUserID_t& user_id)

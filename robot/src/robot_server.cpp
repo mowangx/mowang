@@ -72,7 +72,9 @@ void robot_server::ws_run()
 void robot_server::process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets)
 {
 	for (auto socket : sockets) {
-		push_ws_write_packets(socket->get_socket_index(), "{\"cmd\":\"login\", \"platform_id\": 1, \"server_id\": 100, \"user_id\": \"mowang\"}");
+		std::string user_id = gx_to_string("mw_%d", m_server_info.process_info.process_id);
+		std::string msg = gx_to_string("{\"cmd\":\"login\", \"platform_id\": 1, \"server_id\": 100, \"user_id\": \"%s\"}", user_id.c_str());
+		push_ws_write_packets(socket->get_socket_index(), msg);
 	}
 }
 

@@ -10,6 +10,7 @@
 #include "tcp_manager.h"
 #include "ws_manager.h"
 #include "time_manager.h"
+#include "timer.h"
 
 gate_server::gate_server() : ws_service(PROCESS_GATE)
 {
@@ -253,22 +254,20 @@ void gate_server::process_login(TSocketIndex_t socket_index, boost::property_tre
 	std::string cur_user_id = json->get<std::string>("user_id", "");
 	memcpy(user_id.data(), cur_user_id.c_str(), cur_user_id.length());
 	login_server(socket_index, platform_id, server_id, user_id, INVALID_SOCKET_INDEX);
-
 	push_ws_write_packets(socket_index, "{\"cmd\":\"response\", \"ret_code\": 9, \"user_id\": \"xiedi\"}");
 }
 
 void gate_server::process_test(TSocketIndex_t socket_index, boost::property_tree::ptree* json)
 {
 	log_debug("parse test!!! socket index %" I64_FMT "u,  param_1 %d, param_2 %d", socket_index, json->get<uint8>("param_1", 0), json->get<uint16>("param_2", 0));
-	rpc_by_name_packet packet;
-	int buffer_index = 0;
+	transfer_server_by_name_packet packet;
 	std::string func_name = "test";
+	int buffer_index = 0;
 	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
 	fill_packet(packet.m_buffer, buffer_index, json->get<uint8>("param_1", 0));
 	fill_packet(packet.m_buffer, buffer_index, json->get<uint16>("param_2", 0));
+	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
 	transfer_server(socket_index, &packet);
-
-	push_ws_write_packets(socket_index, "{\"cmd\":\"response\", \"ret_code\": 9, \"user_id\": \"xiedi\"}");
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

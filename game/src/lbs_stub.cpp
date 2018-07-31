@@ -16,6 +16,7 @@ lbs_stub::~lbs_stub()
 
 bool lbs_stub::init()
 {
+	log_info("lbs stub init");
 	DRegisterStubRpc(this, lbs_stub, query_city, 3);
 	DRegisterStubRpc(this, lbs_stub, update_city, 2);
 

@@ -21,6 +21,9 @@ public:
 	virtual bool init() override;
 
 public:
+	void test(uint8 param_1, uint16 param_2);
+
+public:
 	void login(TPlatformID_t platform_id, const TUserID_t& user_id);
 	void logout();
 private:

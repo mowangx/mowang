@@ -23,6 +23,7 @@ fight_stub::~fight_stub()
 
 bool fight_stub::init()
 {
+	log_info("fight stub init");
 	DGameServer.db_query("fight", NULL, "role_id, npc_id, src_x, src_y, dest_x, dest_y, soldiers, unix_timestamp(fight_time)", [&](bool status, const binary_data& result) {
 		if (!status) {
 			log_error("load fight data from db failed!");

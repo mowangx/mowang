@@ -22,6 +22,7 @@ void game_server_handler::Setup()
 	register_handler((TPacketID_t)PACKET_ID_TRANSFER_ROLE, (packet_handler_func)&game_server_handler::handle_transfer_role);
 	register_handler((TPacketID_t)PACKET_ID_TRANSFER_STUB, (packet_handler_func)&game_server_handler::handle_transfer_stub);
 	register_handler((TPacketID_t)PACKET_ID_TRANSFER_CLIENT, (packet_handler_func)&game_server_handler::handle_transfer_client);
+	register_handler((TPacketID_t)PACKET_ID_TRANSFER_WS_CLIENT, (packet_handler_func)&game_server_handler::handle_transfer_ws_client);
 }
 
 service_interface * game_server_handler::get_service() const
@@ -68,6 +69,16 @@ bool game_server_handler::handle_transfer_client(packet_base * packet)
 	packet_info->buffer_info.buffer = (char*)transfer_packet;
 	memcpy(transfer_packet, rpc_packet, packet_info->buffer_info.len);
 	DGateServer.push_write_packets(packet_info);
+	log_info("transfer server packet to client! client id = '%"I64_FMT"u', socket index = '%"I64_FMT"u'", client_packet->m_client_id, get_socket_index());
+	return true;
+}
+
+bool game_server_handler::handle_transfer_ws_client(packet_base * packet)
+{
+	transfer_client_ws_packet* client_packet = (transfer_client_ws_packet*)packet;
+	int len = client_packet->get_packet_len() - sizeof(packet_base) - sizeof(client_packet->m_client_id);
+	std::string msg(client_packet->m_buffer, len);
+	DGateServer.push_ws_write_packets(client_packet->m_client_id, msg);
 	log_info("transfer server packet to client! client id = '%"I64_FMT"u', socket index = '%"I64_FMT"u'", client_packet->m_client_id, get_socket_index());
 	return true;
 }

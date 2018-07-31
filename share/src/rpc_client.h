@@ -83,6 +83,13 @@ public:
 		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
+	void call_ws_client(TSocketIndex_t client_id, const std::string& msg) {
+		transfer_client_ws_packet transfer_packet;
+		transfer_packet.m_client_id = client_id;
+		memcpy(transfer_packet.m_buffer, msg.c_str(), msg.length());
+		send_packet(&transfer_packet, (int)msg.length());
+	}
+
 public:
 	// call role function, will transfer by gate
 	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name) {

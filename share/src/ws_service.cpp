@@ -113,14 +113,19 @@ void ws_service::process_ws_packets(std::vector<ws_packet_recv_info*>& packets)
 		std::stringstream json_stream(str);
 		log_debug("parse ws packet! socket index %" I64_FMT "u, %s", packet_info->socket->get_socket_index(), json_stream.str().c_str());
 		json.clear();
-		boost::property_tree::read_json(json_stream, json);
-		std::string cmd = json.get<std::string>("cmd");
-		auto itr = m_cmd_2_parse_func.find(cmd);
-		if (itr != m_cmd_2_parse_func.end()) {
-			itr->second(packet_info->socket->get_socket_index(), &json);
+		try {
+			boost::property_tree::read_json(json_stream, json);
+			std::string cmd = json.get<std::string>("cmd");
+			auto itr = m_cmd_2_parse_func.find(cmd);
+			if (itr != m_cmd_2_parse_func.end()) {
+				itr->second(packet_info->socket->get_socket_index(), &json);
+			}
+			else {
+				log_info("parse ws packet but not find cmd! %s", cmd.c_str());
+			}
 		}
-		else {
-			log_info("parse ws packet but not find cmd! %s", cmd.c_str());
+		catch (const boost::property_tree::ptree_error& e) {
+			log_error("parse json failed! error %s, packet %s", e.what(), str.c_str());
 		}
 	}
 }

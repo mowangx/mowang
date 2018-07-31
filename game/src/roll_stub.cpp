@@ -16,6 +16,7 @@ roll_stub::~roll_stub()
 
 bool roll_stub::init()
 {
+	log_info("roll stub init");
 	DRegisterStubRpc(this, roll_stub, register_account, 5);
 	DRegisterStubRpc(this, roll_stub, unregister_account, 2);
 	DRegisterStubRpc(this, roll_stub, register_role, 6);
