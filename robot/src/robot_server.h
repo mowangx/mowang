@@ -5,14 +5,14 @@
 #include <unordered_map>
 
 #include "singleton.h"
-#include "service.h"
+#include "ws_service.h"
 #include "dynamic_array.h"
 
 class rpc_client;
 
-class robot_server : public service, public singleton<robot_server>
+class robot_server : public ws_service, public singleton<robot_server>
 {
-	typedef service TBaseType_t;
+	typedef ws_service TBaseType_t;
 
 public:
 	robot_server();
@@ -21,16 +21,15 @@ public:
 public:
 	bool init(TProcessID_t process_id) override;
 private:
-	virtual void init_threads() override;
+	virtual void init_ws_process_func() override;
+private:
 	virtual void net_run() override;
 	virtual void ws_run() override;
 
 private:
-	virtual void do_ws_loop(TGameTime_t diff) override;
-
-private:
 	virtual void process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets) override;
-	virtual void process_ws_packets(std::vector<ws_packet_recv_info*>& packets) override;
+private:
+	void process_response(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 
 public:
 	void logout(uint8 reason, TSocketIndex_t client_id);

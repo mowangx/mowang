@@ -3,7 +3,6 @@
 #include "debug.h"
 #include "time_manager.h"
 #include "tcp_manager.h"
-#include "ws_manager.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
 #include "timer.h"
@@ -12,13 +11,12 @@ service::service(game_process_type process_type)
 {
 	m_reconnect_interval_time = 1;
 	m_next_reconnect_time = INVALID_GAME_TIME;
+	m_server_info.process_info.process_type = process_type;
 	m_wait_kick_sockets.clear();
 	m_wait_kick_ws_sockets.clear();
 	m_write_packets.clear();
-	m_write_ws_packets.clear();
 	m_disconnect_server_infos.clear();
 	m_clients.clear();
-	m_server_info.process_info.process_type = process_type;
 }
 
 service::~service()
@@ -26,7 +24,7 @@ service::~service()
 
 }
 
-void service::start(const std::string& module_name, const char* process_id)
+void service::start(const std::string & module_name, const char * process_id)
 {
 	TProcessID_t pid = atoi(process_id);
 
@@ -42,11 +40,6 @@ void service::start(const std::string& module_name, const char* process_id)
 	if (!init(pid)) {
 		log_error("Init service failed");
 		return;
-	}
-
-	if (!DNetMgr.init(m_server_info.process_info.process_type, pid)) {
-		log_error("init socket manager failed");
-		return ;
 	}
 
 	log_info("Init service success");
@@ -72,6 +65,11 @@ bool service::init(TProcessID_t process_id)
 
 	DTimer.init();
 
+	if (!DNetMgr.init(m_server_info.process_info.process_type, process_id)) {
+		log_error("init socket manager failed");
+		return false;
+	}
+
 	return true;
 }
 
@@ -80,7 +78,6 @@ void service::init_threads()
 	std::thread log_thread(std::bind(&service::log_run, this));
 	std::thread net_thread(std::bind(&service::net_run, this));
 	//std::thread net_thread(std::bind(&service::net_run, this, std::ref(pid)));
-
 	work_run();
 
 	log_thread.join();
@@ -102,10 +99,6 @@ void service::work_run()
 }
 
 void service::net_run()
-{
-}
-
-void service::ws_run()
 {
 }
 
@@ -151,35 +144,7 @@ void service::do_loop(TGameTime_t diff)
 	m_write_packets.clear();
 	m_wait_kick_sockets.clear();
 
-	do_ws_loop(diff);
-
 	try_reconnect_server();
-}
-
-void service::do_ws_loop(TGameTime_t diff)
-{
-	std::vector<ws_packet_recv_info*> read_packets;
-	std::vector<packet_send_info*> finish_write_packets;
-	std::vector<web_socket_wrapper_base*> add_sockets;
-	std::vector<web_socket_wrapper_base*> del_sockets;
-
-	DWSNetMgr.swap_net_2_logic(read_packets, finish_write_packets, add_sockets, del_sockets);
-
-	for (auto packet_info : finish_write_packets) {
-		m_mem_pool.deallocate((char*)packet_info->buffer_info.buffer);
-		m_packet_pool.deallocate(packet_info);
-	}
-
-	process_ws_init_sockets(add_sockets);
-
-	process_ws_packets(read_packets);
-
-	process_ws_close_sockets(del_sockets);
-
-	DWSNetMgr.swap_login_2_net(m_write_ws_packets, read_packets, m_wait_kick_ws_sockets, del_sockets);
-
-	m_write_ws_packets.clear();
-	m_wait_kick_ws_sockets.clear();
 }
 
 void service::try_reconnect_server()
@@ -258,11 +223,6 @@ void service::push_write_packets(packet_send_info * packet_info)
 	m_write_packets.push_back(packet_info);
 }
 
-void service::push_ws_write_packets(packet_send_info * packet_info)
-{
-	m_write_ws_packets.push_back(packet_info);
-}
-
 void service::kick_socket(TSocketIndex_t socket_index)
 {
 	m_wait_kick_sockets.push_back(socket_index);
@@ -324,18 +284,6 @@ void service::on_register_entity(TSocketIndex_t socket_index, const dynamic_arra
 	for (int i = 0; i < stub_infos.size(); ++i) {
 		DRpcWrapper.register_stub_info(stub_infos[i].stub_name.data(), stub_infos[i].process_info);
 	}
-}
-
-void service::process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets)
-{
-}
-
-void service::process_ws_close_sockets(std::vector<web_socket_wrapper_base*>& sockets)
-{
-}
-
-void service::process_ws_packets(std::vector<ws_packet_recv_info*>& packets)
-{
 }
 
 rpc_client* service::get_client(TSocketIndex_t socket_index)

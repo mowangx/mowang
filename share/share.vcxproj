@@ -217,6 +217,7 @@
     <ClInclude Include="src\time_manager.h" />
     <ClInclude Include="src\types_def.h" />
     <ClInclude Include="src\ws_manager.h" />
+    <ClInclude Include="src\ws_service.h" />
     <ClInclude Include="src\ws_wrapper.h" />
     <ClInclude Include="src\ws_wrapper.hpp" />
     <ClInclude Include="src\xml_loader.h" />
@@ -241,6 +242,7 @@
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\time_manager.cpp" />
     <ClCompile Include="src\ws_manager.cpp" />
+    <ClCompile Include="src\ws_service.cpp" />
     <ClCompile Include="src\ws_wrapper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

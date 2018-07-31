@@ -18,7 +18,7 @@ class service : public service_interface
 {
 public:
 	service(game_process_type process_type);
-	~service();
+	virtual ~service();
 
 public:
 	virtual void start(const std::string& module_name, const char* process_id);
@@ -28,12 +28,10 @@ public:
 	virtual void init_threads();
 	virtual void work_run();
 	virtual void net_run();
-	virtual void ws_run();
 	virtual void log_run();
 
 protected:
 	virtual void do_loop(TGameTime_t diff);
-	virtual void do_ws_loop(TGameTime_t diff);
 
 private:
 	void try_reconnect_server();
@@ -48,7 +46,6 @@ public:
 	virtual packet_send_info * allocate_packet_info() override;
 	virtual char* allocate_memory(int n) override;
 	virtual void push_write_packets(packet_send_info* packet_info) override;
-	virtual void push_ws_write_packets(packet_send_info* packet_info) override;
 
 	virtual void kick_socket(TSocketIndex_t socket_index) override;
 	virtual void kick_ws_socket(TSocketIndex_t socket_index) override;
@@ -67,11 +64,6 @@ protected:
 protected:
 	void on_register_entity(TSocketIndex_t socket_index, const dynamic_array<game_stub_info>& stub_infos);
 
-protected:
-	virtual void process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets);
-	virtual void process_ws_close_sockets(std::vector<web_socket_wrapper_base*>& sockets);
-	virtual void process_ws_packets(std::vector<ws_packet_recv_info*>& packets);
-
 public:
 	rpc_client* get_client(TSocketIndex_t socket_index);
 
@@ -85,7 +77,6 @@ protected:
 	std::vector<TSocketIndex_t> m_wait_kick_sockets;
 	std::vector<TSocketIndex_t> m_wait_kick_ws_sockets;
 	std::vector<packet_send_info*> m_write_packets;
-	std::vector<packet_send_info*> m_write_ws_packets;
 	std::vector<game_server_info> m_disconnect_server_infos;
 	std::unordered_map<TSocketIndex_t, rpc_client*> m_clients;
 };

@@ -9,7 +9,7 @@
 #include "tcp_manager.h"
 #include "ws_manager.h"
 
-robot_server::robot_server() : service(PROCESS_ROBOT)
+robot_server::robot_server() : ws_service(PROCESS_ROBOT)
 {
 }
 
@@ -31,24 +31,9 @@ bool robot_server::init(TProcessID_t process_id)
 	return true;
 }
 
-void robot_server::init_threads()
+void robot_server::init_ws_process_func()
 {
-	if (!DWSNetMgr.init(m_server_info.process_info.process_type, m_server_info.process_info.process_id)) {
-		log_error("init websocket manager failed");
-		return;
-	}
-
-	std::thread log_thread(std::bind(&service::log_run, this));
-	std::thread net_thread(std::bind(&robot_server::net_run, this));
-	std::thread ws_thread(std::bind(&robot_server::ws_run, this));
-	//websocketpp::lib::shared_ptr<websocketpp::lib::thread> ws_client_thread = DWSNetMgr.init_client();
-
-	work_run();
-
-	log_thread.join();
-	net_thread.join();
-	ws_thread.join();
-	//ws_client_thread->join();
+	m_cmd_2_parse_func["response"] = std::bind(&robot_server::process_response, this, std::placeholders::_1, std::placeholders::_2);
 }
 
 void robot_server::net_run()
@@ -84,55 +69,24 @@ void robot_server::ws_run()
 		std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}
 }
-
-void robot_server::do_ws_loop(TGameTime_t diff)
-{
-	TBaseType_t::do_ws_loop(diff);
-	std::vector<web_socket_wrapper_base*> sockets;
-	DWSNetMgr.test_get_sockets(sockets);
-	std::string s = "";
-	s.push_back(START_CHARACTER);
-	s += "{\"cmd\":\"test\", \"param_1\": 20}";
-	s.push_back(END_CHARACTER);
-	for (auto socket : sockets) {
-		packet_send_info* packet_info = allocate_packet_info();
-		packet_info->socket_index = socket->get_socket_index();
-		packet_info->buffer_info.len = s.length();
-		packet_info->buffer_info.buffer = allocate_memory(packet_info->buffer_info.len);
-		memcpy(packet_info->buffer_info.buffer, s.c_str(), packet_info->buffer_info.len);
-		push_ws_write_packets(packet_info);
-		log_debug("robot send msg!!!! %d, %s", packet_info->buffer_info.len, packet_info->buffer_info.buffer);
-		//need_send = false;
-	}
-}
-
 void robot_server::process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets)
 {
-	std::string s = "";
-	s.push_back(START_CHARACTER);
-	s += "{\"cmd\":\"login\", \"platform_id\": 1, \"server_id\": 100, \"user_id\": \"mowang\"}";
-	s.push_back(END_CHARACTER);
 	for (auto socket : sockets) {
-		packet_send_info* packet_info = allocate_packet_info();
-		packet_info->socket_index = socket->get_socket_index();
-		packet_info->buffer_info.len = s.length();
-		packet_info->buffer_info.buffer = allocate_memory(packet_info->buffer_info.len);
-		memcpy(packet_info->buffer_info.buffer, s.c_str(), packet_info->buffer_info.len);
-		push_ws_write_packets(packet_info);
-		log_debug("robot send msg!!!! %d, %s", packet_info->buffer_info.len, packet_info->buffer_info.buffer);
-		//need_send = false;
+		push_ws_write_packets(socket->get_socket_index(), "{\"cmd\":\"login\", \"platform_id\": 1, \"server_id\": 100, \"user_id\": \"mowang\"}");
 	}
 }
 
-void robot_server::process_ws_packets(std::vector<ws_packet_recv_info*>& packets)
+void robot_server::process_response(TSocketIndex_t socket_index, boost::property_tree::ptree* json)
 {
-	for (auto packet_info : packets) {
-		log_info("recv buff info %s, len %d", packet_info->buffer_info.buffer, packet_info->buffer_info.len);
-	}
+	int ret_code = json->get<int>("ret_code", 0);
+	std::string user_id = json->get<std::string>("user_id", "").c_str();
+	log_debug("parse response!!! socket index %" I64_FMT "u,  ret_code %d, user_id %s", socket_index, ret_code, user_id.c_str());
+
+	push_ws_write_packets(socket_index, "{\"cmd\":\"test\", \"param_1\": 20}");
 }
 
 void robot_server::logout(uint8 reason, TSocketIndex_t client_id)
 {
 	log_info("logout! reason = %u, client id = %" I64_FMT "u", reason, client_id);
-	//kick_socket(client_id);
+	kick_socket(client_id);
 }

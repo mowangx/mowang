@@ -11,7 +11,7 @@
 #include "ws_manager.h"
 #include "time_manager.h"
 
-gate_server::gate_server() : service(PROCESS_GATE)
+gate_server::gate_server() : ws_service(PROCESS_GATE)
 {
 	m_ws_list_port = 0;
 	m_delay_kick_sockets.clear();
@@ -49,27 +49,13 @@ bool gate_server::init(TProcessID_t process_id)
 	game_server_handler::Setup();
 	client_handler::Setup();
 
-	init_cmd_parse_func();
-
 	return true;
 }
 
-void gate_server::init_threads()
+void gate_server::init_ws_process_func()
 {
-	if (!DWSNetMgr.init(m_server_info.process_info.process_type, m_server_info.process_info.process_id)) {
-		log_error("init websocket manager failed");
-		return;
-	}
-
-	std::thread log_thread(std::bind(&service::log_run, this));
-	std::thread net_thread(std::bind(&service::net_run, this));
-	std::thread ws_thread(std::bind(&gate_server::ws_run, this));
-
-	work_run();
-
-	log_thread.join();
-	net_thread.join();
-	ws_thread.join();
+	m_cmd_2_parse_func["login"] = std::bind(&gate_server::process_login, this, std::placeholders::_1, std::placeholders::_2);
+	m_cmd_2_parse_func["test"] = std::bind(&gate_server::process_test, this, std::placeholders::_1, std::placeholders::_2);
 }
 
 void gate_server::work_run()
@@ -102,12 +88,6 @@ void gate_server::ws_run()
 		DWSNetMgr.update(0);
 		std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}
-}
-
-void gate_server::init_cmd_parse_func()
-{
-	m_cmd_2_parse_func["login"] = std::bind(&gate_server::process_login, this, std::placeholders::_1, std::placeholders::_2);
-	m_cmd_2_parse_func["test"] = std::bind(&gate_server::process_test, this, std::placeholders::_1, std::placeholders::_2);
 }
 
 void gate_server::do_loop(TGameTime_t diff)
@@ -256,26 +236,6 @@ void gate_server::kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t 
 	m_delay_kick_sockets.push_back(kick_info);
 }
 
-void gate_server::process_ws_packets(std::vector<ws_packet_recv_info*>& packets)
-{
-	boost::property_tree::ptree json;
-	for (auto packet_info : packets) {
-		std::string str(packet_info->buffer_info.buffer, packet_info->buffer_info.len);
-		std::stringstream json_stream(str);
-		log_debug("parse ws packet! socket index %" I64_FMT "u, %s", packet_info->socket->get_socket_index(), json_stream.str().c_str());
-		json.clear();
-		boost::property_tree::read_json(json_stream, json);
-		std::string cmd = json.get<std::string>("cmd");
-		auto itr = m_cmd_2_parse_func.find(cmd);
-		if (itr != m_cmd_2_parse_func.end()) {
-			itr->second(packet_info->socket->get_socket_index(), &json);
-		}
-		else {
-			log_info("parse ws packet but not find cmd! %s", cmd.c_str());
-		}
-	}
-}
-
 void gate_server::process_ws_close_sockets(std::vector<web_socket_wrapper_base*>& sockets)
 {
 	for (auto socket : sockets) {
@@ -293,6 +253,8 @@ void gate_server::process_login(TSocketIndex_t socket_index, boost::property_tre
 	std::string cur_user_id = json->get<std::string>("user_id", "");
 	memcpy(user_id.data(), cur_user_id.c_str(), cur_user_id.length());
 	login_server(socket_index, platform_id, server_id, user_id, INVALID_SOCKET_INDEX);
+
+	push_ws_write_packets(socket_index, "{\"cmd\":\"response\", \"ret_code\": 9, \"user_id\": \"xiedi\"}");
 }
 
 void gate_server::process_test(TSocketIndex_t socket_index, boost::property_tree::ptree* json)
@@ -305,6 +267,8 @@ void gate_server::process_test(TSocketIndex_t socket_index, boost::property_tree
 	fill_packet(packet.m_buffer, buffer_index, json->get<uint8>("param_1", 0));
 	fill_packet(packet.m_buffer, buffer_index, json->get<uint16>("param_2", 0));
 	transfer_server(socket_index, &packet);
+
+	push_ws_write_packets(socket_index, "{\"cmd\":\"response\", \"ret_code\": 9, \"user_id\": \"xiedi\"}");
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const
