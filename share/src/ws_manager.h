@@ -18,13 +18,11 @@ public:
 	~web_socket_manager();
 
 public:
-	websocketpp::lib::shared_ptr<websocketpp::lib::thread> init_client();
-	void init_server();
-
-public:
 	virtual bool init(TProcessType_t process_type, TProcessID_t process_id) override;
 	virtual void update(uint32 diff) override;
-	void update_client(uint32 diff);
+private:
+	void init_client();
+	void init_server();
 
 public:
 	void start_listen(TPort_t port);
@@ -40,8 +38,8 @@ private:
 
 	virtual void unpack_packets(std::vector<ws_packet_recv_info*>& packets, web_socket_wrapper_base* socket) override;
 
-	virtual void on_send_packet(web_socket_wrapper_base* socket) override;
 	virtual void del_socket(web_socket_wrapper_base* socket) override;
+	virtual void on_release_packets(std::vector<ws_packet_recv_info*>& packets) override;
 
 private:
 	web_socket_client m_client;

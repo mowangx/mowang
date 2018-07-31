@@ -34,6 +34,7 @@ private:
 	virtual void add_socket(socket_base* socket) override;
 	virtual void del_socket(socket_base* socket) override;
 	virtual void on_release_socket(socket_base* socket) override;
+	virtual void on_release_packets(std::vector<packet_recv_info*>& packets) override;
 	virtual void on_send_packet(socket_base* socket) override;
 
 private:

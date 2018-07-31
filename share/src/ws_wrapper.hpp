@@ -15,22 +15,26 @@ web_socket_wrapper<T>::web_socket_wrapper(TSocketIndex_t socket_index, T* endpoi
 template<class T>
 inline void web_socket_wrapper<T>::write(char* msg, int len)
 {
-	m_endpoint->send(m_hdl, msg, len, websocketpp::frame::opcode::text);
-}
-
-template <class T>
-void web_socket_wrapper<T>::flush()
-{
-
+	try {
+		m_endpoint->send(m_hdl, msg, len, websocketpp::frame::opcode::text);
+	}
+	catch (const websocketpp::exception & e) {
+		log_error("ws send msg failed for %s", e.what());
+	}
 }
 
 template <class T>
 void web_socket_wrapper<T>::close()
 {
-	websocketpp::lib::error_code err;
-	m_endpoint->close(m_hdl, websocketpp::close::status::going_away, "", err);
-	if (err) {
-		log_error("Error closing connection! socket index %" I64_FMT "u, msg %s", m_index, err.message());
+	try {
+		websocketpp::lib::error_code err;
+		m_endpoint->close(m_hdl, websocketpp::close::status::going_away, "", err);
+		if (err) {
+			log_error("Error closing connection! socket index %" I64_FMT "u, msg %s", m_index, err.message());
+		}
+	}
+	catch (const websocketpp::exception & e) {
+		log_error("ws close failed for %s", e.what());
 	}
 }
 

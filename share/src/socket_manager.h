@@ -60,6 +60,7 @@ protected:
 	virtual void add_socket(socket_type* socket);
 	virtual void del_socket(socket_type* socket);
 	virtual void on_release_socket(socket_type* socket);
+	virtual void on_release_packets(std::vector<packet_type*>& packets);
 	virtual void on_send_packet(socket_type* socket);
 
 	TSocketIndex_t gen_socket_index();

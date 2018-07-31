@@ -22,14 +22,15 @@ public:
 	bool init(TProcessID_t process_id) override;
 private:
 	virtual void init_threads() override;
-	virtual void do_loop(TGameTime_t diff) override;
 	virtual void net_run() override;
-	void websocket_run();
-private:
-	void do_ws_loop(TGameTime_t diff);
+	virtual void ws_run() override;
 
 private:
-	void process_ws_packet(ws_packet_recv_info* packet_info);
+	virtual void do_ws_loop(TGameTime_t diff) override;
+
+private:
+	virtual void process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets) override;
+	virtual void process_ws_packets(std::vector<ws_packet_recv_info*>& packets) override;
 
 public:
 	void logout(uint8 reason, TSocketIndex_t client_id);

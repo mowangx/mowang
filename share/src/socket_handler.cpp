@@ -93,10 +93,10 @@ bool socket_handler::unpack_ws_packet(packet_buffer_info* packet)
 	int end_index = -1;
 	for (int i=m_read_index; i < m_max_index; ++i) {
 		char c = *(char*)(m_buffer + i);
-		if (c == 0x2) {
+		if (c == START_CHARACTER) {
 			start_index = i + 1;
 		}
-		else if (start_index >= 0 && c == 0x3) {
+		else if (start_index >= 0 && c == END_CHARACTER) {
 			end_index = i;
 			break;
 		}

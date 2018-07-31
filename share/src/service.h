@@ -28,15 +28,18 @@ public:
 	virtual void init_threads();
 	virtual void work_run();
 	virtual void net_run();
+	virtual void ws_run();
 	virtual void log_run();
 
 protected:
 	virtual void do_loop(TGameTime_t diff);
-	virtual bool connect_game_manager(const char* ip, TPort_t port);
-	void connect_game_manager_loop(const char* ip, TPort_t port);
+	virtual void do_ws_loop(TGameTime_t diff);
 
 private:
 	void try_reconnect_server();
+protected:
+	virtual bool connect_game_manager(const char* ip, TPort_t port);
+	void connect_game_manager_loop(const char* ip, TPort_t port);
 
 public:
 	virtual const game_server_info& get_server_info() const override;
@@ -63,6 +66,11 @@ protected:
 
 protected:
 	void on_register_entity(TSocketIndex_t socket_index, const dynamic_array<game_stub_info>& stub_infos);
+
+protected:
+	virtual void process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets);
+	virtual void process_ws_close_sockets(std::vector<web_socket_wrapper_base*>& sockets);
+	virtual void process_ws_packets(std::vector<ws_packet_recv_info*>& packets);
 
 public:
 	rpc_client* get_client(TSocketIndex_t socket_index);

@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "time_manager.h"
 #include "tcp_manager.h"
+#include "ws_manager.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
 #include "timer.h"
@@ -60,6 +61,8 @@ bool service::load_config(ini_file& ini, const std::string& module_name)
 
 bool service::init(TProcessID_t process_id)
 {
+	DGameRandom.reset(process_id);
+
 	m_server_info.process_info.server_id = m_config.get_server_id();;
 	m_server_info.process_info.process_id = process_id;
 
@@ -99,6 +102,10 @@ void service::work_run()
 }
 
 void service::net_run()
+{
+}
+
+void service::ws_run()
 {
 }
 
@@ -144,20 +151,35 @@ void service::do_loop(TGameTime_t diff)
 	m_write_packets.clear();
 	m_wait_kick_sockets.clear();
 
+	do_ws_loop(diff);
+
 	try_reconnect_server();
 }
 
-bool service::connect_game_manager(const char * ip, TPort_t port)
+void service::do_ws_loop(TGameTime_t diff)
 {
-	return true;
-}
+	std::vector<ws_packet_recv_info*> read_packets;
+	std::vector<packet_send_info*> finish_write_packets;
+	std::vector<web_socket_wrapper_base*> add_sockets;
+	std::vector<web_socket_wrapper_base*> del_sockets;
 
-void service::connect_game_manager_loop(const char * ip, TPort_t port)
-{
-	while (!connect_game_manager(ip, port)) {
-		log_error("connect game manager failed, ip = %s, port = %u", ip, port);
-		std::this_thread::sleep_for(std::chrono::seconds(2));
+	DWSNetMgr.swap_net_2_logic(read_packets, finish_write_packets, add_sockets, del_sockets);
+
+	for (auto packet_info : finish_write_packets) {
+		m_mem_pool.deallocate((char*)packet_info->buffer_info.buffer);
+		m_packet_pool.deallocate(packet_info);
 	}
+
+	process_ws_init_sockets(add_sockets);
+
+	process_ws_packets(read_packets);
+
+	process_ws_close_sockets(del_sockets);
+
+	DWSNetMgr.swap_login_2_net(m_write_ws_packets, read_packets, m_wait_kick_ws_sockets, del_sockets);
+
+	m_write_ws_packets.clear();
+	m_wait_kick_ws_sockets.clear();
 }
 
 void service::try_reconnect_server()
@@ -190,7 +212,7 @@ void service::try_reconnect_server()
 	if (del_server_info.empty()) {
 		return;
 	}
-	
+
 	for (auto del_itr = del_server_info.begin(); del_itr != del_server_info.end(); ++del_itr) {
 		auto itr = std::find(m_disconnect_server_infos.begin(), m_disconnect_server_infos.end(), *del_itr);
 		if (itr != m_disconnect_server_infos.end()) {
@@ -200,6 +222,19 @@ void service::try_reconnect_server()
 
 	if (m_disconnect_server_infos.empty()) {
 		m_reconnect_interval_time = 1 + m_server_info.process_info.process_id;
+	}
+}
+
+bool service::connect_game_manager(const char * ip, TPort_t port)
+{
+	return true;
+}
+
+void service::connect_game_manager_loop(const char * ip, TPort_t port)
+{
+	while (!connect_game_manager(ip, port)) {
+		log_error("connect game manager failed, ip = %s, port = %u", ip, port);
+		std::this_thread::sleep_for(std::chrono::seconds(2));
 	}
 }
 
@@ -289,6 +324,18 @@ void service::on_register_entity(TSocketIndex_t socket_index, const dynamic_arra
 	for (int i = 0; i < stub_infos.size(); ++i) {
 		DRpcWrapper.register_stub_info(stub_infos[i].stub_name.data(), stub_infos[i].process_info);
 	}
+}
+
+void service::process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets)
+{
+}
+
+void service::process_ws_close_sockets(std::vector<web_socket_wrapper_base*>& sockets)
+{
+}
+
+void service::process_ws_packets(std::vector<ws_packet_recv_info*>& packets)
+{
 }
 
 rpc_client* service::get_client(TSocketIndex_t socket_index)

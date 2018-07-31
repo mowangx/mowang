@@ -262,7 +262,6 @@ struct packet_buffer_info
 
 struct ws_packet_recv_info
 {
-	packet_base* packet;
 	web_socket_wrapper_base* socket;
 	packet_buffer_info buffer_info;
 	ws_packet_recv_info() {
@@ -270,7 +269,6 @@ struct ws_packet_recv_info
 	}
 
 	void clean_up() {
-		packet = nullptr;
 		socket = nullptr;
 		buffer_info.clean_up();
 	}

@@ -1,9 +1,6 @@
 
 #include "gate_server.h"
 
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
 #include "game_manager_handler.h"
 #include "game_server_handler.h"
 #include "client_handler.h"
@@ -52,6 +49,8 @@ bool gate_server::init(TProcessID_t process_id)
 	game_server_handler::Setup();
 	client_handler::Setup();
 
+	init_cmd_parse_func();
+
 	return true;
 }
 
@@ -64,7 +63,7 @@ void gate_server::init_threads()
 
 	std::thread log_thread(std::bind(&service::log_run, this));
 	std::thread net_thread(std::bind(&service::net_run, this));
-	std::thread ws_thread(std::bind(&gate_server::websocket_run, this));
+	std::thread ws_thread(std::bind(&gate_server::ws_run, this));
 
 	work_run();
 
@@ -93,7 +92,7 @@ void gate_server::net_run()
 	}
 }
 
-void gate_server::websocket_run()
+void gate_server::ws_run()
 {
 	DWSNetMgr.start_listen(m_ws_list_port);
 
@@ -105,16 +104,15 @@ void gate_server::websocket_run()
 	}
 }
 
-bool gate_server::connect_game_manager(const char * ip, TPort_t port)
+void gate_server::init_cmd_parse_func()
 {
-	return DNetMgr.start_connect<game_manager_handler>(ip, port);
+	m_cmd_2_parse_func["login"] = std::bind(&gate_server::process_login, this, std::placeholders::_1, std::placeholders::_2);
+	m_cmd_2_parse_func["test"] = std::bind(&gate_server::process_test, this, std::placeholders::_1, std::placeholders::_2);
 }
 
 void gate_server::do_loop(TGameTime_t diff)
 {
 	TBaseType_t::do_loop(diff);
-
-	do_ws_loop(diff);
 
 	if (m_delay_kick_sockets.empty()) {
 		return;
@@ -161,32 +159,9 @@ void gate_server::on_disconnect(TSocketIndex_t socket_index)
 	}
 }
 
-void gate_server::do_ws_loop(TGameTime_t diff)
+bool gate_server::connect_game_manager(const char * ip, TPort_t port)
 {
-	std::vector<ws_packet_recv_info*> read_packets;
-	std::vector<packet_send_info*> finish_write_packets;
-	std::vector<web_socket_wrapper_base*> add_sockets;
-	std::vector<web_socket_wrapper_base*> del_sockets;
-
-	DWSNetMgr.swap_net_2_logic(read_packets, finish_write_packets, add_sockets, del_sockets);
-
-	for (auto packet_info : finish_write_packets) {
-		m_mem_pool.deallocate((char*)packet_info->buffer_info.buffer);
-		m_packet_pool.deallocate(packet_info);
-	}
-
-	for (auto packet_info : read_packets) {
-		process_ws_packet(packet_info);
-	}
-
-	for (auto socket : del_sockets) {
-		logout_server(socket->get_socket_index());
-	}
-
-	DWSNetMgr.swap_login_2_net(m_write_ws_packets, read_packets, m_wait_kick_ws_sockets, del_sockets);
-
-	m_write_ws_packets.clear();
-	m_wait_kick_ws_sockets.clear();
+	return DNetMgr.start_connect<game_manager_handler>(ip, port);
 }
 
 void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
@@ -245,7 +220,7 @@ void gate_server::logout_server(TSocketIndex_t socket_index)
 	}
 }
 
-void gate_server::transfer_server(TSocketIndex_t socket_index, packet_base * packet)
+void gate_server::transfer_server(TSocketIndex_t socket_index, packet_base* packet)
 {
 	packet_send_info* packet_info = allocate_packet_info();
 	packet_info->socket_index = get_server_socket_index(socket_index);
@@ -281,29 +256,55 @@ void gate_server::kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t 
 	m_delay_kick_sockets.push_back(kick_info);
 }
 
-void gate_server::process_ws_packet(ws_packet_recv_info* packet_info)
+void gate_server::process_ws_packets(std::vector<ws_packet_recv_info*>& packets)
 {
-	parse_ws_packet(packet_info);
-	if (nullptr == packet_info->packet) {
-		return;
-	}
-
-	if (packet_info->packet->get_packet_id() == PACKET_ID_LOGIN) {
-		login_packet* login_info = (login_packet*)packet_info->packet;
-		login_server(packet_info->socket->get_socket_index(), login_info->m_platform_id, login_info->m_server_id, login_info->m_user_id, INVALID_SOCKET_INDEX);
-	}
-	else {
-		transfer_server(packet_info->socket->get_socket_index(), packet_info->packet);
+	boost::property_tree::ptree json;
+	for (auto packet_info : packets) {
+		std::string str(packet_info->buffer_info.buffer, packet_info->buffer_info.len);
+		std::stringstream json_stream(str);
+		log_debug("parse ws packet! socket index %" I64_FMT "u, %s", packet_info->socket->get_socket_index(), json_stream.str().c_str());
+		json.clear();
+		boost::property_tree::read_json(json_stream, json);
+		std::string cmd = json.get<std::string>("cmd");
+		auto itr = m_cmd_2_parse_func.find(cmd);
+		if (itr != m_cmd_2_parse_func.end()) {
+			itr->second(packet_info->socket->get_socket_index(), &json);
+		}
+		else {
+			log_info("parse ws packet but not find cmd! %s", cmd.c_str());
+		}
 	}
 }
 
-void gate_server::parse_ws_packet(ws_packet_recv_info* packet_info)
+void gate_server::process_ws_close_sockets(std::vector<web_socket_wrapper_base*>& sockets)
 {
-	std::string str(packet_info->buffer_info.buffer, packet_info->buffer_info.len);
-	std::stringstream json_stream(str);
-	boost::property_tree::ptree* json = new boost::property_tree::ptree();
-	boost::property_tree::read_json(json_stream, *json);
-	log_debug("parse ws packet! %s", json_stream.str());
+	for (auto socket : sockets) {
+		logout_server(socket->get_socket_index());
+	}
+}
+
+void gate_server::process_login(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
+{
+	log_debug("parse login!!! socket index %" I64_FMT "u,  platform id %d, server_id %d", socket_index, json->get<TPlatformID_t>("platform_id", 0), json->get<TServerID_t>("server_id", 0));
+	TPlatformID_t platform_id = json->get<TPlatformID_t>("platform_id");
+	TServerID_t server_id = json->get<TServerID_t>("server_id");
+	TUserID_t user_id;
+	memset(user_id.data(), 0, USER_ID_LEN);
+	std::string cur_user_id = json->get<std::string>("user_id", "");
+	memcpy(user_id.data(), cur_user_id.c_str(), cur_user_id.length());
+	login_server(socket_index, platform_id, server_id, user_id, INVALID_SOCKET_INDEX);
+}
+
+void gate_server::process_test(TSocketIndex_t socket_index, boost::property_tree::ptree* json)
+{
+	log_debug("parse test!!! socket index %" I64_FMT "u,  param_1 %d, param_2 %d", socket_index, json->get<uint8>("param_1", 0), json->get<uint16>("param_2", 0));
+	rpc_by_name_packet packet;
+	int buffer_index = 0;
+	std::string func_name = "test";
+	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	fill_packet(packet.m_buffer, buffer_index, json->get<uint8>("param_1", 0));
+	fill_packet(packet.m_buffer, buffer_index, json->get<uint16>("param_2", 0));
+	transfer_server(socket_index, &packet);
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

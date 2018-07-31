@@ -39,7 +39,6 @@ public:
 
 public:
 	virtual void write(char* msg, int len) = 0;
-	virtual void flush() = 0;
 	virtual void close() = 0;
 
 protected:
@@ -58,7 +57,6 @@ public:
 
 public:
 	virtual void write(char* msg, int len) override;
-	virtual void flush() override;
 	virtual void close() override;
 
 public:

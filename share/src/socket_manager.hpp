@@ -189,7 +189,6 @@ void socket_manager<socket_type, packet_type>::handle_write_msg()
 	}
 
 	for (auto packet_info : packets) {
-		log_debug("send packet!!!!!!!!! len %d", packet_info->buffer_info.len);
 		send_packet(packet_info->socket_index, packet_info->buffer_info.buffer, packet_info->buffer_info.len);
 		finish_packets.push_back(packet_info);
 	}
@@ -264,10 +263,8 @@ void socket_manager<socket_type, packet_type>::handle_release_packet()
 		packets.insert(packets.begin(), m_finish_read_packets.begin(), m_finish_read_packets.end());
 		m_finish_read_packets.clear();
 	}
-	for (auto packet_info : packets) {
-		m_mem_pool.deallocate((char*)packet_info->packet);
-		m_packet_info_pool.deallocate(packet_info);
-	}
+
+	on_release_packets(packets);
 }
 
 template <class socket_type, class packet_type>
@@ -279,8 +276,10 @@ void socket_manager<socket_type, packet_type>::send_packet(TSocketIndex_t socket
 		return;
 	}
 	socket_type* socket = itr->second;
-	socket->write(msg, len);
-	on_send_packet(socket);
+	if (socket->is_active()) {
+		socket->write(msg, len);
+		on_send_packet(socket);
+	}
 }
 
 template <class socket_type, class packet_type>
@@ -319,6 +318,11 @@ template <class socket_type, class packet_type>
 void socket_manager<socket_type, packet_type>::on_release_socket(socket_type* socket)
 {
 
+}
+
+template<class socket_type, class packet_type>
+void socket_manager<socket_type, packet_type>::on_release_packets(std::vector<packet_type*>& packets)
+{
 }
 
 template <class socket_type, class packet_type>

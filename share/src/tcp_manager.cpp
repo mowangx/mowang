@@ -55,7 +55,7 @@ bool tcp_manager::on_accept(socket_wrapper* listener)
 	// @todo 检测添加的时候会不会影响性能
 	TSocketIndex_t index = gen_socket_index();
 	socket->set_socket_index(index);
-	log_info("Accept socket! index = '%"I64_FMT"u'", index);
+	log_info("accept socket! index = '%"I64_FMT"u'", index);
 
 	socket->set_packet_handler(listener->create_handler());
 	socket->get_packet_handler()->set_socket_index(index);
@@ -158,6 +158,14 @@ void tcp_manager::on_release_socket(socket_base * socket)
 	delete socket->get_packet_handler();
 }
 
+void tcp_manager::on_release_packets(std::vector<packet_recv_info*>& packets)
+{
+	for (auto packet_info : packets) {
+		m_mem_pool.deallocate((char*)packet_info->packet);
+		m_packet_info_pool.deallocate(packet_info);
+	}
+}
+
 void tcp_manager::on_send_packet(socket_base * socket)
 {
 	TSocketEvent_t& writeEvent = socket->get_write_event();
@@ -168,7 +176,7 @@ void tcp_manager::OnAccept(TSocketFD_t fd, short evt, void* arg)
 {
 	socket_wrapper_event_arg_t* event_arg = (socket_wrapper_event_arg_t*)arg;
 	if (NULL == event_arg || NULL == event_arg->s || NULL == event_arg->mgr) {
-		log_error("Cast socket arg failed");
+		log_error("cast socket arg failed");
 		return;
 	}
 	for (uint32 i = 0; i < ACCEPT_ONCE_NUM; ++i) {
