@@ -203,6 +203,7 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 	p->set_client_id(client_id);
 	p->set_gate_id(gate_id);
 	p->set_entity_id(entity_id);
+	// @TODO just test, should load from db
 	p->set_role_id(entity_id);
 	p->set_test_client_id(test_client_id);
 	p->init();

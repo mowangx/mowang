@@ -246,20 +246,18 @@ void gate_server::process_ws_close_sockets(std::vector<web_socket_wrapper_base*>
 
 void gate_server::process_login(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
 {
-	log_debug("parse login!!! socket index %" I64_FMT "u,  platform id %d, server_id %d", socket_index, json->get<TPlatformID_t>("platform_id", 0), json->get<TServerID_t>("server_id", 0));
-	TPlatformID_t platform_id = json->get<TPlatformID_t>("platform_id");
-	TServerID_t server_id = json->get<TServerID_t>("server_id");
+	TPlatformID_t platform_id = json->get<TPlatformID_t>("platform_id", 1);
+	TServerID_t server_id = json->get<TServerID_t>("server_id", 1);
 	TUserID_t user_id;
 	memset(user_id.data(), 0, USER_ID_LEN);
-	std::string cur_user_id = json->get<std::string>("user_id", "");
+	std::string cur_user_id = json->get<std::string>("code", "");
 	memcpy(user_id.data(), cur_user_id.c_str(), cur_user_id.length());
 	login_server(socket_index, platform_id, server_id, user_id, INVALID_SOCKET_INDEX);
-	push_ws_write_packets(socket_index, "{\"cmd\":\"response\", \"ret_code\": 9, \"user_id\": \"xiedi\"}");
+	log_debug("parse login!!! socket index %" I64_FMT "u,  platform id %d, server_id %d", socket_index, platform_id, server_id);
 }
 
 void gate_server::process_test(TSocketIndex_t socket_index, boost::property_tree::ptree* json)
 {
-	log_debug("parse test!!! socket index %" I64_FMT "u,  param_1 %d, param_2 %d", socket_index, json->get<uint8>("param_1", 0), json->get<uint16>("param_2", 0));
 	transfer_server_by_name_packet packet;
 	std::string func_name = "test";
 	int buffer_index = 0;
@@ -268,6 +266,7 @@ void gate_server::process_test(TSocketIndex_t socket_index, boost::property_tree
 	fill_packet(packet.m_buffer, buffer_index, json->get<uint16>("param_2", 0));
 	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
 	transfer_server(socket_index, &packet);
+	log_debug("parse test!!! socket index %" I64_FMT "u,  param_1 %d, param_2 %d", socket_index, json->get<uint8>("param_1", 0), json->get<uint16>("param_2", 0));
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

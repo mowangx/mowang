@@ -45,6 +45,8 @@ void role::login(TPlatformID_t platform_id, const TUserID_t& user_id)
 	set_platform_id(platform_id);
 	set_user_id(user_id);
 	DRpcWrapper.call_stub("roll_stub", "register_account", get_platform_id(), get_user_id(), get_proxy_info(), get_mailbox_info(), get_test_client_id());
+	std::string msg = gx_to_string("{\"cmd\": \"login\", \"ret_code\": 0, \"code\": \"%s\"}", user_id.data());
+	DRpcWrapper.call_ws_client(get_proxy_info(), msg);
 }
 
 void role::logout()

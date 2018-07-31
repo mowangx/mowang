@@ -29,6 +29,7 @@ private:
 private:
 	virtual void process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets) override;
 private:
+	void process_login(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 	void process_response(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 
 public:

@@ -33,6 +33,7 @@ bool robot_server::init(TProcessID_t process_id)
 
 void robot_server::init_ws_process_func()
 {
+	m_cmd_2_parse_func["login"] = std::bind(&robot_server::process_login, this, std::placeholders::_1, std::placeholders::_2);
 	m_cmd_2_parse_func["response"] = std::bind(&robot_server::process_response, this, std::placeholders::_1, std::placeholders::_2);
 }
 
@@ -73,9 +74,18 @@ void robot_server::process_ws_init_sockets(std::vector<web_socket_wrapper_base*>
 {
 	for (auto socket : sockets) {
 		std::string user_id = gx_to_string("mw_%d", m_server_info.process_info.process_id);
-		std::string msg = gx_to_string("{\"cmd\":\"login\", \"platform_id\": 1, \"server_id\": 100, \"user_id\": \"%s\"}", user_id.c_str());
+		std::string msg = gx_to_string("{\"cmd\":\"login\", \"platform_id\": 1, \"server_id\": 100, \"code\": \"%s\"}", user_id.c_str());
 		push_ws_write_packets(socket->get_socket_index(), msg);
 	}
+}
+
+void robot_server::process_login(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
+{
+	int ret_code = json->get<int>("ret_code", 0);
+	std::string user_id = json->get<std::string>("code", "").c_str();
+	log_debug("parse response!!! socket index %" I64_FMT "u,  ret_code %d, user_id %s", socket_index, ret_code, user_id.c_str());
+
+	push_ws_write_packets(socket_index, "{\"cmd\":\"test\", \"param_1\": 20}");
 }
 
 void robot_server::process_response(TSocketIndex_t socket_index, boost::property_tree::ptree* json)

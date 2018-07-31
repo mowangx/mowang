@@ -127,18 +127,18 @@ void web_socket_manager::on_client_open(web_socket_wrapper_base* socket, websock
 {
 	socket->set_active(true);
 	m_new_sockets.push_back(socket);
-	log_info("on client open! sockete index %" I64_FMT "u", socket->get_socket_index());
+	log_info("on client open! socket index %" I64_FMT "u", socket->get_socket_index());
 }
 
 void web_socket_manager::on_client_fail(web_socket_wrapper_base* socket, websocketpp::connection_hdl hdl)
 {
-	log_info("on client fail! sockete index %" I64_FMT "u", socket->get_socket_index());
+	log_info("on client fail! socket index %" I64_FMT "u", socket->get_socket_index());
 }
 
 void web_socket_manager::on_client_close(web_socket_wrapper_base* socket, websocketpp::connection_hdl hdl)
 {
 	socket->set_active(false);
-	log_info("on client close! sockete index %" I64_FMT "u", socket->get_socket_index());
+	log_info("on client close! socket index %" I64_FMT "u", socket->get_socket_index());
 }
 
 void web_socket_manager::unpack_packets(std::vector<ws_packet_recv_info*>& packets, web_socket_wrapper_base* socket)
