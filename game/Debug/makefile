@@ -63,7 +63,7 @@ CC_DEF=-DLIB_DEBUG -DSERVER_DEBUG
 # 系统库
 LK_SYS_LIB=-Wl,-Bdynamic,-lrt
 # 第三方库
-LK_DEP_LIB=-L. -L${THIRD_LIB_DIR} -Wl,-Bstatic,-ltinyxpath -Wl,-Bstatic,-lshare_d -Wl,-Bstatic,-levent
+LK_DEP_LIB=-L. -L${THIRD_LIB_DIR} -Wl,-Bstatic,-ltinyxpath -Wl,-Bstatic,-lshare_d -Wl,-Bstatic,-levent -Wl,-Bstatic,-lcoredumper
 
 # 内部库
 LK_USER_LIB=
