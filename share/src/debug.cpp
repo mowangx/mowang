@@ -22,7 +22,8 @@
 #	define IsDebuggerPresent() false
 #	include <execinfo.h>
 #	include <errno.h>
-#   include "coredumper.h"
+#	include <signal.h>
+#	include "google/coredumper.h"
 #endif
 
 #include "log.h"
@@ -174,10 +175,10 @@ static void SigHandler(int signo)
 	DumpFlag = true;
 	log_warning("signo = %d", signo);
 	if (0 == WriteCoreDump(gxGetDumpName().c_str())) {
-		std::cerr << "write dump success!" << std::endl;
+		log_info("write dump success!");
 	}
 	else {
-		std::cerr << "write dump failed!" << std::endl;
+		log_error("write dump failed!");
 	}
 
 
@@ -235,10 +236,4 @@ void gxExit(exit_code code)
 		*temp = 1;
 		exit(code);
 	}
-}
-
-TThreadID_t gxGetThreadID()
-{
-	std::thread::id& thread_info = std::this_thread::get_id();
-	return ((_Thrd_t*)&thread_info)->_Id;
 }

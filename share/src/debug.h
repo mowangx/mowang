@@ -18,12 +18,10 @@ std::string gxGetDumpName();
 
 void gxExit(exit_code code);
 
-TThreadID_t gxGetThreadID();
-
 #if defined (OS_WINDOWS) && defined (LIB_DEBUG)
 #define GXMISC_BREAKPOINT __debugbreak();
 #elif defined (OS_UNIX) && defined (LIB_DEBUG)
-#define GXMISC_BREAKPOINT GXMISC::gxExit(EXIT_CORE_BREAKPOINT);
+#define GXMISC_BREAKPOINT gxExit(EXIT_CORE_BREAKPOINT);
 #else
 #define GXMISC_BREAKPOINT
 #endif

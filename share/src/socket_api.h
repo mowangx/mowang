@@ -50,6 +50,11 @@ namespace SOCKET_API
 	bool gx_shutdown(TSocketFD_t s, sint32 how);
 
 	sint32 gx_select(TSocketFD_t maxfdp1, fd_set* readset, fd_set* writeset, fd_set* exceptset, TTimeVal_t* timeout);
+
+	void gx_ioctl(sint32 fd, sint32 request, void * argp);
+	sint32 gx_availablefile(sint32 fd);
+	sint32 gx_fcntl(sint32 fd, sint32 cmd);
+	sint32 gx_fcntl(sint32 fd, sint32 cmd, sint32 arg);
 }
 
 #endif

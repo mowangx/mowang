@@ -30,7 +30,7 @@ void web_socket_wrapper<T>::close()
 		websocketpp::lib::error_code err;
 		m_endpoint->close(m_hdl, websocketpp::close::status::going_away, "", err);
 		if (err) {
-			log_error("Error closing connection! socket index %" I64_FMT "u, msg %s", m_index, err.message());
+			log_error("Error closing connection! socket index %" I64_FMT "u, msg %s", m_index, err.message().c_str());
 		}
 	}
 	catch (const websocketpp::exception & e) {

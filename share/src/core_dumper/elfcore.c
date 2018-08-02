@@ -31,6 +31,9 @@
  * Author: Markus Gutschke, Carl Crous
  */
 
+#define _GNU_SOURCE             /* See feature_test_macros(7) */
+#include <sched.h>
+
 #include "elfcore.h"
 #if defined DUMPER
 #ifdef __cplusplus

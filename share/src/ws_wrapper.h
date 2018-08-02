@@ -21,6 +21,7 @@ class web_socket_wrapper_base
 {
 public:
 	web_socket_wrapper_base(TSocketIndex_t socket_index, websocketpp::connection_hdl hdl);
+	virtual ~web_socket_wrapper_base();
 
 public:
 	void set_active(bool active_flag);

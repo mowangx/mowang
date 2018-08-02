@@ -5,12 +5,15 @@
 
 #if defined(OS_WINDOWS)
 #elif defined(OS_UNIX)
-#include <sys/types.h>			// for accept()
+#include <fcntl.h>		// for fcntl()
+#include <unistd.h>		// for fcntl()
+#include <sys/ioctl.h>	// for ioctl()
+#include <sys/types.h> // for accept()
 #include <sys/socket.h>
 #include <sys/time.h>
-#include <arpa/inet.h>			// for inet_xxx()
+#include <arpa/inet.h> // for inet_xxx()
 #include <netinet/in.h>
-#include <errno.h>				// for errno
+#include <errno.h> // for errno
 #endif
 
 #ifdef OS_UNIX
@@ -62,58 +65,53 @@ TSocketFD_t SOCKET_API::gx_socket(sint32 domain, sint32 type, sint32 protocol)
 {
 	TSocketFD_t s = ::socket(domain, type, protocol);
 
-	if (s == INVALID_SOCKET)
-	{
+	if (s == INVALID_SOCKET) {
 #ifdef OS_UNIX
-		switch (errno)
-		{
-		case EPROTONOSUPPORT:
-		case EMFILE:
-		case ENFILE:
-		case EACCES:
-		case ENOBUFS:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+		switch (errno) {
+			case EPROTONOSUPPORT:
+			case EMFILE:
+			case ENFILE:
+			case EACCES:
+			case ENOBUFS:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}
 #elif defined( OS_WINDOWS )
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEAFNOSUPPORT:
-			strncpy(Error, "WSAEAFNOSUPPORT", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEMFILE:
-			strncpy(Error, "WSAEMFILE", _ESIZE);
-			break;
-		case WSAENOBUFS:
-			strncpy(Error, "WSAENOBUFS", _ESIZE);
-			break;
-		case WSAEPROTONOSUPPORT:
-			strncpy(Error, "WSAEPROTONOSUPPORT", _ESIZE);
-			break;
-		case WSAEPROTOTYPE:
-			strncpy(Error, "WSAEPROTOTYPE", _ESIZE);
-			break;
-		case WSAESOCKTNOSUPPORT:
-			strncpy(Error, "WSAESOCKTNOSUPPORT", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEAFNOSUPPORT:
+				strncpy(Error, "WSAEAFNOSUPPORT", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEMFILE:
+				strncpy(Error, "WSAEMFILE", _ESIZE);
+				break;
+			case WSAENOBUFS:
+				strncpy(Error, "WSAENOBUFS", _ESIZE);
+				break;
+			case WSAEPROTONOSUPPORT:
+				strncpy(Error, "WSAEPROTONOSUPPORT", _ESIZE);
+				break;
+			case WSAEPROTOTYPE:
+				strncpy(Error, "WSAEPROTOTYPE", _ESIZE);
+				break;
+			case WSAESOCKTNOSUPPORT:
+				strncpy(Error, "WSAESOCKTNOSUPPORT", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};
 #endif
 	}
@@ -140,62 +138,58 @@ bool SOCKET_API::gx_bind(TSocketFD_t s, const struct sockaddr * addr, sint32 add
 	if (bind(s, addr, addrlen) == SOCKET_ERROR)
 	{
 #ifdef OS_UNIX
-		switch (errno)
-		{
-		case EADDRINUSE:
-		case EINVAL:
-		case EACCES:
-		case ENOTSOCK:
-		case EBADF:
-		case EROFS:
-		case EFAULT:
-		case ENAMETOOLONG:
-		case ENOENT:
-		case ENOMEM:
-		case ENOTDIR:
-		case ELOOP:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+		switch (errno) {
+			case EADDRINUSE:
+			case EINVAL:
+			case EACCES:
+			case ENOTSOCK:
+			case EBADF:
+			case EROFS:
+			case EFAULT:
+			case ENAMETOOLONG:
+			case ENOENT:
+			case ENOMEM:
+			case ENOTDIR:
+			case ELOOP:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}//end of switch
 #elif defined( OS_WINDOWS )
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSAESOCKTNOSUPPORT", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEADDRINUSE:
-			strncpy(Error, "WSAEADDRINUSE", _ESIZE);
-			break;
-		case WSAEADDRNOTAVAIL:
-			strncpy(Error, "WSAEADDRNOTAVAIL", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAENOBUFS:
-			strncpy(Error, "WSAENOBUFS", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSAESOCKTNOSUPPORT", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEADDRINUSE:
+				strncpy(Error, "WSAEADDRINUSE", _ESIZE);
+				break;
+			case WSAEADDRNOTAVAIL:
+				strncpy(Error, "WSAEADDRNOTAVAIL", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAENOBUFS:
+				strncpy(Error, "WSAENOBUFS", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};//end of switch
 #endif
 
@@ -224,82 +218,79 @@ bool SOCKET_API::gx_connect(TSocketFD_t s, const struct sockaddr * addr, sint32 
 	{
 #ifdef OS_UNIX
 		switch (errno) {
-		case EALREADY:
-		case EINPROGRESS:
-		case ECONNREFUSED:
-		case EISCONN:
-		case ETIMEDOUT:
-		case ENETUNREACH:
-		case EADDRINUSE:
-		case EBADF:
-		case EFAULT:
-		case ENOTSOCK:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+			case EALREADY:
+			case EINPROGRESS:
+			case ECONNREFUSED:
+			case EISCONN:
+			case ETIMEDOUT:
+			case ENETUNREACH:
+			case EADDRINUSE:
+			case EBADF:
+			case EFAULT:
+			case ENOTSOCK:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}//end of switch
 #elif defined( OS_WINDOWS )
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEADDRINUSE:
-			strncpy(Error, "WSAEADDRINUSE", _ESIZE);
-			break;
-		case WSAEINTR:
-			strncpy(Error, "WSAEINTR", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEALREADY:
-			strncpy(Error, "WSAEALREADY", _ESIZE);
-			break;
-		case WSAEADDRNOTAVAIL:
-			strncpy(Error, "WSAEADDRNOTAVAIL", _ESIZE);
-			break;
-		case WSAEAFNOSUPPORT:
-			strncpy(Error, "WSAEAFNOSUPPORT", _ESIZE);
-			break;
-		case WSAECONNREFUSED:
-			strncpy(Error, "WSAECONNREFUSED", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAEISCONN:
-			strncpy(Error, "WSAEISCONN", _ESIZE);
-			break;
-		case WSAENETUNREACH:
-			strncpy(Error, "WSAENETUNREACH", _ESIZE);
-			break;
-		case WSAENOBUFS:
-			strncpy(Error, "WSAENOBUFS", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		case WSAETIMEDOUT:
-			strncpy(Error, "WSAETIMEDOUT", _ESIZE);
-			break;
-		case WSAEWOULDBLOCK:
-			strncpy(Error, "WSAEWOULDBLOCK", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEADDRINUSE:
+				strncpy(Error, "WSAEADDRINUSE", _ESIZE);
+				break;
+			case WSAEINTR:
+				strncpy(Error, "WSAEINTR", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEALREADY:
+				strncpy(Error, "WSAEALREADY", _ESIZE);
+				break;
+			case WSAEADDRNOTAVAIL:
+				strncpy(Error, "WSAEADDRNOTAVAIL", _ESIZE);
+				break;
+			case WSAEAFNOSUPPORT:
+				strncpy(Error, "WSAEAFNOSUPPORT", _ESIZE);
+				break;
+			case WSAECONNREFUSED:
+				strncpy(Error, "WSAECONNREFUSED", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAEISCONN:
+				strncpy(Error, "WSAEISCONN", _ESIZE);
+				break;
+			case WSAENETUNREACH:
+				strncpy(Error, "WSAENETUNREACH", _ESIZE);
+				break;
+			case WSAENOBUFS:
+				strncpy(Error, "WSAENOBUFS", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			case WSAETIMEDOUT:
+				strncpy(Error, "WSAETIMEDOUT", _ESIZE);
+				break;
+			case WSAEWOULDBLOCK:
+				strncpy(Error, "WSAEWOULDBLOCK", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};//end of switch
 #endif
 		return false;
@@ -315,17 +306,14 @@ bool SOCKET_API::gx_connect2(TSocketFD_t sockfd, const struct sockaddr* addr, si
 	fd_set readfds, writefds, expfds;
 
 	if (NULL == addr || addrlen <= 0 || timeout < 0) return false;
-	if (!gx_setsocketnonblocking(sockfd, true))
-	{
+	if (!gx_setsocketnonblocking(sockfd, true)) {
 		log_error("set noblocking! errno = %u", gx_socket_errno);
 		return false;
 	}
 
-	if (connect(sockfd, addr, addrlen) == SOCKET_ERROR)
-	{
+	if (connect(sockfd, addr, addrlen) == SOCKET_ERROR) {
 		sint32 err = gx_socket_errno;
-		if (err == EINPROGRESS || err == EWOULDBLOCK)
-		{
+		if (err == EINPROGRESS || err == EWOULDBLOCK) {
 			select_timeval.tv_sec = timeout / 1000;
 			select_timeval.tv_usec = (timeout % 1000) * 1000;
 			FD_ZERO(&readfds);
@@ -336,14 +324,12 @@ bool SOCKET_API::gx_connect2(TSocketFD_t sockfd, const struct sockaddr* addr, si
 			FD_SET(sockfd, &writefds);
 			FD_SET(sockfd, &expfds);
 			fd_num = gx_select(sockfd + 1, &readfds, &writefds, &expfds, &select_timeval);
-			if (fd_num < 0)
-			{
+			if (fd_num < 0) {
 				gx_setsocketnonblocking(sockfd, false);
 				log_error("select failed! errno = %u", gx_socket_errno);
 				return false;
 			}
-			else if (0 == fd_num)
-			{
+			else if (0 == fd_num) {
 				gx_setsocketnonblocking(sockfd, false);
 				log_error("time out!");
 				return false;
@@ -351,15 +337,13 @@ bool SOCKET_API::gx_connect2(TSocketFD_t sockfd, const struct sockaddr* addr, si
 
 			sint32 ret;
 			uint32 len = sizeof(ret);
-			if (false == gx_getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &ret, &len))
-			{
+			if (false == gx_getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &ret, &len)) {
 				gx_setsocketnonblocking(sockfd, false);
 				log_error("get connect socket opt error: %d, ret=%u", gx_socket_errno, ret);
 				return false;
 			}
 
-			if (ret != 0)
-			{
+			if (ret != 0) {
 				gx_setsocketnonblocking(sockfd, false);
 				log_error("connect socket error: %d, ret=%u", gx_socket_errno, ret);
 				return false;
@@ -368,13 +352,11 @@ bool SOCKET_API::gx_connect2(TSocketFD_t sockfd, const struct sockaddr* addr, si
 			gx_setsocketnonblocking(sockfd, false);
 			return true;
 		}
-		else
-		{
+		else {
 			return false;
 		}
 	}
-	else
-	{
+	else {
 		return true;
 	}
 
@@ -396,59 +378,54 @@ bool SOCKET_API::gx_connect2(TSocketFD_t sockfd, const struct sockaddr* addr, si
 //////////////////////////////////////////////////////////////////////
 bool SOCKET_API::gx_listen(TSocketFD_t s, sint32 backlog)
 {
-	if (listen(s, backlog) == SOCKET_ERROR)
-	{
+	if (listen(s, backlog) == SOCKET_ERROR) {
 #ifdef OS_UNIX
-		switch (errno)
-		{
-		case EBADF:
-		case ENOTSOCK:
-		case EOPNOTSUPP:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+		switch (errno) {
+			case EBADF:
+			case ENOTSOCK:
+			case EOPNOTSUPP:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}//end of switch
 #elif defined( OS_WINDOWS )
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEADDRINUSE:
-			strncpy(Error, "WSAEADDRINUSE", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAEISCONN:
-			strncpy(Error, "WSAEISCONN", _ESIZE);
-			break;
-		case WSAEMFILE:
-			strncpy(Error, "WSAEMFILE", _ESIZE);
-			break;
-		case WSAENOBUFS:
-			strncpy(Error, "WSAENOBUFS", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		case WSAEOPNOTSUPP:
-			strncpy(Error, "WSAEOPNOTSUPP", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEADDRINUSE:
+				strncpy(Error, "WSAEADDRINUSE", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAEISCONN:
+				strncpy(Error, "WSAEISCONN", _ESIZE);
+				break;
+			case WSAEMFILE:
+				strncpy(Error, "WSAEMFILE", _ESIZE);
+				break;
+			case WSAENOBUFS:
+				strncpy(Error, "WSAENOBUFS", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			case WSAEOPNOTSUPP:
+				strncpy(Error, "WSAEOPNOTSUPP", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};//end of switch
 #endif
 
@@ -480,70 +457,66 @@ TSocketFD_t SOCKET_API::gx_accept(TSocketFD_t s, struct sockaddr * addr, uint32 
 	TSocketFD_t client = accept(s, addr, (int*)addrlen);
 #endif
 
-	if (client == INVALID_SOCKET)
-	{
+	if (client == INVALID_SOCKET) {
 #ifdef OS_UNIX
-		switch (errno)
-		{
-		case EWOULDBLOCK:
-		case ECONNRESET:
-		case ECONNABORTED:
-		case EPROTO:
-		case EINTR:
-			// from UNIX Network Programming 2nd, 15.6
-			// with nonblocking-socket, ignore above errors
-		case EBADF:
-		case ENOTSOCK:
-		case EOPNOTSUPP:
-		case EFAULT:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+		switch (errno) {
+			case EWOULDBLOCK:
+			case ECONNRESET:
+			case ECONNABORTED:
+			case EPROTO:
+			case EINTR:
+				// from UNIX Network Programming 2nd, 15.6
+				// with nonblocking-socket, ignore above errors
+			case EBADF:
+			case ENOTSOCK:
+			case EOPNOTSUPP:
+			case EFAULT:
+			default:
+			{
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}//end of switch
 #elif defined( OS_WINDOWS )
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		case WSAEINTR:
-			strncpy(Error, "WSAEINTR", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAEMFILE:
-			strncpy(Error, "WSAEMFILE", _ESIZE);
-			break;
-		case WSAENOBUFS:
-			strncpy(Error, "WSAENOBUFS", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		case WSAEOPNOTSUPP:
-			strncpy(Error, "WSAEOPNOTSUPP", _ESIZE);
-			break;
-		case WSAEWOULDBLOCK:
-			strncpy(Error, "WSAEWOULDBLOCK", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			case WSAEINTR:
+				strncpy(Error, "WSAEINTR", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAEMFILE:
+				strncpy(Error, "WSAEMFILE", _ESIZE);
+				break;
+			case WSAENOBUFS:
+				strncpy(Error, "WSAENOBUFS", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			case WSAEOPNOTSUPP:
+				strncpy(Error, "WSAEOPNOTSUPP", _ESIZE);
+				break;
+			case WSAEWOULDBLOCK:
+				strncpy(Error, "WSAEWOULDBLOCK", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};//end of switch
 #endif
 	}
@@ -572,55 +545,49 @@ TSocketFD_t SOCKET_API::gx_accept(TSocketFD_t s, struct sockaddr * addr, uint32 
 bool SOCKET_API::gx_getsockopt(TSocketFD_t s, sint32 level, sint32 optname, void * optval, uint32 * optlen)
 {
 #ifdef OS_UNIX
-	if (getsockopt(s, level, optname, optval, (socklen_t*)optlen) == SOCKET_ERROR)
-	{
-		switch (errno)
-		{
-		case EBADF:
-		case ENOTSOCK:
-		case ENOPROTOOPT:
-		case EFAULT:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+	if (getsockopt(s, level, optname, optval, (socklen_t*)optlen) == SOCKET_ERROR) {
+		switch (errno) {
+			case EBADF:
+			case ENOTSOCK:
+			case ENOPROTOOPT:
+			case EFAULT:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}//end of switch
 
 		return false;
 	}
 #elif defined( OS_WINDOWS )
-	if (getsockopt(s, level, optname, (char*)optval, (int*)optlen) == SOCKET_ERROR)
-	{
+	if (getsockopt(s, level, optname, (char*)optval, (int*)optlen) == SOCKET_ERROR) {
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAENOPROTOOPT:
-			strncpy(Error, "WSAENOPROTOOPT", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAENOPROTOOPT:
+				strncpy(Error, "WSAENOPROTOOPT", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};//end of switch
 
 		return false;
@@ -633,56 +600,51 @@ bool SOCKET_API::gx_getsockopt(TSocketFD_t s, sint32 level, sint32 optname, void
 sint32 SOCKET_API::gx_getsockopt2(TSocketFD_t s, sint32 level, sint32 optname, void * optval, uint32 * optlen)
 {
 #ifdef OS_UNIX
-	if (getsockopt(s, level, optname, optval, (socklen_t*)optlen) == SOCKET_ERROR)
-	{
-		switch (errno)
-		{
-		case EBADF:
-			return 1;
-		case ENOTSOCK:
-			return 2;
-		case ENOPROTOOPT:
-			return 3;
-		case EFAULT:
-			return 4;
-		default:
-			return 5;
-		}//end of switch
+	if (getsockopt(s, level, optname, optval, (socklen_t*)optlen) == SOCKET_ERROR) {
+		switch (errno) {
+			case EBADF:
+				return 1;
+			case ENOTSOCK:
+				return 2;
+			case ENOPROTOOPT:
+				return 3;
+			case EFAULT:
+				return 4;
+			default:
+				return 5;
+			}//end of switch
 	}
 	return 0;
 
 #elif defined( OS_WINDOWS )
-	if (getsockopt(s, level, optname, (char*)optval, (int*)optlen) == SOCKET_ERROR)
-	{
+	if (getsockopt(s, level, optname, (char*)optval, (int*)optlen) == SOCKET_ERROR) {
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAENOPROTOOPT:
-			strncpy(Error, "WSAENOPROTOOPT", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		}
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAENOPROTOOPT:
+				strncpy(Error, "WSAENOPROTOOPT", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			}
 		}
 
 		return iErr;
@@ -709,61 +671,55 @@ sint32 SOCKET_API::gx_getsockopt2(TSocketFD_t s, sint32 level, sint32 optname, v
 bool SOCKET_API::gx_setsockopt(TSocketFD_t s, sint32 level, sint32 optname, const void * optval, sint32 optlen)
 {
 #ifdef OS_UNIX
-	if (setsockopt(s, level, optname, optval, optlen) == SOCKET_ERROR)
-	{
-		switch (errno)
-		{
-		case EBADF:
-		case ENOTSOCK:
-		case ENOPROTOOPT:
-		case EFAULT:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+	if (setsockopt(s, level, optname, optval, optlen) == SOCKET_ERROR) {
+		switch (errno) {
+			case EBADF:
+			case ENOTSOCK:
+			case ENOPROTOOPT:
+			case EFAULT:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}//end of switch
 
 		return false;
 	}
 #elif defined( OS_WINDOWS )
-	if (setsockopt(s, level, optname, (char*)optval, optlen) == SOCKET_ERROR)
-	{
+	if (setsockopt(s, level, optname, (char*)optval, optlen) == SOCKET_ERROR) {
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAENETRESET:
-			strncpy(Error, "WSAENETRESET", _ESIZE);
-			break;
-		case WSAENOPROTOOPT:
-			strncpy(Error, "WSAENOPROTOOPT", _ESIZE);
-			break;
-		case WSAENOTCONN:
-			strncpy(Error, "WSAENOTCONN", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAENETRESET:
+				strncpy(Error, "WSAENETRESET", _ESIZE);
+				break;
+			case WSAENOPROTOOPT:
+				strncpy(Error, "WSAENOPROTOOPT", _ESIZE);
+				break;
+			case WSAENOTCONN:
+				strncpy(Error, "WSAENOTCONN", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};//end of switch
 
 		return false;
@@ -797,101 +753,95 @@ sint32 SOCKET_API::gx_send(TSocketFD_t s, const void * buf, sint32 len, sint32 f
 	nSent = send(s, (const char *)buf, len, flags);
 #endif
 
-	if (nSent == SOCKET_ERROR)
-	{
+	if (nSent == SOCKET_ERROR) {
 #ifdef OS_UNIX
-		switch (errno)
-		{
-		case EWOULDBLOCK:
-			//			case EAGAIN :
-		{
-							return SOCKET_ERROR_WOULDBLOCK;
-		}
-		case ECONNRESET:
-		case EPIPE:
-		case EBADF:
-		case ENOTSOCK:
-		case EFAULT:
-		case EMSGSIZE:
-		case ENOBUFS:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+		switch (errno) {
+			case EWOULDBLOCK:
+				//			case EAGAIN :
+			{
+								return SOCKET_ERROR_WOULDBLOCK;
+			}
+			case ECONNRESET:
+			case EPIPE:
+			case EBADF:
+			case ENOTSOCK:
+			case EFAULT:
+			case EMSGSIZE:
+			case ENOBUFS:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}//end of switch
 #elif defined( OS_WINDOWS )
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEACCES:
-			strncpy(Error, "WSAEACCES", _ESIZE);
-			break;
-		case WSAEINTR:
-			strncpy(Error, "WSAEINTR", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		case WSAENETRESET:
-			strncpy(Error, "WSAENETRESET", _ESIZE);
-			break;
-		case WSAENOBUFS:
-			strncpy(Error, "WSAENOBUFS", _ESIZE);
-			break;
-		case WSAENOTCONN:
-			strncpy(Error, "WSAENOTCONN", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		case WSAEOPNOTSUPP:
-			strncpy(Error, "WSAEOPNOTSUPP", _ESIZE);
-			break;
-		case WSAESHUTDOWN:
-			strncpy(Error, "WSAESHUTDOWN", _ESIZE);
-			break;
-		case WSAEWOULDBLOCK:
-			//			strncpy( Error, "WSAEWOULDBLOCK", _ESIZE ) ;
-			return SOCKET_ERROR_WOULDBLOCK;
-			break;
-		case WSAEMSGSIZE:
-			strncpy(Error, "WSAEMSGSIZE", _ESIZE);
-			break;
-		case WSAEHOSTUNREACH:
-			strncpy(Error, "WSAEHOSTUNREACH", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAECONNABORTED:
-			strncpy(Error, "WSAECONNABORTED", _ESIZE);
-			break;
-		case WSAECONNRESET:
-			strncpy(Error, "WSAECONNRESET", _ESIZE);
-			break;
-		case WSAETIMEDOUT:
-			strncpy(Error, "WSAETIMEDOUT", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEACCES:
+				strncpy(Error, "WSAEACCES", _ESIZE);
+				break;
+			case WSAEINTR:
+				strncpy(Error, "WSAEINTR", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			case WSAENETRESET:
+				strncpy(Error, "WSAENETRESET", _ESIZE);
+				break;
+			case WSAENOBUFS:
+				strncpy(Error, "WSAENOBUFS", _ESIZE);
+				break;
+			case WSAENOTCONN:
+				strncpy(Error, "WSAENOTCONN", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			case WSAEOPNOTSUPP:
+				strncpy(Error, "WSAEOPNOTSUPP", _ESIZE);
+				break;
+			case WSAESHUTDOWN:
+				strncpy(Error, "WSAESHUTDOWN", _ESIZE);
+				break;
+			case WSAEWOULDBLOCK:
+				//			strncpy( Error, "WSAEWOULDBLOCK", _ESIZE ) ;
+				return SOCKET_ERROR_WOULDBLOCK;
+				break;
+			case WSAEMSGSIZE:
+				strncpy(Error, "WSAEMSGSIZE", _ESIZE);
+				break;
+			case WSAEHOSTUNREACH:
+				strncpy(Error, "WSAEHOSTUNREACH", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAECONNABORTED:
+				strncpy(Error, "WSAECONNABORTED", _ESIZE);
+				break;
+			case WSAECONNRESET:
+				strncpy(Error, "WSAECONNRESET", _ESIZE);
+				break;
+			case WSAETIMEDOUT:
+				strncpy(Error, "WSAETIMEDOUT", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};//end of switch
 #endif
 	}
-	else if (nSent == 0)
-	{
+	else if (nSent == 0) {
 	}
 
 	return nSent;
@@ -906,28 +856,24 @@ sint32 SOCKET_API::gx_sendto(TSocketFD_t s, const void * buf, sint32 len, sint32
 	sint32 nSent = sendto(s, (const char *)buf, len, flags, to, tolen);
 #endif
 
-	if (nSent == SOCKET_ERROR)
-	{
+	if (nSent == SOCKET_ERROR) {
 #ifdef OS_UNIX
-		switch (errno)
-		{
-		case EWOULDBLOCK:
-			//			case EAGAIN :
-		{
-							return SOCKET_ERROR_WOULDBLOCK;
-		}
-		case ECONNRESET:
-		case EPIPE:
-		case EBADF:
-		case ENOTSOCK:
-		case EFAULT:
-		case EMSGSIZE:
-		case ENOBUFS:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+		switch (errno) {
+			// case EAGAIN :
+			case EWOULDBLOCK: {
+				return SOCKET_ERROR_WOULDBLOCK;
+			}
+			case ECONNRESET:
+			case EPIPE:
+			case EBADF:
+			case ENOTSOCK:
+			case EFAULT:
+			case EMSGSIZE:
+			case ENOBUFS:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}
 #elif defined( OS_WINDOWS )
 #endif
@@ -958,92 +904,85 @@ sint32 SOCKET_API::gx_recv(TSocketFD_t s, void * buf, sint32 len, sint32 flags)
 #elif defined( OS_WINDOWS )
 	sint32 nrecv = recv(s, (char*)buf, len, flags);
 #endif
-	if (nrecv == SOCKET_ERROR)
-	{
+	if (nrecv == SOCKET_ERROR) {
 #ifdef OS_UNIX
-		switch (errno)
-		{
-		case EWOULDBLOCK:
+		switch (errno) {
 			//			case EAGAIN:
-		{
-							return SOCKET_ERROR_WOULDBLOCK;
-		}
-		case ECONNRESET:
-		case EPIPE:
-		case EBADF:
-		case ENOTCONN:
-		case ENOTSOCK:
-		case EINTR:
-		case EFAULT:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+			case EWOULDBLOCK: {
+				return SOCKET_ERROR_WOULDBLOCK;
+			}
+			case ECONNRESET:
+			case EPIPE:
+			case EBADF:
+			case ENOTCONN:
+			case ENOTSOCK:
+			case EINTR:
+			case EFAULT:
+			default: {
+					   log_error("Socket error! %u", errno);
+					   break;
+			}
 		}//end of switch
 
 #elif defined( OS_WINDOWS )
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSAEWOULDBLOCK:
-			return SOCKET_ERROR_WOULDBLOCK;
-			break;
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		case WSAENOTCONN:
-			strncpy(Error, "WSAENOTCONN", _ESIZE);
-			break;
-		case WSAEINTR:
-			strncpy(Error, "WSAEINTR", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAENETRESET:
-			strncpy(Error, "WSAENETRESET", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		case WSAEOPNOTSUPP:
-			strncpy(Error, "WSAEOPNOTSUPP", _ESIZE);
-			break;
-		case WSAESHUTDOWN:
-			strncpy(Error, "WSAESHUTDOWN", _ESIZE);
-			break;
-		case WSAEMSGSIZE:
-			strncpy(Error, "WSAEMSGSIZE", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAECONNABORTED:
-			strncpy(Error, "WSAECONNABORTED", _ESIZE);
-			break;
-		case WSAETIMEDOUT:
-			strncpy(Error, "WSAETIMEDOUT", _ESIZE);
-			break;
-		case WSAECONNRESET:
-			strncpy(Error, "WSAECONNRESET", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSAEWOULDBLOCK:
+				return SOCKET_ERROR_WOULDBLOCK;
+				break;
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			case WSAENOTCONN:
+				strncpy(Error, "WSAENOTCONN", _ESIZE);
+				break;
+			case WSAEINTR:
+				strncpy(Error, "WSAEINTR", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAENETRESET:
+				strncpy(Error, "WSAENETRESET", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			case WSAEOPNOTSUPP:
+				strncpy(Error, "WSAEOPNOTSUPP", _ESIZE);
+				break;
+			case WSAESHUTDOWN:
+				strncpy(Error, "WSAESHUTDOWN", _ESIZE);
+				break;
+			case WSAEMSGSIZE:
+				strncpy(Error, "WSAEMSGSIZE", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAECONNABORTED:
+				strncpy(Error, "WSAECONNABORTED", _ESIZE);
+				break;
+			case WSAETIMEDOUT:
+				strncpy(Error, "WSAETIMEDOUT", _ESIZE);
+				break;
+			case WSAECONNRESET:
+				strncpy(Error, "WSAECONNRESET", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};//end of switch
 #endif
 	}
-	else if (nrecv == 0)
-	{
+	else if (nrecv == 0) {
 	}
 
 	return nrecv;
@@ -1058,28 +997,24 @@ sint32 SOCKET_API::gx_recvfrom(TSocketFD_t s, void * buf, sint32 len, sint32 fla
 	sint32 nReceived = recvfrom(s, (char*)buf, len, flags, from, (int*)fromlen);
 #endif
 
-	if (nReceived == SOCKET_ERROR)
-	{
+	if (nReceived == SOCKET_ERROR) {
 #ifdef OS_UNIX
-		switch (errno)
-		{
-		case EWOULDBLOCK:
+		switch (errno) {
 			//			case EAGAIN :
-		{
-							return SOCKET_ERROR_WOULDBLOCK;
-		}
-		case ECONNRESET:
-		case EPIPE:
-		case EBADF:
-		case ENOTCONN:
-		case ENOTSOCK:
-		case EINTR:
-		case EFAULT:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+			case EWOULDBLOCK: {
+				return SOCKET_ERROR_WOULDBLOCK;
+			}
+			case ECONNRESET:
+			case EPIPE:
+			case EBADF:
+			case ENOTCONN:
+			case ENOTSOCK:
+			case EINTR:
+			case EFAULT:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}//end of switch
 #elif defined( OS_WINDOWS )
 #endif
@@ -1106,34 +1041,31 @@ bool SOCKET_API::gx_closesocket(TSocketFD_t s)
 #ifdef OS_UNIX
 	close(s);
 #elif defined( OS_WINDOWS )
-	if (closesocket(s) == SOCKET_ERROR)
-	{
+	if (closesocket(s) == SOCKET_ERROR) {
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAEINTR:
-			strncpy(Error, "WSAEINTR", _ESIZE);
-			break;
-		case WSAEWOULDBLOCK:
-			strncpy(Error, "WSAEWOULDBLOCK", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAEINTR:
+				strncpy(Error, "WSAEINTR", _ESIZE);
+				break;
+			case WSAEWOULDBLOCK:
+				strncpy(Error, "WSAEWOULDBLOCK", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};//end of switch
 
 		return false;
@@ -1147,31 +1079,28 @@ bool SOCKET_API::gx_ioctlsocket(TSocketFD_t s, long cmd, unsigned long * argp)
 {
 #ifdef OS_UNIX
 #elif defined( OS_WINDOWS )
-	if (ioctlsocket(s, cmd, argp) == SOCKET_ERROR)
-	{
+	if (ioctlsocket(s, cmd, argp) == SOCKET_ERROR) {
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};
 
 		return false;
@@ -1196,7 +1125,7 @@ bool SOCKET_API::gx_ioctlsocket(TSocketFD_t s, long cmd, unsigned long * argp)
 bool SOCKET_API::gx_getsocketnonblocking(TSocketFD_t s)
 {
 #ifdef OS_UNIX
-	sint32 flags = FILE_API::gx_fcntl(s, F_GETFL, 0);
+	sint32 flags = gx_fcntl(s, F_GETFL, 0);
 	return flags | O_NONBLOCK;
 #elif defined( OS_WINDOWS )
 	return false;
@@ -1218,19 +1147,17 @@ bool SOCKET_API::gx_getsocketnonblocking(TSocketFD_t s)
 bool SOCKET_API::gx_setsocketnonblocking(TSocketFD_t s, bool on)
 {
 #ifdef OS_UNIX
-	sint32 flags = FILE_API::gx_fcntl(s, F_GETFL, 0);
-	if (on)
-	{
+	sint32 flags = gx_fcntl(s, F_GETFL, 0);
+	if (on) {
 		// make nonblocking fd
 		flags |= O_NONBLOCK;
 	}
-	else
-	{
+	else {
 		// make blocking fd
 		flags &= ~O_NONBLOCK;
 	}
 
-	FILE_API::gx_fcntl(s, F_SETFL, flags);
+	gx_fcntl(s, F_SETFL, flags);
 	return true;
 #elif defined( OS_WINDOWS )
 
@@ -1254,7 +1181,7 @@ bool SOCKET_API::gx_setsocketnonblocking(TSocketFD_t s, bool on)
 sint32 SOCKET_API::gx_availablesocket(TSocketFD_t s)
 {
 #ifdef OS_UNIX
-	return FILE_API::gx_availablefile(s);
+	return gx_availablefile(s);
 #elif defined( OS_WINDOWS )
 	unsigned long argp = 0;
 	gx_ioctlsocket(s, FIONREAD, &argp);
@@ -1278,47 +1205,42 @@ sint32 SOCKET_API::gx_availablesocket(TSocketFD_t s)
 //////////////////////////////////////////////////////////////////////
 bool SOCKET_API::gx_shutdown(TSocketFD_t s, sint32 how)
 {
-	if (shutdown(s, how) < 0)
-	{
+	if (shutdown(s, how) < 0) {
 #ifdef OS_UNIX
-		switch (errno)
-		{
-		case EBADF:
-		case ENOTSOCK:
-		case ENOTCONN:
-		default:
-		{
-				   gxCondLogB(_g_LibConfig.isConfig(LIB_CONFIG_DBG_SOCK_ERR), "Socket error!%u", errno);
-				   break;
-		}
+		switch (errno) {
+			case EBADF:
+			case ENOTSOCK:
+			case ENOTCONN:
+			default: {
+				log_error("Socket error! %u", errno);
+				break;
+			}
 		}
 #elif defined( OS_WINDOWS )
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAENOTCONN:
-			strncpy(Error, "WSAENOTCONN", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAENOTCONN:
+				strncpy(Error, "WSAENOTCONN", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};
 #endif
 
@@ -1333,43 +1255,118 @@ sint32 SOCKET_API::gx_select(TSocketFD_t maxfdp1, fd_set * readset, fd_set * wri
 
 	sint32 result;
 	result = select((sint32)maxfdp1, readset, writeset, exceptset, timeout);
-	if (result == SOCKET_ERROR)
-	{
+	if (result == SOCKET_ERROR) {
 #ifdef OS_UNIX
 
 #elif defined(OS_WINDOWS)
 		sint32 iErr = WSAGetLastError();
-		switch (iErr)
-		{
-		case WSANOTINITIALISED:
-			strncpy(Error, "WSANOTINITIALISED", _ESIZE);
-			break;
-		case WSAEFAULT:
-			strncpy(Error, "WSAEFAULT", _ESIZE);
-			break;
-		case WSAENETDOWN:
-			strncpy(Error, "WSAENETDOWN", _ESIZE);
-			break;
-		case WSAEINVAL:
-			strncpy(Error, "WSAEINVAL", _ESIZE);
-			break;
-		case WSAEINTR:
-			strncpy(Error, "WSAEINTR", _ESIZE);
-			break;
-		case WSAEINPROGRESS:
-			strncpy(Error, "WSAEINPROGRESS", _ESIZE);
-			break;
-		case WSAENOTSOCK:
-			strncpy(Error, "WSAENOTSOCK", _ESIZE);
-			break;
-		default:
-		{
-				   strncpy(Error, "UNKNOWN", _ESIZE);
-				   break;
-		};
+		switch (iErr) {
+			case WSANOTINITIALISED:
+				strncpy(Error, "WSANOTINITIALISED", _ESIZE);
+				break;
+			case WSAEFAULT:
+				strncpy(Error, "WSAEFAULT", _ESIZE);
+				break;
+			case WSAENETDOWN:
+				strncpy(Error, "WSAENETDOWN", _ESIZE);
+				break;
+			case WSAEINVAL:
+				strncpy(Error, "WSAEINVAL", _ESIZE);
+				break;
+			case WSAEINTR:
+				strncpy(Error, "WSAEINTR", _ESIZE);
+				break;
+			case WSAEINPROGRESS:
+				strncpy(Error, "WSAEINPROGRESS", _ESIZE);
+				break;
+			case WSAENOTSOCK:
+				strncpy(Error, "WSAENOTSOCK", _ESIZE);
+				break;
+			default: {
+				strncpy(Error, "UNKNOWN", _ESIZE);
+				break;
+			};
 		};
 #endif
 	}   //end if
 
 	return result;
+}
+
+void SOCKET_API::gx_ioctl(sint32 fd, sint32 request, void * argp)
+{
+#if defined(OS_UNIX)
+	if (ioctl(fd, request, argp) < 0) {
+		switch (errno) {
+			case EBADF:
+			case ENOTTY:
+			case EINVAL:
+			default: {
+				break;
+			}
+	}
+}
+#elif defined( OS_WINDOWS )
+#endif
+}
+
+sint32 SOCKET_API::gx_availablefile(sint32 fd)
+{
+#if defined(OS_UNIX)
+	sint32 arg = 0;
+	gx_ioctl(fd, FIONREAD, &arg);
+	return arg;
+#elif defined( OS_WINDOWS )
+	return 0;
+#endif
+}
+
+sint32 SOCKET_API::gx_fcntl(sint32 fd, sint32 cmd)
+{
+#if defined(OS_UNIX)
+	sint32 result = fcntl(fd, cmd);
+	if (result < 0) {
+		switch (errno)
+		{
+			case EINTR:
+			case EBADF:
+			case EACCES:
+			case EAGAIN:
+			case EDEADLK:
+			case EMFILE:
+			case ENOLCK:
+			default: {
+				break;
+			}
+		}
+	}
+	return result;
+#elif defined( OS_WINDOWS )
+	return 0;
+#endif
+}
+
+sint32 SOCKET_API::gx_fcntl(sint32 fd, sint32 cmd, sint32 arg)
+{
+#if defined(OS_UNIX)
+	sint32 result = fcntl(fd, cmd, arg);
+	if (result < 0) {
+		switch (errno) {
+			case EINTR:
+			case EINVAL:
+			case EBADF:
+			case EACCES:
+			case EAGAIN:
+			case EDEADLK:
+			case EMFILE:
+			case ENOLCK:
+			default: {
+				break;
+			}
+		}
+	}
+	return result;
+#elif defined( OS_WINDOWS )
+	return 0;
+#endif
 }

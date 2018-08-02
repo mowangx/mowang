@@ -78,7 +78,7 @@ bool socket_base::reconnect(const char* host, sint32 port, sint32 diff)
 
 void socket_base::close()
 {
-	log_info("Close socket!Index=%"I64_FMT"u", get_socket_index());
+	log_info("Close socket! Index %" I64_FMT "u", get_socket_index());
 	if (is_valid() && !is_sock_error())
 	{
 		SOCKET_API::gx_closesocket(m_socket);

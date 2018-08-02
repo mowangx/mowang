@@ -23,7 +23,7 @@ service_interface * gate_handler::get_service() const
 
 void gate_handler::handle_init()
 {
-	log_info("'%"I64_FMT"u', gate connect success, handle init", get_socket_index());
+	log_info("%" I64_FMT "u, gate connect success, handle init", get_socket_index());
 	DRobotServer.register_client(m_rpc_client);
 
 	TPlatformID_t platform_id = 99;
@@ -37,7 +37,7 @@ void gate_handler::handle_init()
 
 void gate_handler::handle_close()
 {
-	log_info("'%"I64_FMT"u', gate disconnect, handle close", get_socket_index());
+	log_info("%" I64_FMT "u, gate disconnect, handle close", get_socket_index());
 	TBaseType_t::handle_close();
 }
 

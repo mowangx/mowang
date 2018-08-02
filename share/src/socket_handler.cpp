@@ -63,7 +63,7 @@ packet_base* socket_handler::unpack_packet()
 		}
 	}
 	int len = m_max_index - m_read_index;
-	if (len < sizeof(packet_base)) {
+	if (len < (int)sizeof(packet_base)) {
 		return NULL;
 	}
 	packet_base* packet = (packet_base*)(m_buffer + m_read_index);

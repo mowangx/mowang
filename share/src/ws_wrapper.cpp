@@ -8,6 +8,10 @@ web_socket_wrapper_base::web_socket_wrapper_base(TSocketIndex_t socket_index, we
 {
 }
 
+web_socket_wrapper_base::~web_socket_wrapper_base()
+{
+}
+
 void web_socket_wrapper_base::set_active(bool active_flag)
 {
 	m_status = active_flag;

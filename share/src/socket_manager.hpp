@@ -76,7 +76,7 @@ void socket_manager<socket_type, packet_type>::test_kick()
 			return;
 		}
 		for (auto itr : m_sockets) {
-			log_info("test close socket! socket index = '%"I64_FMT"u'", itr.first);
+			log_info("test close socket! socket index %" I64_FMT "u", itr.first);
 			handle_close_socket(itr.second, false);
 			return;
 		}
@@ -215,7 +215,7 @@ void socket_manager<socket_type, packet_type>::handle_kick_socket()
 			del_socket(itr->second);
 		}
 		else {
-			log_error("handle kick socket failed for not find socket index! socket index = %" I64_FMT "u", socket_index);
+			log_error("handle kick socket failed for not find socket index! socket index %" I64_FMT "u", socket_index);
 		}
 	}
 }
@@ -224,10 +224,10 @@ template <class socket_type, class packet_type>
 void socket_manager<socket_type, packet_type>::handle_close_socket(socket_type* socket, bool write_flag)
 {
 	if (write_flag) {
-		log_info("Write close socke!index = '%"I64_FMT"u'", socket->get_socket_index());
+		log_info("Write close socke! index %" I64_FMT "u", socket->get_socket_index());
 	}
 	else {
-		log_info("Read close socke!index = '%"I64_FMT"u'", socket->get_socket_index());
+		log_info("Read close socke! index %" I64_FMT "u", socket->get_socket_index());
 	}
 
 	del_socket(socket);
@@ -272,7 +272,7 @@ void socket_manager<socket_type, packet_type>::send_packet(TSocketIndex_t socket
 {
 	auto itr = m_sockets.find(socket_index);
 	if (itr == m_sockets.end()) {
-		log_error("send packet failed for socket is invalid, socket index = '%"I64_FMT"u'", socket_index);
+		log_error("send packet failed for socket is invalid, socket index %" I64_FMT "u", socket_index);
 		return;
 	}
 	socket_type* socket = itr->second;
@@ -287,7 +287,7 @@ void socket_manager<socket_type, packet_type>::add_socket(socket_type* socket)
 {
 	TSocketIndex_t index = socket->get_socket_index();
 	if (m_sockets.find(index) != m_sockets.end()) {
-		log_error("The socket index is repeat! index = '%"I64_FMT"u'", index);
+		log_error("The socket index is repeat! index %" I64_FMT "u", index);
 		return;
 	}
 

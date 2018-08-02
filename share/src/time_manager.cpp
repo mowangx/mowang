@@ -19,8 +19,8 @@ void time_manager::init()
 	m_start_time = SystemCall::GetTickCount();
 	m_current_time = SystemCall::GetTickCount();
 #elif defined(OS_UNIX)
-	_startTime = 0;
-	_currentTime = 0;
+	m_start_time = 0;
+	m_current_time = 0;
 	SystemCall::gettimeofday(&_TStart, &_TZ);
 #endif
 
@@ -184,7 +184,7 @@ TAppTime_t time_manager::update()
 	double t1, t2;
 	t1 = (double)_TStart.tv_sec * 1000 + (double)_TStart.tv_usec / 1000;
 	t2 = (double)_TEnd.tv_sec * 1000 + (double)_TEnd.tv_usec / 1000;
-	_currentTime = (uint32)(t2 - t1);
+	m_current_time = (uint32)(t2 - t1);
 #endif
 
 	strftime(m_time_buffer, 100, "%Y-%m-%d %H:%M:%S", &m_tm);

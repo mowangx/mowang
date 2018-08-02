@@ -69,7 +69,7 @@ bool game_server_handler::handle_transfer_client(packet_base * packet)
 	packet_info->buffer_info.buffer = (char*)transfer_packet;
 	memcpy(transfer_packet, rpc_packet, packet_info->buffer_info.len);
 	DGateServer.push_write_packets(packet_info);
-	log_info("transfer server packet to client! client id = '%"I64_FMT"u', socket index = '%"I64_FMT"u'", client_packet->m_client_id, get_socket_index());
+	log_info("transfer server packet to client! client id %" I64_FMT "u, socket index = %" I64_FMT "u", client_packet->m_client_id, get_socket_index());
 	return true;
 }
 
@@ -79,6 +79,6 @@ bool game_server_handler::handle_transfer_ws_client(packet_base * packet)
 	int len = client_packet->get_packet_len() - sizeof(packet_base) - sizeof(client_packet->m_client_id);
 	std::string msg(client_packet->m_buffer, len);
 	DGateServer.push_ws_write_packets(client_packet->m_client_id, msg);
-	log_info("transfer server packet to client! client id = '%"I64_FMT"u', socket index = '%"I64_FMT"u'", client_packet->m_client_id, get_socket_index());
+	log_info("transfer server packet to client! client id %" I64_FMT "u, socket index %" I64_FMT "u", client_packet->m_client_id, get_socket_index());
 	return true;
 }

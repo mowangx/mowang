@@ -210,13 +210,13 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 	m_client_id_2_role[client_id] = p;
 	p->login(platform_id, user_id);
 
-	log_info("login server, client id = %" I64_FMT "u, gate id = %u, entity id = %" I64_FMT "u, platform id = %u, user id = %s", 
+	log_info("login server, client id %" I64_FMT "u, gate id %u, entity id %" I64_FMT "u, platform id %u, user id %s", 
 		client_id, gate_id, entity_id, platform_id, user_id.data());
 }
 
 void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id)
 {
-	log_info("logout server, client id = %"I64_FMT"u", client_id);
+	log_info("logout server, client id %" I64_FMT "u", client_id);
 	remove_entity_core(client_id);
 }
 
@@ -259,7 +259,7 @@ void game_server::create_entity(TSocketIndex_t socket_index, const TStubName_t& 
 void game_server::remove_entity(TSocketIndex_t client_id)
 {
 	if (!remove_entity_core(client_id)) {
-		log_error("remove entity failed for not find client id, client id = %" I64_FMT "u", client_id);
+		log_error("remove entity failed for not find client id, client id %" I64_FMT "u", client_id);
 	}
 }
 
@@ -312,7 +312,7 @@ bool game_server::remove_entity_core(TSocketIndex_t client_id)
 {
 	auto itr = m_client_id_2_role.find(client_id);
 	if (itr != m_client_id_2_role.end()) {
-		log_info("remove entity success! client id = %" I64_FMT "u", client_id);
+		log_info("remove entity success! client id %" I64_FMT "u", client_id);
 		role* p = itr->second;
 		m_client_id_2_role.erase(itr);
 
@@ -330,7 +330,7 @@ void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 {
 	TPacketID_t packet_id = packet->get_packet_id();
 	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
-	log_info("transfer client, gate id = %u, client id = %"I64_FMT"u, packet id = %u", gate_id, client_id, packet_id);
+	log_info("transfer client, gate id %u, client id %" I64_FMT "u, packet id %u", gate_id, client_id, packet_id);
 	if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_NAME) {
 		transfer_server_by_name_packet* rpc_info = (transfer_server_by_name_packet*)packet;
 		DRpcRole.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_name, rpc_info->m_buffer);
@@ -340,7 +340,7 @@ void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 		DRpcRole.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_index, rpc_info->m_buffer);
 	}
 	else {
-		log_error("transfer client failed, not find packet id, gate id = %u, packet id = %u", gate_id, packet_id);
+		log_error("transfer client failed, not find packet id, gate id %u, packet id %u", gate_id, packet_id);
 	}
 }
 

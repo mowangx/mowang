@@ -45,7 +45,7 @@ bool fight_stub::init()
 			uint64 fight_time = 0;
 			rpc_param_parse<uint64, uint64>::parse_param(fight_time, result.data(), buffer_index);
 			fight_data.fight_time = fight_time;
-			log_info("fight stub init data! role id = %" I64_FMT "u, src pox x = %d, dest pos x = %d, fight time = %u",
+			log_info("fight stub init data! role id %" I64_FMT "u, src pox x %d, dest pos x %d, fight time %u",
 				fight_data.role_id, fight_data.src_pos.x, fight_data.dest_pos.x, fight_data.fight_time);
 		}
 		

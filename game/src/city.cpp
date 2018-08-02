@@ -393,7 +393,8 @@ void city::calc_resource_num()
 		TResourceNum_t resource_num = res->get_inc_num() * diff_time;
 		TResourceType_t resource_type = res->get_type();
 		TResourceNum_t max_resource_num = get_resource_max_num(resource_type);
-		m_resource_num[resource_type] = min(max_resource_num, resource_num + m_resource_num[resource_type]);
+		TResourceNum_t tmp_num = resource_num + m_resource_num[resource_type];
+		m_resource_num[resource_type] = max_resource_num > tmp_num ? tmp_num : max_resource_num;
 	}
 	m_last_calc_time = cur_time;
 }

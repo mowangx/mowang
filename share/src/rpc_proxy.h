@@ -17,8 +17,8 @@ public:
 	~rpc_proxy();
 
 private:
-	rpc_proxy(const rpc_proxy&) {}
-	rpc_proxy& operator = (const rpc_proxy&) const {}
+	rpc_proxy(const rpc_proxy&) = delete;
+	rpc_proxy& operator = (const rpc_proxy&) = delete;
 
 public:
 	template <size_t N, class F1, class F2>

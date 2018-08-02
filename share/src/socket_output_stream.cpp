@@ -98,7 +98,7 @@ sint32 socket_output_stream::flush()
 	if (m_buffer_len>m_max_buffer_len) {
 		initsize(m_socket, m_buffer_len, m_max_buffer_len);
 		m_socket->set_active(false);
-		log_error("output stream too big, socket index = "I64_FMT"u", m_socket->get_socket_index());
+		log_error("output stream too big, socket index %" I64_FMT "u", m_socket->get_socket_index());
 		return SOCKET_ERROR - 1;
 	}
 

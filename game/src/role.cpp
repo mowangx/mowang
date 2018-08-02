@@ -15,7 +15,7 @@ role::role()
 
 role::~role()
 {
-	log_info("role deconstructor! entity id = %" I64_FMT "u", get_entity_id());
+	log_info("role deconstructor! entity id %" I64_FMT "u", get_entity_id());
 	clean_up();
 
 	for (auto c : m_cities) {
@@ -41,7 +41,7 @@ void role::test(uint8 param_1, uint16 param_2)
 
 void role::login(TPlatformID_t platform_id, const TUserID_t& user_id)
 {
-	log_info("role login, entity id = %" I64_FMT "u", get_entity_id());
+	log_info("role login, entity id %" I64_FMT "u", get_entity_id());
 	set_platform_id(platform_id);
 	set_user_id(user_id);
 	DRpcWrapper.call_stub("roll_stub", "register_account", get_platform_id(), get_user_id(), get_proxy_info(), get_mailbox_info(), get_test_client_id());
@@ -51,7 +51,7 @@ void role::login(TPlatformID_t platform_id, const TUserID_t& user_id)
 
 void role::logout()
 {
-	log_info("role logout, entity id = %" I64_FMT "u", get_entity_id());
+	log_info("role logout, entity id %" I64_FMT "u", get_entity_id());
 	destroy();
 	logout_core(true);
 }
@@ -64,7 +64,7 @@ void role::logout_core(bool need_unregister_flag)
 		return;
 	}
 
-	log_info("role logout, send unregister account, entity id = %" I64_FMT "u", get_entity_id());
+	log_info("role logout, send unregister account, entity id %" I64_FMT "u", get_entity_id());
 	if (get_login_success()) {
 		save();
 		DRpcWrapper.call_stub("roll_stub", "unregister_role", get_role_id());
@@ -76,15 +76,15 @@ void role::on_register_account(bool status, const proxy_info& proxy, const mailb
 {
 	// what will happen if call the function more than once ?
 	if (status) {
-		log_info("on register account success! entity id = %" I64_FMT "u", get_entity_id());
+		log_info("on register account success! entity id %" I64_FMT "u", get_entity_id());
 		DGameServer.db_query(
 			"user",
-			gx_to_string("user_id = %" I64_FMT "u", get_user_id().data()).c_str(),
+			gx_to_string("user_id %" I64_FMT "u", get_user_id().data()).c_str(),
 			"role_id",
 			std::bind(&role::on_load_account_callback, this, std::placeholders::_1, std::placeholders::_2));
 	}
 	else {
-		log_info("on register account success, but has registered! entity id = %" I64_FMT "u", get_entity_id());
+		log_info("on register account success, but has registered! entity id %" I64_FMT "u", get_entity_id());
 		on_relay_success(proxy, mailbox, test_client_id);
 	}
 }
@@ -92,22 +92,22 @@ void role::on_register_account(bool status, const proxy_info& proxy, const mailb
 void role::on_register_role(bool status, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)
 {
 	if (status) {
-		log_info("role on register role success! entity id = %" I64_FMT "u", get_entity_id());
+		log_info("role on register role success! entity id %" I64_FMT "u", get_entity_id());
 		DGameServer.db_query(
 			"role", 
-			gx_to_string("%" I64_FMT " u", get_role_id()).c_str(), 
+			gx_to_string("%" I64_FMT "u", get_role_id()).c_str(), 
 			"*", 
 			std::bind(&role::on_load_role_callback, this, std::placeholders::_1, std::placeholders::_2));
 	}
 	else {
-		log_info("role on register role success, but has registered! entity id = %" I64_FMT "u", get_entity_id());
+		log_info("role on register role success, but has registered! entity id %" I64_FMT "u", get_entity_id());
 		on_relay_success(proxy, mailbox, test_client_id);
 	}
 }
 
 void role::on_relay_logout()
 {
-	log_info("role on relay logout! entity id = %" I64_FMT "u", get_entity_id());
+	log_info("role on relay logout! entity id %" I64_FMT "u", get_entity_id());
 	logout_core(false);
 }
 
@@ -115,14 +115,14 @@ void role::create_role()
 {
 	set_role_id(((TRoleID_t)m_mailbox_info.server_id << 48) + DSequence.gen_sequence_id(SEQUENCE_ROLE));
 	DGameServer.db_insert("user", 
-		gx_to_string("platform_id = %u, user_id = %s, role_id = %" I64_FMT "u", get_platform_id(), get_user_id().data(), get_role_id()).c_str(),
+		gx_to_string("platform_id %u, user_id %s, role_id %" I64_FMT "u", get_platform_id(), get_user_id().data(), get_role_id()).c_str(),
 		[&](bool status) {
 		if (status) {
-			log_info("create role success! client id = %" I64_FMT "u, role id = %" I64_FMT "u", get_client_id(), get_role_id());
+			log_info("create role success! client id %" I64_FMT "u, role id %" I64_FMT "u", get_client_id(), get_role_id());
 			on_account_login_success();
 		}
 		else {
-			log_error("create role failed for save failed! client id = %" I64_FMT "u, role id = %" I64_FMT "u", get_client_id(), get_role_id());
+			log_error("create role failed for save failed! client id %" I64_FMT "u, role id %" I64_FMT "u", get_client_id(), get_role_id());
 		}
 	});
 }
@@ -130,11 +130,11 @@ void role::create_role()
 void role::on_load_account_callback(bool status, const binary_data& result)
 {
 	if (get_destroy_flag()) {
-		log_info("role will be destroy soon! client id = %" I64_FMT "u", get_client_id());
+		log_info("role will be destroy soon! client id %" I64_FMT "u", get_client_id());
 		return;
 	}
 	if (!status) {
-		log_error("load from db failed! client id = %" I64_FMT "u", get_client_id());
+		log_error("load from db failed! client id %" I64_FMT "u", get_client_id());
 		return;
 	}
 	if (result.empty()) {
@@ -154,7 +154,7 @@ void role::on_load_role_callback(bool status, const binary_data& result)
 
 void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)
 {
-	log_info("role on relay success! cur entity id = %" I64_FMT "u, kick entity id = %" I64_FMT "u", get_entity_id(), mailbox.entity_id);
+	log_info("role on relay success! cur entity id %" I64_FMT "u, kick entity id %" I64_FMT "u", get_entity_id(), mailbox.entity_id);
 	DRpcWrapper.call_client(get_proxy_info(), "logout", (uint8)LOGOUT_RELAY, get_test_client_id());
 	game_process_info process_info;
 	process_info.server_id = get_server_id();
@@ -173,7 +173,7 @@ void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox
 			p->on_relay_logout();
 		}
 		else {
-			log_error("find role by client id failed! client id = %" I64_FMT "u", proxy.client_id);
+			log_error("find role by client id failed! client id %" I64_FMT "u", proxy.client_id);
 		}
 	}
 	else {
@@ -190,7 +190,7 @@ void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox
 		rpc->call_remote_func("update_process_info", get_client_id(), process_info);
 	}
 	else {
-		log_error("role update process info failed for rpc is NULL! client id = %" I64_FMT "u, gate id = %u", get_client_id(), get_gate_id());
+		log_error("role update process info failed for rpc is NULL! client id %" I64_FMT "u, gate id %u", get_client_id(), get_gate_id());
 	}
 
 	if (get_login_success()) {
@@ -200,18 +200,18 @@ void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox
 
 void role::on_account_login_success()
 {
-	log_info("on account login success! entity id = %" I64_FMT "u", get_entity_id());
+	log_info("on account login success! entity id %" I64_FMT "u", get_entity_id());
 	DRpcWrapper.call_stub("roll_stub", "register_role", get_platform_id(), get_user_id(),  get_role_id(), get_proxy_info(), get_mailbox_info(), get_test_client_id());
 }
 
 void role::on_role_login_success()
 {
-	log_info("on role login success! entity id = %" I64_FMT "u", get_entity_id());
+	log_info("on role login success! entity id %" I64_FMT "u", get_entity_id());
 	set_login_success(true);
 	// recv fight stub notify fight result first, then start load from fight data from db
 	DGameServer.db_query(
 		"fight",
-		gx_to_string("%" I64_FMT " u", get_role_id()).c_str(),
+		gx_to_string("%" I64_FMT "u", get_role_id()).c_str(),
 		"*",
 		[&](bool status, const binary_data& result) {
 

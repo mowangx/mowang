@@ -46,7 +46,7 @@ EXE_NAME=game
 #编译包含的头文件
 CC_INC=-I"${SRC_DIR}" -I"${SRC_DIR}/src/" -I${EVENT_INC} -I${MYSQL_INC}	-I${TINYXPATH_INC} -I${SHARE_INC} 
 #编译优化
-CC_OPT=-O0
+CC_OPT=-O
 #编译忽略的警告
 CC_IGO=-Wno-deprecated -Wno-unused-function
 #编译的标记
@@ -54,7 +54,7 @@ CC_FLAG=-g3 -Wall -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++1
 #编译依赖关系
 CC_DEP=-MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 #编译obj选项
-CC_OJB=-o2 "$@" "$<"
+CC_OJB=-o "$@" "$<"
 #预编译宏定义
 #CC_DEF=-DLIB_DEBUG -DSERVER_DEBUG -DSERVER_VERSION=$(SERVER_VERSION) -DBUILD_DATE=$(BUILD_DATE)
 CC_DEF=-DLIB_DEBUG -DSERVER_DEBUG

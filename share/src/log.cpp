@@ -8,6 +8,7 @@
 #	define NOMINMAX
 #	include <io.h>
 #else
+# include <unistd.h>
 #endif // OS_WINDOWS
 
 #include "auto_lock.h"
@@ -71,7 +72,7 @@ void log_wrapper::display(ELogType type, const char* filename, const char* funcn
 
 	char buf[2048];
 	memset(buf, 0, 2048);
-	sprintf(buf, "%s %s ThreadID: [%u] %s:%d %s() ", cstime, LogTypeString[type], *((_Thrd_id_t*)&thread_info), parse_filename(filename).c_str(), line, funcname);
+	sprintf(buf, "%s %s ThreadID: [%" I64_FMT "u] %s:%d %s() ", cstime, LogTypeString[type], *(uint64*)&thread_info, parse_filename(filename).c_str(), line, funcname);
 	std::string str = buf;
 	str += content;
 	str += "\n";
@@ -136,7 +137,7 @@ void log_wrapper::check_rename_file()
 			continue;
 		}
 #else
-		if (access(filename.c_str(), F_OK) == 0){
+		if (access(filename, F_OK) == 0){
 			continue;
 		}
 #endif

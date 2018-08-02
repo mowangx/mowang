@@ -113,7 +113,7 @@ void executor_manager::executor(db_opt_info* opt_info)
 
 void executor_manager::add_executor(TSocketIndex_t socket_index, uint8 opt_type, uint64 opt_id, const dynamic_string& table_name, const dynamic_string& query, const dynamic_string& fields)
 {
-	log_info("add executor, opt type = %u, opt id = %"I64_FMT"u, table name = %s", opt_type, opt_id, table_name.data());
+	log_info("add executor, opt type %u, opt id %" I64_FMT "u, table name %s", opt_type, opt_id, table_name.data());
 	db_opt_info* opt_info = m_mem_pool.allocate();
 	opt_info->opt_type = opt_type;
 	opt_info->opt_id = opt_id;

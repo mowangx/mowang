@@ -1,5 +1,8 @@
 
 #include "service.h"
+
+#include <algorithm>
+
 #include "debug.h"
 #include "time_manager.h"
 #include "tcp_manager.h"
@@ -59,7 +62,7 @@ bool service::init(TProcessID_t process_id)
 	m_server_info.process_info.server_id = m_config.get_server_id();;
 	m_server_info.process_info.process_id = process_id;
 
-	char* ip = "127.0.0.1";
+	const char* ip = "127.0.0.1";
 	memcpy(m_server_info.ip.data(), ip, strlen(ip));
 	m_server_info.port = m_config.get_listen_port();
 
@@ -235,13 +238,13 @@ void service::kick_ws_socket(TSocketIndex_t socket_index)
 
 void service::register_client(rpc_client * client)
 {
-	log_info("register client, socket index = '%"I64_FMT"u'", client->get_handler()->get_socket_index());
+	log_info("register client, socket index %" I64_FMT "u", client->get_handler()->get_socket_index());
 	m_clients[client->get_handler()->get_socket_index()] = client;
 }
 
 void service::unregister_client(TSocketIndex_t socket_index)
 {
-	log_info("unregister client, socket index = '%"I64_FMT"u'", socket_index);
+	log_info("unregister client, socket index %" I64_FMT "u", socket_index);
 	on_disconnect(socket_index);
 
 	game_process_info process_info;
@@ -260,14 +263,14 @@ void service::unregister_client(TSocketIndex_t socket_index)
 
 void service::register_server(TSocketIndex_t socket_index, const game_server_info & server_info)
 {
-	log_info("register server, socket index = '%"I64_FMT"u'", socket_index);
+	log_info("register server, socket index %" I64_FMT "u", socket_index);
 	auto itr = m_clients.find(socket_index);
 	if (itr != m_clients.end()) {
 		DRpcWrapper.register_handler_info(itr->second, server_info);
 		on_connect(socket_index);
 	}
 	else {
-		log_error("register server find socket index failed! socket index = '%"I64_FMT"u'", socket_index);
+		log_error("register server find socket index failed! socket index %" I64_FMT "u", socket_index);
 	}
 }
 

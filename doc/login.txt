@@ -1,0 +1,8 @@
+1. login
+2. register account
+3. load role id from user by user id and then wait db callback
+4. db callback
+5. register role
+6. load role info from role by role id and then wait db callback
+7. db callback
+8. login success

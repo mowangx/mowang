@@ -2,6 +2,7 @@
 #ifndef _STRING_COMMON_H_
 #define _STRING_COMMON_H_
 
+#include <cstdarg>
 #include "types_def.h"
 
 inline std::string mw_to_string(const char* format, ...)

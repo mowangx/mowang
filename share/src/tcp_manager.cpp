@@ -55,7 +55,7 @@ bool tcp_manager::on_accept(socket_wrapper* listener)
 	// @todo 检测添加的时候会不会影响性能
 	TSocketIndex_t index = gen_socket_index();
 	socket->set_socket_index(index);
-	log_info("accept socket! index = '%"I64_FMT"u'", index);
+	log_info("accept socket! index %" I64_FMT "u", index);
 
 	socket->set_packet_handler(listener->create_handler());
 	socket->get_packet_handler()->set_socket_index(index);
@@ -99,7 +99,7 @@ void tcp_manager::unpack_packets(std::vector<packet_recv_info*>& packets, socket
 	socket_handler* handler = socket->get_socket_handler();
 	int cur_len = socket->read(handler->buffer(len), len);
 	if (cur_len != len) {
-		log_error("socket index = '%"I64_FMT"u', read len is not equal cache len, read len = %d, cache len = %d", socket->get_socket_index(), cur_len, len);
+		log_error("socket index %" I64_FMT "u, read len is not equal cache len, read len %d, cache le %d", socket->get_socket_index(), cur_len, len);
 	}
 
 	packet_base* packet = handler->unpack_packet();

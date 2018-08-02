@@ -31,6 +31,8 @@
  * Author: Markus Gutschke
  */
 
+#define _GNU_SOURCE             /* See feature_test_macros(7) */
+#include <sched.h>
 #include "linuxthreads.h"
 
 #ifdef THREADS
@@ -49,7 +51,7 @@ extern "C" {
 #include <asm/fcntl.h>
 #include <asm/posix_types.h>
 #include <asm/types.h>
-#include <linux/dirent.h>
+#include <dirent.h>
 
 #include "linux_syscall_support.h"
 #include "thread_lister.h"
