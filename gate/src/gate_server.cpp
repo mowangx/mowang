@@ -247,7 +247,7 @@ void gate_server::process_ws_close_sockets(std::vector<web_socket_wrapper_base*>
 void gate_server::process_login(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
 {
 	TPlatformID_t platform_id = json->get<TPlatformID_t>("platform_id", 1);
-	TServerID_t server_id = json->get<TServerID_t>("server_id", 1);
+	TServerID_t server_id = json->get<TServerID_t>("server_id", m_server_info.process_info.server_id);
 	TUserID_t user_id;
 	memset(user_id.data(), 0, USER_ID_LEN);
 	std::string cur_user_id = json->get<std::string>("code", "");
