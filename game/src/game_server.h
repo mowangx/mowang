@@ -59,7 +59,7 @@ private:
 	void db_opt(uint8 opt_type, const char* table, const char* query, const char* fields);
 
 public:
-	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id);
+	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, const account_info& account);
 	void logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 	virtual void register_server(TSocketIndex_t socket_index, const game_server_info& server_info) override;
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);

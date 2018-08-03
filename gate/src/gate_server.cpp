@@ -42,7 +42,7 @@ bool gate_server::init(TProcessID_t process_id)
 
 	DRegisterServerRpc(this, gate_server, register_server, 2);
 	DRegisterServerRpc(this, gate_server, on_register_servers, 4);
-	DRegisterServerRpc(this, gate_server, login_server, 5);
+	DRegisterServerRpc(this, gate_server, login_server, 4);
 	DRegisterServerRpc(this, gate_server, update_process_info, 3);
 	DRegisterServerRpc(this, gate_server, kick_socket_delay, 2);
 
@@ -166,17 +166,17 @@ void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 	}
 }
 
-void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const TUserID_t& user_id, TSocketIndex_t test_client_id)
+void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const account_info& account)
 {
 	game_process_info process_info;
 	process_info.server_id = server_id;
 	process_info.process_type = PROCESS_GAME;
 	process_info.process_id = DRpcWrapper.get_random_process_id(process_info.server_id, process_info.process_type);
 	m_client_2_process[socket_index] = process_info;
-	log_info("login, client id %" I64_FMT "u, user id %s, game id %u", socket_index, user_id.data(), process_info.process_id);
+	log_info("login, client id %" I64_FMT "u, token %s, game id %u", socket_index, account.token.data(), process_info.process_id);
 	rpc_client* rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
-		rpc->call_remote_func("login_server", socket_index, platform_id, user_id, test_client_id);
+		rpc->call_remote_func("login_server", socket_index, platform_id, account);
 	}
 	else {
 		log_error("login failed for rpc is NULL! server id %u, process id %u, client id %" I64_FMT "u", 
@@ -248,11 +248,16 @@ void gate_server::process_login(TSocketIndex_t socket_index, boost::property_tre
 {
 	TPlatformID_t platform_id = json->get<TPlatformID_t>("platform_id", 1);
 	TServerID_t server_id = json->get<TServerID_t>("server_id", m_server_info.process_info.server_id);
-	TUserID_t user_id;
-	memset(user_id.data(), 0, USER_ID_LEN);
-	std::string cur_user_id = json->get<std::string>("code", "");
-	memcpy(user_id.data(), cur_user_id.c_str(), cur_user_id.length());
-	login_server(socket_index, platform_id, server_id, user_id, INVALID_SOCKET_INDEX);
+	account_info account;
+	memset(account.token.data(), 0, TOKEN_LEN);
+	std::string cur_token = json->get<std::string>("code", "");
+	memcpy(account.token.data(), cur_token.c_str(), cur_token.length());
+	memset(account.role_name.data(), 0, ROLE_NAME_LEN);
+	std::string cur_role_name = json->get<std::string>("name", "");
+	memcpy(account.role_name.data(), cur_role_name.c_str(), cur_role_name.length());
+	account.sex = json->get<TSex_t>("sex", 1);
+	
+	login_server(socket_index, platform_id, server_id, account);
 	log_debug("parse login!!! socket index %" I64_FMT "u,  platform id %d, server_id %d", socket_index, platform_id, server_id);
 }
 

@@ -29,6 +29,10 @@ static const uint32 MAX_TECHNOLOGY_NUM = 20;	// 科技类型数量
 
 static const uint32 USER_ID_LEN = 64;	// 用户ID长度
 
+static const uint32 ROLE_NAME_LEN = 64; // 角色名长度
+
+static const uint32 TOKEN_LEN = 128;	// token长度
+
 static const uint32 MAX_PROCESS_TYPE_NUM = 4; // 进程类型数量
 
 static const uint32 MAX_SEQUENCE_TYPE_NUM = 8;	// 序列ID数量
@@ -128,6 +132,10 @@ const TPlatformID_t INVALID_PLATFORM_ID = 0;
 
 typedef std::array<char, USER_ID_LEN> TUserID_t;	// 用户ID
 
+typedef std::array<char, ROLE_NAME_LEN> TRoleName_t; // 角色名
+
+typedef std::array<char, TOKEN_LEN> TTokenID_t;		// token
+
 typedef std::array<char, STUB_NAME_LEN> TStubName_t;
 
 typedef uint64 TEntityID_t;				// entity id
@@ -135,6 +143,9 @@ const TEntityID_t INVALID_ENTITY_ID = 0;
 
 typedef uint64 TRoleID_t;				// 角色id
 const TRoleID_t INVALID_ROLE_ID = 0;
+
+typedef uint8 TSex_t;					// 性别
+const TSex_t INVALID_SEX = 0;
 
 typedef uint32 TSequenceID_t;			// 序列ID
 const TSequenceID_t INVALID_SEQUENCE_ID = 0;

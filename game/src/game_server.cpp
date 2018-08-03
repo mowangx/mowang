@@ -46,7 +46,7 @@ bool game_server::init(TProcessID_t process_id)
 
 	DRegisterServerRpc(this, game_server, register_server, 2);
 	DRegisterServerRpc(this, game_server, on_register_servers, 4);
-	DRegisterServerRpc(this, game_server, login_server, 5);
+	DRegisterServerRpc(this, game_server, login_server, 4);
 	DRegisterServerRpc(this, game_server, logout_server, 2);
 	DRegisterServerRpc(this, game_server, create_entity, 2);
 	DRegisterServerRpc(this, game_server, on_register_entity, 2);
@@ -191,7 +191,7 @@ void game_server::db_opt(uint8 opt_type, const char * table, const char * query,
 	}
 }
 
-void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, TUserID_t user_id, TSocketIndex_t test_client_id)
+void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, const account_info& account)
 {
 	// send msg to db manager to query role id from db by platform id and user id
 	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
@@ -203,15 +203,17 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 	p->set_client_id(client_id);
 	p->set_gate_id(gate_id);
 	p->set_entity_id(entity_id);
+	p->set_role_name(account.role_name);
+	p->set_sex(account.sex);
 	// @TODO just test, should load from db
 	p->set_role_id(entity_id);
-	p->set_test_client_id(test_client_id);
+	p->set_test_client_id(account.test_client_id);
 	p->init();
 	m_client_id_2_role[client_id] = p;
-	p->login(platform_id, user_id);
+	p->login(platform_id, account.token);
 
-	log_info("login server, client id %" I64_FMT "u, gate id %u, entity id %" I64_FMT "u, platform id %u, user id %s", 
-		client_id, gate_id, entity_id, platform_id, user_id.data());
+	log_info("login server, client id %" I64_FMT "u, gate id %u, entity id %" I64_FMT "u, platform id %u, token %s", 
+		client_id, gate_id, entity_id, platform_id, account.token.data());
 }
 
 void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id)

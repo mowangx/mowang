@@ -24,7 +24,7 @@ public:
 	void test(uint8 param_1, uint16 param_2);
 
 public:
-	void login(TPlatformID_t platform_id, const TUserID_t& user_id);
+	void login(TPlatformID_t platform_id, const TTokenID_t& token);
 	void logout();
 private:
 	void logout_core(bool need_unregister_flag);
@@ -61,6 +61,9 @@ public:
 	TLevel_t get_level() const;
 	void add_level(TLevel_t lvl);
 
+	TSex_t get_sex() const;
+	void set_sex(TSex_t sex);
+
 	THonorNum_t get_honor() const;
 	void add_honor(THonorNum_t num);
 
@@ -85,6 +88,9 @@ public:
 
 	void set_entity_id(TEntityID_t entity_id);
 	TEntityID_t get_entity_id() const;
+
+	void set_role_name(const TRoleName_t& role_name);
+	const TRoleName_t& get_role_name() const;
 	
 	void set_role_id(TRoleID_t role_id);
 	TRoleID_t get_role_id() const;
@@ -115,9 +121,11 @@ public:
 	TPlatformID_t m_platform_id;
 	TUserID_t m_user_id;
 	TRoleID_t m_role_id;
-	TLevel_t m_lvl;
+	TLevel_t m_level;
+	TSex_t m_sex;
 	THonorNum_t m_honor;
 	TRmbNum_t m_rmb;
+	TRoleName_t m_role_name;
 	std::vector<city*> m_cities;
 	std::vector<TNpcIndex_t> m_fight_npc_ids;	// don't need save db
 };

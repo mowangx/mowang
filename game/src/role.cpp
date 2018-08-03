@@ -39,13 +39,22 @@ void role::test(uint8 param_1, uint16 param_2)
 	DRpcWrapper.call_ws_client(get_proxy_info(), "{\"cmd\":\"response\", \"ret_code\": 9, \"user_id\": \"xiedi\"}");
 }
 
-void role::login(TPlatformID_t platform_id, const TUserID_t& user_id)
+void role::login(TPlatformID_t platform_id, const TTokenID_t& token)
 {
 	log_info("role login, entity id %" I64_FMT "u", get_entity_id());
 	set_platform_id(platform_id);
+
+	TUserID_t user_id;
+	memset(user_id.data(), 0, USER_ID_LEN);
+	int max_len = USER_ID_LEN - 1;
+	int len = token.size() >= max_len ? max_len : token.size();
+	memcpy(user_id.data(), token.data(), len);
 	set_user_id(user_id);
+
 	DRpcWrapper.call_stub("roll_stub", "register_account", get_platform_id(), get_user_id(), get_proxy_info(), get_mailbox_info(), get_test_client_id());
-	std::string msg = gx_to_string("{\"cmd\": \"login\", \"ret_code\": 0, \"code\": \"%s\"}", user_id.data());
+
+	std::string msg = gx_to_string("{\"cmd\": \"login\", \"ret_code\": 0, \"name\": \"%s\", \"role_id\": %" I64_FMT "u, \"sex\": %u, \"level\": %d}", 
+		m_role_name.data(), m_role_id, m_sex, m_level);
 	DRpcWrapper.call_ws_client(get_proxy_info(), msg);
 }
 
@@ -295,12 +304,22 @@ bool role::get_destroy_flag() const
 
 TLevel_t role::get_level() const
 {
-	return m_lvl;
+	return m_level;
 }
 
 void role::add_level(TLevel_t lvl)
 {
-	m_lvl += lvl;
+	m_level += lvl;
+}
+
+TSex_t role::get_sex() const
+{
+	return m_sex;
+}
+
+void role::set_sex(TSex_t sex)
+{
+	m_sex = sex;
 }
 
 THonorNum_t role::get_honor() const
@@ -387,6 +406,16 @@ TEntityID_t role::get_entity_id() const
 	return m_mailbox_info.entity_id;
 }
 
+void role::set_role_name(const TRoleName_t & role_name)
+{
+	m_role_name = role_name;
+}
+
+const TRoleName_t & role::get_role_name() const
+{
+	return m_role_name;
+}
+
 void role::set_role_id(TRoleID_t role_id)
 {
 	m_role_id = role_id;
@@ -444,6 +473,9 @@ void role::clean_up()
 	m_proxy_info.clean_up();
 	m_mailbox_info.clean_up();
 	m_role_id = INVALID_ROLE_ID;
+	m_level = 1;
+	m_sex = INVALID_SEX;
 	m_honor = INVALID_HONOR_NUM;
 	m_rmb = INVALID_RMB_NUM;
+	memset(m_role_name.data(), 0, ROLE_NAME_LEN);
 }

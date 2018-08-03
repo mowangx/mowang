@@ -170,6 +170,24 @@ struct soldier_info
 	}
 };
 
+struct account_info
+{
+	TTokenID_t token;
+	TRoleName_t role_name;
+	TSex_t sex;
+	TSocketIndex_t test_client_id;
+	account_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		memset(token.data(), 0, TOKEN_LEN);
+		memset(role_name.data(), 0, ROLE_NAME_LEN);
+		sex = INVALID_SEX;
+		test_client_id = INVALID_SOCKET_INDEX;
+	}
+};
+
 #pragma pack(pop)
 
 #endif // !_PACKET_STRUCT_H_
