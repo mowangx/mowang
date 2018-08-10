@@ -12,7 +12,7 @@ class game_server_handler : public packet_handler<game_server_handler>
 
 public:
 	game_server_handler();
-	~game_server_handler();
+	virtual ~game_server_handler() override;
 
 public:
 	static void Setup();

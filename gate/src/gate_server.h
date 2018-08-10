@@ -15,7 +15,7 @@ class gate_server : public ws_service, public singleton<gate_server>
 
 public:
 	gate_server();
-	~gate_server();
+	virtual ~gate_server() override;
 
 public:
 	virtual bool load_config(ini_file& ini, const std::string& module_name) override;
@@ -24,8 +24,6 @@ private:
 	virtual void init_ws_process_func() override;
 private:
 	virtual void work_run() override;
-	virtual void net_run() override;
-	virtual void ws_run() override;
 
 private:
 	virtual void do_loop(TGameTime_t diff) override;

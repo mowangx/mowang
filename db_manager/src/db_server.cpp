@@ -40,6 +40,13 @@ bool db_server::init(TProcessID_t process_id)
 
 	DRegisterServerRpc(this, db_server, register_server, 2);
 
+	if (!DNetMgr.start_listen<game_server_handler>(m_server_info.port)) {
+		log_info("init socket manager failed");
+		return false;
+	}
+
+	log_info("init socket manager success");
+
 	return true;
 }
 
@@ -80,20 +87,6 @@ void db_server::work_run()
 
 	connect_game_manager_loop(m_config.get_game_manager_listen_ip(), m_config.get_game_manager_listen_port());
 	TBaseType_t::work_run();
-}
-
-void db_server::net_run()
-{
-	if (!DNetMgr.start_listen<game_server_handler>(m_server_info.port)) {
-		return;
-	}
-
-	log_info("init socket manager success");
-
-	while (true) {
-		DNetMgr.update(0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
-	}
 }
 
 void db_server::do_loop(TGameTime_t diff)

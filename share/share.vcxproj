@@ -125,7 +125,7 @@
       <StringPooling>true</StringPooling>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>./src/;./src/libevent/;./src/libevent/WIN32-Code/;./src/tinyxpath/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./src/;./src/openssl/;./src/libevent/;./src/libevent/WIN32-Code/;./src/tinyxpath/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

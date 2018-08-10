@@ -16,10 +16,10 @@ class robot_server : public ws_service, public singleton<robot_server>
 
 public:
 	robot_server();
-	~robot_server();
+	virtual ~robot_server() override;
 
 public:
-	bool init(TProcessID_t process_id) override;
+	virtual bool init(TProcessID_t process_id) override;
 private:
 	virtual void init_ws_process_func() override;
 private:

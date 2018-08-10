@@ -2,11 +2,8 @@
 #ifndef _DB_SERVER_H_
 #define _DB_SERVER_H_
 
-#include <unordered_map>
-
 #include "singleton.h"
 #include "service.h"
-#include "dynamic_array.h"
 
 
 class db_server : public service, public singleton<db_server>
@@ -15,13 +12,12 @@ class db_server : public service, public singleton<db_server>
 
 public:
 	db_server();
-	~db_server();
+	virtual ~db_server() override;
 
 public:
-	bool init(TProcessID_t process_id);
+	virtual bool init(TProcessID_t process_id) override;
 private:
 	virtual void work_run() override;
-	virtual void net_run() override;
 	virtual void do_loop(TGameTime_t diff) override;
 	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 

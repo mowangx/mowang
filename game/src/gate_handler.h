@@ -11,7 +11,7 @@ class gate_handler : public packet_handler<gate_handler>
 	typedef packet_handler<gate_handler>	TBaseType_t;
 public:
 	gate_handler();
-	~gate_handler();
+	virtual ~gate_handler() override;
 
 public:
 	static void Setup();

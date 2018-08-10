@@ -16,3 +16,11 @@
 5. boost
     5.1 windows动态库(https://dl.bintray.com/boostorg/release/1.65.1/binaries/)
 	5.2 源代码(https://www.boost.org/users/history/)
+	5.3 https://www.cnblogs.com/songxingzhu/p/7513519.html
+	5.4 .\b2 toolset=msvc-14.1 --build-type=complete --with-python python=2.7 -- address-model=64 link=static threading=multi install -j4 --prefix=E:\favourite\boost_1_65_1\boost_install --libdir=E:\favourite\boost_1_65_1\boost_lib --includedir=E:\favourite\boost_1_65_1\boost_include
+	
+6. openssl(https://github.com/openssl/openssl)
+	6.1 cur version is 1.1.0
+	6.2 build reference https://www.cnblogs.com/chinalantian/p/5819105.html  &&  https://blog.csdn.net/u013214392/article/details/78621707
+	6.3 visual studio tools --> vc ---> 适用于x64本机命令工具提示符
+	

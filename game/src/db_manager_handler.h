@@ -11,7 +11,7 @@ class db_manager_handler : public packet_handler<db_manager_handler>
 	typedef packet_handler<db_manager_handler>	TBaseType_t;
 public:
 	db_manager_handler();
-	~db_manager_handler();
+	virtual ~db_manager_handler() override;
 
 private:
 	virtual service_interface* get_service() const override;

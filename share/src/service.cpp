@@ -103,6 +103,10 @@ void service::work_run()
 
 void service::net_run()
 {
+	while (true) {
+		DNetMgr.update(0);
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	}
 }
 
 void service::log_run()

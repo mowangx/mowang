@@ -12,13 +12,12 @@ class game_manager : public service, public singleton<game_manager>
 
 public:
 	game_manager();
-	~game_manager();
+	virtual ~game_manager() override;
 	
 public:
-	bool init(TProcessID_t process_id);
+	virtual bool init(TProcessID_t process_id) override;
 private:
 	virtual bool load_config(ini_file& ini, const std::string& module_name) override;
-	virtual void net_run() override;
 
 private:
 	bool check_all_process_start() const;

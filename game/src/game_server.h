@@ -19,14 +19,12 @@ class game_server : public service, public singleton<game_server>
 
 public:
 	game_server();
-	~game_server();
+	virtual ~game_server() override;
 
 public:
 	virtual bool init(TProcessID_t process_id) override;
 private:
 	virtual void work_run() override;
-	virtual void net_run() override;
-	virtual void do_loop(TGameTime_t diff) override;
 	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 
 public:

@@ -12,7 +12,7 @@ class gate_handler : public packet_handler<gate_handler>
 
 public:
 	gate_handler();
-	~gate_handler();
+	virtual ~gate_handler() override;
 
 private:
 	virtual service_interface* get_service() const override;

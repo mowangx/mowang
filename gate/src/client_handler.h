@@ -12,7 +12,7 @@ class client_handler : public packet_handler<client_handler>
 
 public:
 	client_handler();
-	~client_handler();
+	virtual ~client_handler() override;
 
 public:
 	static void Setup();

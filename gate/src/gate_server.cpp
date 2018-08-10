@@ -50,6 +50,17 @@ bool gate_server::init(TProcessID_t process_id)
 	game_server_handler::Setup();
 	client_handler::Setup();
 
+	if (!DNetMgr.start_listen<client_handler>(m_server_info.port)) {
+		log_info("init socket manager failed");
+		return false;
+	}
+
+	log_info("init socket manager success");
+
+	DWSNetMgr.start_listen(m_ws_list_port);
+
+	log_info("init websocket manager success");
+
 	return true;
 }
 
@@ -63,32 +74,6 @@ void gate_server::work_run()
 {
 	connect_game_manager_loop(m_config.get_game_manager_listen_ip(), m_config.get_game_manager_listen_port());
 	TBaseType_t::work_run();
-}
-
-void gate_server::net_run()
-{
-	if (!DNetMgr.start_listen<client_handler>(m_server_info.port)) {
-		return;
-	}
-
-	log_info("init socket manager success");
-
-	while (true) {
-		DNetMgr.update(0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
-}
-
-void gate_server::ws_run()
-{
-	DWSNetMgr.start_listen(m_ws_list_port);
-
-	log_info("init websocket manager success");
-
-	while (true) {
-		DWSNetMgr.update(0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
 }
 
 void gate_server::do_loop(TGameTime_t diff)

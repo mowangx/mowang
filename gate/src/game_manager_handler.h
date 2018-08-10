@@ -11,7 +11,7 @@ class game_manager_handler : public packet_handler<game_manager_handler>
 	typedef packet_handler<game_manager_handler>	TBaseType_t;
 public:
 	game_manager_handler();
-	~game_manager_handler();
+	virtual ~game_manager_handler() override;
 
 private:
 	virtual service_interface* get_service() const override;

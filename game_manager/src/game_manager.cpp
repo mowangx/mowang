@@ -33,6 +33,13 @@ bool game_manager::init(TProcessID_t process_id)
 	DRegisterServerRpc(this, game_manager, register_server, 2);
 	DRegisterServerRpc(this, game_manager, create_entity, 3);
 	DRegisterServerRpc(this, game_manager, register_entity, 3);
+
+	if (!DNetMgr.start_listen<server_handler>(m_server_info.port)) {
+		log_info("init socket manager failed");
+		return false;
+	}
+
+	log_info("init socket manager success");
 	
 	return true;
 }
@@ -55,20 +62,6 @@ bool game_manager::load_config(ini_file& ini, const std::string& module_name)
 	}
 
 	return true;
-}
-
-void game_manager::net_run()
-{
-	if (!DNetMgr.start_listen<server_handler>(m_server_info.port)) {
-		return;
-	}
-
-	log_info("init socket manager success");
-
-	while (true) {
-		DNetMgr.update(0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
-	}
 }
 
 bool game_manager::check_all_process_start() const

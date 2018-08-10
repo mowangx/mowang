@@ -11,7 +11,7 @@ class server_handler : public packet_handler<server_handler>
 	typedef packet_handler<server_handler>	TBaseType_t;
 public:
 	server_handler();
-	~server_handler();
+	virtual ~server_handler() override;
 
 private:
 	virtual service_interface* get_service() const override;
