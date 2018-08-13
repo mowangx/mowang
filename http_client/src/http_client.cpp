@@ -6,11 +6,10 @@
 #include "tcp_manager.h"
 #include "game_server_handler.h"
 #include "game_manager_handler.h"
-#include "http_proxy.h"
-#include "https_proxy.h"
 
 http_client::http_client() : service(PROCESS_HTTP_CLIENT)
 {
+	m_wait_release_proxy.clear();
 }
 
 http_client::~http_client()
@@ -47,7 +46,18 @@ void http_client::work_run()
 
 void http_client::do_loop(TGameTime_t diff)
 {
+	for (auto client : m_wait_release_proxy) {
+		if (client->usessl()) {
+			m_https_pools.deallocate((https_proxy*)client);
+		}
+		else {
+			m_http_pools.deallocate((http_proxy*)client);
+		}
+	}
+	m_wait_release_proxy.clear();
+
 	m_io_service.poll_one();
+	
 	TBaseType_t::do_loop(diff);
 }
 
@@ -64,12 +74,13 @@ void http_client::http_request(TSocketIndex_t socket_index, TOptID_t opt_id, con
 			boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 			ctx.set_default_verify_paths();
 
-			c = new https_proxy(m_io_service, ctx);
+			c = m_https_pools.allocate(m_io_service, ctx);
 		}
 		else {
-			c = new http_proxy(m_io_service);
+			c = m_http_pools.allocate(m_io_service);
 		}
-		c->start_request(host, url, params, [=](int status, const dynamic_string& body) {
+		c->start_request(host, url, params, [=](int status, const dynamic_string& result) {
+			m_wait_release_proxy.push_back(c);
 			game_process_info process_info;
 			if (!DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index)) {
 				return;
@@ -78,9 +89,8 @@ void http_client::http_request(TSocketIndex_t socket_index, TOptID_t opt_id, con
 			if (NULL == rpc) {
 				return;
 			}
-			rpc->call_remote_func("on_http_response", opt_id, status, body);
+			rpc->call_remote_func("on_http_response", opt_id, status, result);
 		});
-		
 	}
 	catch (std::exception& e) {
 		log_error("http request failed for %s", e.what());

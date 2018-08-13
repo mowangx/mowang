@@ -4,7 +4,7 @@
 #include "string_common.h"
 
 http_proxy::http_proxy(boost::asio::io_service& io_service) :
-	http_proxy_base(io_service, 9010),
+	http_proxy_base(io_service, false),
 	m_socket(io_service)
 {
 

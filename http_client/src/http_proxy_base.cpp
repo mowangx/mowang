@@ -4,11 +4,11 @@
 #include "log.h"
 #include "string_common.h"
 
-http_proxy_base::http_proxy_base(boost::asio::io_service& io_service, int port) :
+http_proxy_base::http_proxy_base(boost::asio::io_service& io_service, bool usessl) :
 	m_resolver(io_service),
-	m_port(port)
+	m_usessl(usessl)
 {
-
+	m_port = m_usessl ? 443 : 80;
 }
 
 http_proxy_base::~http_proxy_base()
@@ -25,12 +25,18 @@ void http_proxy_base::start_request(const dynamic_string& host, const dynamic_st
 	bind_connect();
 }
 
+bool http_proxy_base::usessl() const
+{
+	return m_usessl;
+}
+
 void http_proxy_base::handle_connect(const boost::system::error_code& error)
 {
 	if (!error) {
 		bind_handshake();
 	}
 	else {
+		m_callback(-1, "connect failed");
 		log_error("connect failed for %s", error.message().c_str());
 	}
 }
@@ -41,6 +47,7 @@ void http_proxy_base::handle_handshake(const boost::system::error_code& error)
 		write_request();
 	}
 	else {
+		m_callback(-1, "handshake failed");
 		log_error("handshake failed for %s", error.message().c_str());
 	}
 }
@@ -51,6 +58,7 @@ void http_proxy_base::handle_write(const boost::system::error_code& error)
 		bind_read_status_line();
 	}
 	else {
+		m_callback(-1, "write failed");
 		log_error("write failed for %s", error.message().c_str());
 	}
 }
@@ -67,12 +75,11 @@ void http_proxy_base::handle_read_status_line(const boost::system::error_code& e
 		std::string status_message;
 		std::getline(response_stream, status_message);
 		if (!response_stream || http_version.substr(0, 5) != "HTTP/") {
-			m_res_body = "invalid response";
-			m_callback(-1, m_res_body);
+			m_callback(-1, "invalid response");
 			return;
 		}
 		if (status_code != 200) {
-			m_callback(status_code, m_res_body);
+			m_callback(status_code, "");
 			return;
 		}
 
@@ -80,6 +87,7 @@ void http_proxy_base::handle_read_status_line(const boost::system::error_code& e
 		bind_read_header();
 	}
 	else {
+		m_callback(-1, "read status line failed");
 		log_error("read status line failed for %s", error.message().c_str());
 	}
 }
@@ -98,6 +106,7 @@ void http_proxy_base::handle_read_headers(const boost::system::error_code& error
 		bind_read_body();
 	}
 	else {
+		m_callback(-1, "read headers failed");
 		log_error("read headers failed for %s", error.message().c_str());
 	}
 }
@@ -109,6 +118,7 @@ void http_proxy_base::handle_read_body(const boost::system::error_code& error)
 		bind_read_body();
 	}
 	else if (error != boost::asio::error::eof) {
+		m_callback(-1, "read content failed");
 		log_error("read content failed for %s", error.message().c_str());
 	}
 	else {
@@ -124,8 +134,8 @@ void http_proxy_base::handle_read_body(const boost::system::error_code& error)
 			offset = 0;
 		}
 
-		m_res_body.append(body.c_str(), len, offset);
-		m_callback(200, m_res_body);
+		m_result.append(body.c_str(), len, offset);
+		m_callback(200, m_result);
 	}
 }
 

@@ -11,11 +11,12 @@
 class http_proxy_base
 {
 public:
-	http_proxy_base(boost::asio::io_service & io_service, int port);
+	http_proxy_base(boost::asio::io_service& io_service, bool usessl);
 	virtual ~http_proxy_base();
 
 public:
 	void start_request(const dynamic_string& host, const dynamic_string& url, const dynamic_string& body, std::function<void(int, const dynamic_string&)> callback);
+	bool usessl() const;
 
 protected:
 	void handle_connect(const boost::system::error_code& error);
@@ -38,11 +39,12 @@ protected:
 	boost::asio::ip::tcp::resolver m_resolver;
 	boost::asio::streambuf m_request;
 	boost::asio::streambuf m_response;
+	bool m_usessl;
 	int m_port;
 	dynamic_string m_host;
 	dynamic_string m_url;
 	dynamic_string m_body;
-	dynamic_string m_res_body;
+	dynamic_string m_result;
 	std::function<void(int, const dynamic_string&)> m_callback;
 };
 

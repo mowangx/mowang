@@ -208,6 +208,11 @@ public:
 		return new (node)T;
 	}
 
+	template <class... Args>
+	T* allocate(Args&... args) {
+		char* node = m_nodes.allocate();
+		return new (node)T(args...);
+	}
 
 	void deallocate(T* p) {
 		p->~T();

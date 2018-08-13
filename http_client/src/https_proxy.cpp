@@ -5,7 +5,7 @@
 #include "string_common.h"
 
 https_proxy::https_proxy(boost::asio::io_service& io_service, boost::asio::ssl::context& context) :
-	http_proxy_base(io_service, 443),
+	http_proxy_base(io_service, true),
 	m_socket(io_service, context)
 {
 	
