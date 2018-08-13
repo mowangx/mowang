@@ -192,6 +192,28 @@ public:
 		return true;
 	}
 
+	bool append(const char* data, uint16 len = 0, uint16 offset = 0) {
+		if (NULL == data) {
+			return false;
+		}
+
+		if (len == 0) {
+			len = (uint16)strlen(data);
+		}
+
+		if (len >= (m_max_len - m_len)) {
+			m_max_len = m_len + len + 1;
+			char* tmp = new char[m_max_len];
+			memcpy(tmp, m_data, m_len * sizeof(char));
+			delete[] m_data;
+			m_data = tmp;
+		}
+		memcpy((m_data + m_len), (data + offset), len * sizeof(char));
+		m_len += len;
+		m_data[m_len] = '\0';
+		return true;
+	}
+
 	bool empty() const {
 		return size() == 0;
 	}

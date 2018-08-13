@@ -4,6 +4,7 @@
 #include "gate_handler.h"
 #include "game_manager_handler.h"
 #include "db_manager_handler.h"
+#include "http_client_handler.h"
 #include "rpc_proxy.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
@@ -38,11 +39,12 @@ bool game_server::init(TProcessID_t process_id)
 	//log_info("load config success");
 
 
-	m_db_opt_id = ((TDbOptID_t)m_server_info.process_info.server_id << 48) + ((TDbOptID_t)m_server_info.process_info.process_id << 40);
+	m_opt_id = ((TOptID_t)m_server_info.process_info.server_id << 48) + ((TOptID_t)m_server_info.process_info.process_id << 40);
 
 	gate_handler::Setup();
 	game_manager_handler::Setup();
 	db_manager_handler::Setup();
+	http_client_handler::Setup();
 
 	DRegisterServerRpc(this, game_server, register_server, 2);
 	DRegisterServerRpc(this, game_server, on_register_servers, 4);
@@ -52,6 +54,7 @@ bool game_server::init(TProcessID_t process_id)
 	DRegisterServerRpc(this, game_server, on_register_entity, 2);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_result, 4);
+	DRegisterServerRpc(this, game_server, on_http_response, 4);
 
 	DRegisterStubRpc(this, game_server, remove_entity, 1);
 
@@ -157,25 +160,35 @@ void game_server::db_query(const char* table, const char* query, const char* fie
 void game_server::db_opt_with_status(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)
 {
 	db_opt(opt_type, table, query, fields);
-	m_db_status_callbacks[m_db_opt_id] = callback;
+	m_db_status_callbacks[m_opt_id] = callback;
 }
 
 void game_server::db_opt_with_result(uint8 opt_type, const char * table, const char * query, const char * fields, const std::function<void(bool, const binary_data&)>& callback)
 {
 	db_opt(opt_type, table, query, fields);
-	m_db_result_callbacks[m_db_opt_id] = callback;
+	m_db_result_callbacks[m_opt_id] = callback;
 }
 
 void game_server::db_opt(uint8 opt_type, const char * table, const char * query, const char * fields)
 {
-	m_db_opt_id += 1;
+	m_opt_id += 1;
 	rpc_client* rpc = DRpcWrapper.get_random_client(m_server_info.process_info.server_id, PROCESS_DB);
 	if (NULL != rpc) {
 		dynamic_string tmp_table(table);
 		dynamic_string tmp_query(query);
 		dynamic_string tmp_fields(fields);
-		rpc->call_remote_func("add_executor", opt_type, m_db_opt_id, tmp_table, tmp_query, tmp_fields);
+		rpc->call_remote_func("add_executor", opt_type, m_opt_id, tmp_table, tmp_query, tmp_fields);
 	}
+}
+
+void game_server::http_request(const dynamic_string& host, const dynamic_string& url, const dynamic_string& params, bool usessl, const std::function<void(int, const dynamic_string&)>& callback)
+{
+	m_opt_id += 1;
+	rpc_client* rpc = DRpcWrapper.get_random_client(m_server_info.process_info.server_id, PROCESS_HTTP_CLIENT);
+	if (NULL != rpc) {
+		rpc->call_remote_func("http_request", m_opt_id, host, url, params, usessl);
+	}
+	m_http_response_callbacks[m_opt_id] = callback;
 }
 
 void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, const account_info& account)
@@ -231,11 +244,21 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 			continue;
 		}
 
-		if (DNetMgr.start_connect<db_manager_handler>(server_info.ip.data(), server_info.port)) {
-			log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+		if (server_info.process_info.process_type == PROCESS_DB) {
+			if (DNetMgr.start_connect<db_manager_handler>(server_info.ip.data(), server_info.port)) {
+				log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+			}
+			else {
+				log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+			}
 		}
-		else {
-			log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+		else if (server_info.process_info.process_type == PROCESS_HTTP_CLIENT) {
+			if (DNetMgr.start_connect<http_client_handler>(server_info.ip.data(), server_info.port)) {
+				log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+			}
+			else {
+				log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+			}
 		}
 	}
 }
@@ -252,7 +275,7 @@ void game_server::remove_entity(TSocketIndex_t client_id)
 	}
 }
 
-void game_server::on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status)
+void game_server::on_opt_db_with_status(TSocketIndex_t socket_index, TOptID_t opt_id, bool status)
 {
 	auto itr = m_db_status_callbacks.find(opt_id);
 	if (itr == m_db_status_callbacks.end()) {
@@ -262,13 +285,23 @@ void game_server::on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t 
 	callback(status);
 }
 
-void game_server::on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const binary_data& result)
+void game_server::on_opt_db_with_result(TSocketIndex_t socket_index, TOptID_t opt_id, bool status, const binary_data& result)
 {
 	auto itr = m_db_result_callbacks.find(opt_id);
 	if (itr == m_db_result_callbacks.end()) {
 		return;
 	}
 	const std::function<void(bool, const binary_data&)>& callback = itr->second;
+	callback(status, result);
+}
+
+void game_server::on_http_response(TSocketIndex_t socket_index, TOptID_t opt_id, int status, const dynamic_string& result)
+{
+	auto itr = m_http_response_callbacks.find(opt_id);
+	if (itr == m_http_response_callbacks.end()) {
+		return;
+	}
+	const std::function<void(int, const dynamic_string&)>& callback = itr->second;
 	callback(status, result);
 }
 
@@ -279,6 +312,12 @@ void game_server::on_connect(TSocketIndex_t socket_index)
 	if (DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index)) {
 		if (process_info.process_type == PROCESS_DB) {
 			DSequence.save();
+		}
+		else if (process_info.process_type == PROCESS_HTTP_CLIENT) {
+			http_request("www.boost.org", "/LICENSE_1_0.txt", "user_name=mowang", true, [&](int status, const dynamic_string& result) {
+				log_info("status %d, result %s", status, result.data());
+			});
+			//http_request("localhost", "/sentry/process_trace", "user_name=mowang", false);
 		}
 	}
 }

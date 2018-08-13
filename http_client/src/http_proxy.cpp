@@ -49,6 +49,16 @@ void http_proxy::bind_write()
 	);
 }
 
+void http_proxy::bind_read_status_line()
+{
+	boost::asio::async_read_until(
+		m_socket, 
+		m_response, 
+		"\r\n",
+		boost::bind(&http_proxy::handle_read_status_line, this, boost::asio::placeholders::error)
+	);
+}
+
 void http_proxy::bind_read_header()
 {
 	boost::asio::async_read_until(

@@ -150,8 +150,8 @@ const TSex_t INVALID_SEX = 0;
 typedef uint32 TSequenceID_t;			// 序列ID
 const TSequenceID_t INVALID_SEQUENCE_ID = 0;
 
-typedef uint64 TDbOptID_t;				// db操作ID
-const TDbOptID_t INVALID_DB_OPT_ID = 0;
+typedef uint64 TOptID_t;				// 操作ID
+const TOptID_t INVALID_OPT_ID = 0;
 
 typedef uint64 TTimerID_t;				// 计时器ID
 const TTimerID_t INVALID_TIMER_ID = 0;

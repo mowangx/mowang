@@ -57,14 +57,18 @@ private:
 	void db_opt(uint8 opt_type, const char* table, const char* query, const char* fields);
 
 public:
+	void http_request(const dynamic_string& host, const dynamic_string& url, const dynamic_string& params, bool usessl, const std::function<void(int, const dynamic_string&)>& callback);
+
+public:
 	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, const account_info& account);
 	void logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 	virtual void register_server(TSocketIndex_t socket_index, const game_server_info& server_info) override;
 	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
 	void create_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name);
 	void remove_entity(TSocketIndex_t client_id);
-	void on_opt_db_with_status(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status);
-	void on_opt_db_with_result(TSocketIndex_t socket_index, TDbOptID_t opt_id, bool status, const binary_data& result);
+	void on_opt_db_with_status(TSocketIndex_t socket_index, TOptID_t opt_id, bool status);
+	void on_opt_db_with_result(TSocketIndex_t socket_index, TOptID_t opt_id, bool status, const binary_data& result);
+	void on_http_response(TSocketIndex_t socket_index, TOptID_t opt_id, int status, const dynamic_string& result);
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;
@@ -83,9 +87,10 @@ private:
 	TRoleID_t get_role_id_by_client_id(TSocketIndex_t client_id) const;
 
 private:
-	TDbOptID_t m_db_opt_id;
-	std::unordered_map<TDbOptID_t, std::function<void(bool, const binary_data&)>> m_db_result_callbacks;
-	std::unordered_map<TDbOptID_t, std::function<void(bool)>> m_db_status_callbacks;
+	TOptID_t m_opt_id;
+	std::unordered_map<TOptID_t, std::function<void(bool, const binary_data&)>> m_db_result_callbacks;
+	std::unordered_map<TOptID_t, std::function<void(bool)>> m_db_status_callbacks;
+	std::unordered_map<TOptID_t, std::function<void(int, const dynamic_string&)>> m_http_response_callbacks;
 	obj_memory_pool<resource, 65536> m_resource_pool;
 	obj_memory_pool<city, 1024> m_city_pool;
 	obj_memory_pool<npc, 1024> m_npc_pool;

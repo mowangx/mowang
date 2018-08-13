@@ -22,7 +22,7 @@ private:
 	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
 
 public:
-	void http_request(TSocketIndex_t socket_index, const dynamic_string& host, const dynamic_string& url, const dynamic_string& params, bool usessl);
+	void http_request(TSocketIndex_t socket_index, TOptID_t opt_id, const dynamic_string& host, const dynamic_string& url, const dynamic_string& params, bool usessl);
 
 private:
 	boost::asio::io_service m_io_service;

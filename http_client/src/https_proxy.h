@@ -16,6 +16,7 @@ private:
 	virtual void bind_connect() override;
 	virtual void bind_handshake() override;
 	virtual void bind_write() override;
+	virtual void bind_read_status_line() override;
 	virtual void bind_read_header() override;
 	virtual void bind_read_body() override;
 

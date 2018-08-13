@@ -26,11 +26,13 @@ private:
 	void broadcast_db(const game_server_info& server_info) const;
 	void broadcast_games() const;
 	void broadcast_game(const game_server_info& server_info) const;
+	void broadcast_http_clients() const;
+	void broadcast_http_client(const game_server_info& server_info) const;
 private:
-	void broadcast_db_core(const dynamic_array<game_server_info>& servers) const;
-	void broadcast_game_core(const dynamic_array<game_server_info>& servers) const;
+	void broadcast_core(const dynamic_array<game_server_info>& servers, game_process_type src_type, game_process_type dest_type) const;
 	void unicast_to_game(const game_process_info& process_info) const;
 	void unicast_to_gate(const game_process_info& process_info) const;
+	void unicast_core(rpc_client* rpc, TServerID_t server_id, const std::vector<TProcessType_t>& process_types) const;
 
 public:
 	void create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TStubName_t& stub_name);

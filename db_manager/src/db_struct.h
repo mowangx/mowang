@@ -9,7 +9,7 @@
 struct db_opt_info
 {
 	uint8 opt_type;		// 1: select, 2: update, 3: insert, 4: delete
-	TDbOptID_t opt_id;
+	TOptID_t opt_id;
 	TSocketIndex_t socket_index;
 	std::string table_name;
 	std::string condition; // need split by or and ?

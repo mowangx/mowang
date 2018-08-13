@@ -15,12 +15,13 @@ public:
 	virtual ~http_proxy_base();
 
 public:
-	void start_request(const dynamic_string& host, const dynamic_string& url, const dynamic_string& body);
+	void start_request(const dynamic_string& host, const dynamic_string& url, const dynamic_string& body, std::function<void(int, const dynamic_string&)> callback);
 
 protected:
 	void handle_connect(const boost::system::error_code& error);
 	void handle_handshake(const boost::system::error_code& error);
 	void handle_write(const boost::system::error_code& error);
+	void handle_read_status_line(const boost::system::error_code& error);
 	void handle_read_headers(const boost::system::error_code& err);
 	void handle_read_body(const boost::system::error_code& err);
 protected:
@@ -29,6 +30,7 @@ protected:
 	virtual void bind_connect() = 0;
 	virtual void bind_handshake() = 0;
 	virtual void bind_write() = 0;
+	virtual void bind_read_status_line() = 0;
 	virtual void bind_read_header() = 0;
 	virtual void bind_read_body() = 0;
 
@@ -40,6 +42,8 @@ protected:
 	dynamic_string m_host;
 	dynamic_string m_url;
 	dynamic_string m_body;
+	dynamic_string m_res_body;
+	std::function<void(int, const dynamic_string&)> m_callback;
 };
 
 #endif // !_HTTP_PROXY_BASE_H_

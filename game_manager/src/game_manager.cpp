@@ -78,76 +78,88 @@ void game_manager::broadcast_dbs() const
 {
 	dynamic_array<game_server_info> servers;
 	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, PROCESS_DB, servers);
-	broadcast_db_core(servers);
+	broadcast_core(servers, PROCESS_DB, PROCESS_GAME);
 }
 
 void game_manager::broadcast_db(const game_server_info& server_info) const
 {
 	dynamic_array<game_server_info> servers;
 	servers.push_back(server_info);
-	broadcast_db_core(servers);
+	broadcast_core(servers, PROCESS_DB, PROCESS_GAME);
 }
 
 void game_manager::broadcast_games() const
 {
 	dynamic_array<game_server_info> servers;
 	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, PROCESS_GAME, servers);
-	broadcast_game_core(servers);
+	broadcast_core(servers, PROCESS_GAME, PROCESS_GATE);
 }
 
 void game_manager::broadcast_game(const game_server_info& server_info) const
 {
 	dynamic_array<game_server_info> servers;
 	servers.push_back(server_info);
-	broadcast_game_core(servers);
+	broadcast_core(servers, PROCESS_GAME, PROCESS_GATE);
 }
 
-void game_manager::broadcast_db_core(const dynamic_array<game_server_info>& servers) const
+void game_manager::broadcast_http_clients() const
+{
+	dynamic_array<game_server_info> servers;
+	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, PROCESS_HTTP_CLIENT, servers);
+	broadcast_core(servers, PROCESS_HTTP_CLIENT, PROCESS_GAME);
+}
+
+void game_manager::broadcast_http_client(const game_server_info & server_info) const
+{
+	dynamic_array<game_server_info> servers;
+	servers.push_back(server_info);
+	broadcast_core(servers, PROCESS_HTTP_CLIENT, PROCESS_GAME);
+}
+
+void game_manager::broadcast_core(const dynamic_array<game_server_info>& servers, game_process_type src_type, game_process_type dest_type) const
 {
 	dynamic_array<game_server_info> game_servers;
-	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, PROCESS_GAME, game_servers);
+	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, dest_type, game_servers);
 	for (int i = 0; i < game_servers.size(); ++i) {
 		const game_server_info& server_info = game_servers[i];
 		rpc_client* rpc = DRpcWrapper.get_client(server_info.process_info);
 		if (NULL != rpc) {
-			rpc->call_remote_func("on_register_servers", m_server_info.process_info.server_id, (TProcessType_t)PROCESS_DB, servers);
-		}
-	}
-}
-
-void game_manager::broadcast_game_core(const dynamic_array<game_server_info>& servers) const
-{
-	dynamic_array<game_server_info> gate_servers;
-	DRpcWrapper.get_server_infos(m_server_info.process_info.server_id, PROCESS_GATE, gate_servers);
-	for (int i = 0; i < gate_servers.size(); ++i) {
-		const game_server_info& server_info = gate_servers[i];
-		rpc_client* rpc = DRpcWrapper.get_client(server_info.process_info);
-		if (NULL != rpc) {
-			rpc->call_remote_func("on_register_servers", m_server_info.process_info.server_id, (TProcessType_t)PROCESS_GAME, servers);
+			rpc->call_remote_func("on_register_servers", m_server_info.process_info.server_id, (TProcessType_t)src_type, servers);
 		}
 	}
 }
 
 void game_manager::unicast_to_game(const game_process_info& process_info) const
 {
-	dynamic_array<game_server_info> servers;
-	DRpcWrapper.get_server_infos(process_info.server_id, PROCESS_DB, servers);
-	dynamic_array<game_stub_info> stub_infos;
-	DRpcWrapper.get_stub_infos(stub_infos);
 	rpc_client* rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
-		rpc->call_remote_func("on_register_servers", process_info.server_id, (TProcessType_t)PROCESS_DB, servers);
+		std::vector<TProcessType_t> process_types;
+		process_types.push_back(PROCESS_DB);
+		process_types.push_back(PROCESS_HTTP_CLIENT);
+		unicast_core(rpc, process_info.server_id, process_types);
+
+		dynamic_array<game_stub_info> stub_infos;
+		DRpcWrapper.get_stub_infos(stub_infos);
 		rpc->call_remote_func("on_register_entity", stub_infos);
 	}
 }
 
 void game_manager::unicast_to_gate(const game_process_info& process_info) const
 {
-	dynamic_array<game_server_info> servers;
-	DRpcWrapper.get_server_infos(process_info.server_id, PROCESS_GAME, servers);
 	rpc_client* rpc = DRpcWrapper.get_client(process_info);
 	if (NULL != rpc) {
-		rpc->call_remote_func("on_register_servers", process_info.server_id, (TProcessType_t)PROCESS_GAME, servers);
+		std::vector<TProcessType_t> process_types;
+		process_types.push_back(PROCESS_GAME);
+		unicast_core(rpc, process_info.server_id, process_types);
+	}
+}
+
+void game_manager::unicast_core(rpc_client* rpc, TServerID_t server_id, const std::vector<TProcessType_t>& process_types) const
+{
+	for (TProcessType_t process_type : process_types) {
+		dynamic_array<game_server_info> servers;
+		DRpcWrapper.get_server_infos(server_id, process_type, servers);
+		rpc->call_remote_func("on_register_servers", server_id, process_type, servers);
 	}
 }
 
@@ -209,11 +221,15 @@ void game_manager::on_connect(TSocketIndex_t socket_index)
 		else if (process_info.process_type == PROCESS_GATE) {
 			unicast_to_gate(process_info);
 		}
+		else if (process_info.process_type == PROCESS_HTTP_CLIENT) {
+			broadcast_http_client(server_info);
+		}
 	}
 	else if (check_all_process_start()) {
 		m_broadcast_flag = true;
 		broadcast_dbs();
 		broadcast_games();
+		broadcast_http_clients();
 		log_info("all process are start! broadcast server infos");
 	}
 }
