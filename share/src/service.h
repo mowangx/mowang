@@ -32,6 +32,7 @@ public:
 
 protected:
 	virtual void do_loop(TGameTime_t diff);
+	void loop_run(const std::function<bool(TGameTime_t)>& callback);
 
 private:
 	void try_reconnect_server();

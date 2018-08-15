@@ -39,20 +39,18 @@ void robot_server::init_ws_process_func()
 
 void robot_server::net_run()
 {
-	log_info("init socket manager success");
-	while (true) {
-		DNetMgr.update(0);
+	loop_run([this](TGameTime_t diff) -> bool {
+		DNetMgr.update(diff);
 		//DNetMgr.test_kick();
 
 		if (DNetMgr.socket_num() < 2) {
 			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", DGameRandom.get_rand<int>(10010, 10012))) {
 				log_info("connect server failed");
-				break;
+				return false;
 			}
 		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
+		return true;
+	});
 }
 
 void robot_server::ws_run()
@@ -65,10 +63,10 @@ void robot_server::ws_run()
 	DWSNetMgr.start_connect(url);
 	log_info("init websocket manager success");
 
-	while (true) {
-		DWSNetMgr.update(0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
+	loop_run([this](TGameTime_t diff) -> bool {
+		DWSNetMgr.update(diff);
+		return true;
+	});
 }
 void robot_server::process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets)
 {

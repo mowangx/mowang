@@ -49,10 +49,10 @@ void ws_service::init_threads()
 
 void ws_service::ws_run()
 {
-	while (true) {
-		DWSNetMgr.update(0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
+	loop_run([this](TGameTime_t diff) -> bool {
+		DWSNetMgr.update(diff);
+		return true;
+	});
 }
 
 void ws_service::do_loop(TGameTime_t diff)

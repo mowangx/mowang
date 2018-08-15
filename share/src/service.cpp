@@ -89,37 +89,32 @@ void service::init_threads()
 
 void service::work_run()
 {
-	TAppTime_t before_loop_time(0), after_loop_time(0);
-	TGameTime_t frame_time = m_config.get_frame_time();
-	while (true) {
-		before_loop_time = DTimeMgr.update();
-		do_loop(0);
-		after_loop_time = DTimeMgr.update();
-		if ((after_loop_time - before_loop_time) < frame_time) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(frame_time + before_loop_time - after_loop_time));
-		}
-	}
+	loop_run([this](TGameTime_t diff) -> bool {
+		do_loop(diff);
+		return true;
+	});
 }
 
 void service::net_run()
 {
-	while (true) {
-		DNetMgr.update(0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
+	loop_run([this](TGameTime_t diff) -> bool {
+		DNetMgr.update(diff);
+		return true;
+	});
 }
 
 void service::log_run()
 {
-	while (true) {
+	loop_run([this](TGameTime_t diff) -> bool {
 		DLogMgr.flush();
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
+		return true;
+	});
 }
 
 void service::do_loop(TGameTime_t diff)
 {
 	// 
+	DTimeMgr.update();
 	DTimer.update(diff);
 
 	std::vector<packet_recv_info*> read_packets;
@@ -152,6 +147,17 @@ void service::do_loop(TGameTime_t diff)
 	m_wait_kick_sockets.clear();
 
 	try_reconnect_server();
+}
+
+void service::loop_run(const std::function<bool(TGameTime_t)>& callback)
+{
+	TGameTime_t frame_time = m_config.get_frame_time();
+	while (true) {
+		if (!callback(0)) {
+			break;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(frame_time));
+	}
 }
 
 void service::try_reconnect_server()
