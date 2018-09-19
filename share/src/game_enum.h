@@ -2,6 +2,11 @@
 #ifndef _GAME_ENUM_H_
 #define _GAME_ENUM_H_
 
+enum tls_mode {
+	MOZILLA_INTERMEDIATE = 1,
+	MOZILLA_MODERN = 2
+};
+
 // 进程类型
 enum game_process_type
 {

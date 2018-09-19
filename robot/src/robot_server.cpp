@@ -55,12 +55,8 @@ void robot_server::net_run()
 
 void robot_server::ws_run()
 {
-	int random_port = DGameRandom.get_rand<int>(0, 10000);
-	std::cout << random_port << std::endl;
-	TPort_t port = 10101 + (random_port % 3) * 10;
-	std::string url = gx_to_string("ws://127.0.0.1:%d", port);
-	std::cout << url << std::endl;
-	DWSNetMgr.start_connect(url);
+	TPort_t port = 10101 + DGameRandom.get_rand<int>(0, 2) * 10;
+	DWSNetMgr.start_connect("mowang.com", 10101);
 	log_info("init websocket manager success");
 
 	loop_run([this](TGameTime_t diff) -> bool {
@@ -68,6 +64,7 @@ void robot_server::ws_run()
 		return true;
 	});
 }
+
 void robot_server::process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets)
 {
 	for (auto socket : sockets) {

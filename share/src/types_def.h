@@ -28,6 +28,7 @@
 
 // Operating systems definition
 #ifdef OS_WIN32
+#	define strcasecmp _stricmp
 #	define OS_WINDOWS				// windows
 #	define LITTLE_ENDIAN			// 大小端
 #	define CPU_INTEL				// Intel CPU

@@ -24,3 +24,7 @@
 	6.2 build reference https://www.cnblogs.com/chinalantian/p/5819105.html  &&  https://blog.csdn.net/u013214392/article/details/78621707
 	6.3 visual studio tools --> vc ---> 适用于x64本机命令工具提示符
 	
+7. wss
+	7.1 自签证书 https://www.cnblogs.com/liqingjht/p/6267563.html  && https://blog.csdn.net/oldmtn/article/details/52208747 && https://segmentfault.com/a/1190000002554673
+	7.2 server证书有域名，client证书无域名
+	

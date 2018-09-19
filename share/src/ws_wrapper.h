@@ -2,9 +2,14 @@
 #ifndef _WS_WRAPPER_H_
 #define _WS_WRAPPER_H_
 
-#include <websocketpp/config/asio_no_tls_client.hpp>
-#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio.hpp>
+#ifdef OPEN_SSL
+#include <websocketpp/config/asio_client.hpp>
+#else
 #include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/config/asio_no_tls_client.hpp>
+#endif
+#include <websocketpp/client.hpp>
 #include <websocketpp/server.hpp>
 
 #include "base_util.h"
@@ -12,8 +17,19 @@
 #include "log.h"
 #include "socket_handler.h"
 
-typedef websocketpp::client<websocketpp::config::asio_client> web_socket_client;
-typedef websocketpp::server<websocketpp::config::asio> web_socket_server;
+#ifdef OPEN_SSL
+typedef websocketpp::config::asio_tls_client asio_client;
+typedef websocketpp::config::asio_tls asio_server;;
+#else
+typedef websocketpp::config::asio_client asio_client;
+typedef websocketpp::config::asio asio_server;
+#endif
+
+namespace asio = websocketpp::lib::asio;
+typedef websocketpp::lib::shared_ptr<asio::ssl::context> context_ptr;
+
+typedef websocketpp::client<asio_client> web_socket_client;
+typedef websocketpp::server<asio_server> web_socket_server;
 
 struct packet_buffer_info;
 
@@ -67,7 +83,7 @@ private:
 	T* m_endpoint;
 };
 
-class web_socket_client_wrapper : public web_socket_wrapper<websocketpp::client<websocketpp::config::asio_client>>
+class web_socket_client_wrapper : public web_socket_wrapper<web_socket_client>
 {
 public:
 	web_socket_client_wrapper(TSocketIndex_t socket_index, web_socket_client* client, websocketpp::connection_hdl hdl, std::string uri);
@@ -77,7 +93,7 @@ private:
 	std::string m_server;
 };
 
-class web_socket_server_wrapper : public web_socket_wrapper<websocketpp::server<websocketpp::config::asio>>
+class web_socket_server_wrapper : public web_socket_wrapper<web_socket_server>
 {
 public:
 	web_socket_server_wrapper(TSocketIndex_t socket_index, web_socket_server* server, websocketpp::connection_hdl hdl);
