@@ -159,6 +159,12 @@ const TTimerID_t INVALID_TIMER_ID = 0;
 typedef uint8 TDbVersion_t;				// 数据库版本号
 const TDbVersion_t INVALID_DB_VERSION = 0;
 
+typedef uint16 TRoomID_t;				// 房间编号
+const TRoomID_t INVALID_ROOM_ID = 0;
+
+typedef uint8 TCardIndex_t;				// 牌索引
+const TCardIndex_t INVALID_CARD_INDEX = 0;
+
 //根据指针值删除内存
 #ifndef DSafeDelete
 #define DSafeDelete(x)	if( (x)!=NULL ) { delete (x); (x)=NULL; }

@@ -43,6 +43,16 @@ private:
 	void on_role_login_success();
 
 public:
+	void enter_random();
+	void create_room(const dynamic_string& pwd);
+	void enter_room(TRoomID_t room_id, const dynamic_string& pwd);
+
+public:
+	void ready_start();
+	void add_cards(const dynamic_array<TCardIndex_t>& cards);
+	void pop_cards(const dynamic_array<TCardIndex_t>& cards);
+
+public:
 	void fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos);
 	void gather(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos);
 

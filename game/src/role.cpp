@@ -227,6 +227,31 @@ void role::on_role_login_success()
 	});
 }
 
+void role::enter_random()
+{
+
+}
+
+void role::create_room(const dynamic_string & pwd)
+{
+}
+
+void role::enter_room(TRoomID_t room_id, const dynamic_string & pwd)
+{
+}
+
+void role::ready_start()
+{
+}
+
+void role::add_cards(const dynamic_array<TCardIndex_t>& cards)
+{
+}
+
+void role::pop_cards(const dynamic_array<TCardIndex_t>& cards)
+{
+}
+
 void role::fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos)
 {
 	city* c = get_city(src_pos);

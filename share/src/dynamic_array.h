@@ -94,6 +94,15 @@ public:
 		return true;
 	}
 
+	size_t find(const T& data) {
+		for (uint16 i = 0; i < m_len; ++i) {
+			if (m_data[i] == data) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	bool empty() const {
 		return size() == 0;
 	}

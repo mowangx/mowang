@@ -121,4 +121,20 @@ struct fight_info
 	}
 };
 
+struct room_role_info
+{
+	bool status;
+	mailbox_info mailbox;
+	proxy_info proxy;
+	std::vector<TCardIndex_t> cards;
+
+	room_role_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		status = false;
+	}
+};
+
 #endif // !_GAME_STRUCT_H_
