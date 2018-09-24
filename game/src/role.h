@@ -4,16 +4,16 @@
 
 #include <vector>
 
-#include "entity.h"
+#include "server_entity.h"
 #include "game_struct.h"
 #include "packet_struct.h"
 #include "dynamic_array.h"
 
 class city;
 
-class role : public entity
+class role : public server_entity
 {
-	typedef entity TBaseType_t;
+	typedef server_entity TBaseType_t;
 
 public:
 	role();
@@ -87,18 +87,6 @@ public:
 	void set_test_client_id(TSocketIndex_t client_id);
 	TSocketIndex_t get_test_client_id() const;
 
-	void set_server_id(TServerID_t server_id);
-	TServerID_t get_server_id() const;
-
-	void set_gate_id(TProcessID_t gate_id);
-	TProcessID_t get_gate_id() const;
-	
-	void set_game_id(TProcessID_t game_id);
-	TProcessID_t get_game_id() const;
-	
-	void set_client_id(TSocketIndex_t client_id);
-	TSocketIndex_t get_client_id() const;
-
 	void set_role_name(const TRoleName_t& role_name);
 	const TRoleName_t& get_role_name() const;
 	
@@ -111,9 +99,6 @@ public:
 	void set_user_id(const TUserID_t& user_id);
 	const TUserID_t& get_user_id() const;
 
-public:
-	const proxy_info& get_proxy_info() const;
-
 private:
 	void save();
 
@@ -124,7 +109,6 @@ private:
 public:
 	bool m_login_success;
 	bool m_destroy_flag;
-	proxy_info m_proxy_info;
 	TSocketIndex_t m_test_client_id;
 	TPlatformID_t m_platform_id;
 	TUserID_t m_user_id;

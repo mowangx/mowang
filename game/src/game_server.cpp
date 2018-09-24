@@ -201,8 +201,6 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 	// send msg to db manager to query role id from db by platform id and user id
 	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
 	role* p = (role*)create_entity_locally("role");
-	p->set_server_id(100);
-	p->set_game_id(m_server_info.process_info.process_id);
 	p->set_client_id(client_id);
 	p->set_gate_id(gate_id);
 	p->set_role_name(account.role_name);

@@ -38,7 +38,7 @@ bool role::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_
 void role::test(uint8 param_1, uint16 param_2)
 {
 	log_debug("role test! param_1 %d, param_2 %d", param_1, param_2);
-	DRpcWrapper.call_ws_client(get_proxy_info(), "{\"cmd\":\"response\", \"ret_code\": 9, \"user_id\": \"xiedi\"}");
+	DRpcWrapper.call_ws_client(get_proxy(), "{\"cmd\":\"response\", \"ret_code\": 9, \"user_id\": \"xiedi\"}");
 }
 
 void role::login(TPlatformID_t platform_id, const TTokenID_t& token)
@@ -53,11 +53,11 @@ void role::login(TPlatformID_t platform_id, const TTokenID_t& token)
 	memcpy(user_id.data(), token.data(), len);
 	set_user_id(user_id);
 
-	DRpcWrapper.call_stub("roll_stub", "register_account", get_platform_id(), get_user_id(), get_proxy_info(), get_mailbox(), get_test_client_id());
+	DRpcWrapper.call_stub("roll_stub", "register_account", get_platform_id(), get_user_id(), get_proxy(), get_mailbox(), get_test_client_id());
 
 	std::string msg = gx_to_string("{\"cmd\": \"login\", \"ret_code\": 0, \"name\": \"%s\", \"role_id\": %" I64_FMT "u, \"sex\": %u, \"level\": %d}", 
 		m_role_name.data(), m_role_id, m_sex, m_level);
-	DRpcWrapper.call_ws_client(get_proxy_info(), msg);
+	DRpcWrapper.call_ws_client(get_proxy(), msg);
 }
 
 void role::logout()
@@ -166,7 +166,7 @@ void role::on_load_role_callback(bool status, const binary_data& result)
 void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)
 {
 	log_info("role on relay success! cur entity id %" I64_FMT "u, kick entity id %" I64_FMT "u", get_entity_id(), mailbox.entity_id);
-	DRpcWrapper.call_client(get_proxy_info(), "logout", (uint8)LOGOUT_RELAY, get_test_client_id());
+	DRpcWrapper.call_client(get_proxy(), "logout", (uint8)LOGOUT_RELAY, get_test_client_id());
 	game_process_info process_info;
 	process_info.server_id = get_server_id();
 	process_info.process_type = PROCESS_GATE;
@@ -190,8 +190,9 @@ void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox
 	else {
 		DRpcWrapper.call_entity(mailbox, "on_relay_logout");
 	}
-	DGameServer.update_role_proxy_info(get_proxy_info(), proxy);
-	m_proxy_info = proxy;
+	DGameServer.update_role_proxy_info(get_proxy(), proxy);
+	set_gate_id(proxy.gate_id);
+	set_client_id(proxy.client_id);
 
 	process_info.process_id = get_gate_id();
 	rpc = DRpcWrapper.get_client(process_info);
@@ -212,7 +213,7 @@ void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox
 void role::on_account_login_success()
 {
 	log_info("on account login success! entity id %" I64_FMT "u", get_entity_id());
-	DRpcWrapper.call_stub("roll_stub", "register_role", get_platform_id(), get_user_id(),  get_role_id(), get_proxy_info(), get_mailbox(), get_test_client_id());
+	DRpcWrapper.call_stub("roll_stub", "register_role", get_platform_id(), get_user_id(),  get_role_id(), get_proxy(), get_mailbox(), get_test_client_id());
 }
 
 void role::on_role_login_success()
@@ -247,14 +248,14 @@ void role::on_create_room(TEntityID_t entity_id, TRoomID_t room_id)
 		return;
 	}
 
-	r->enter_room(get_role_id(), get_mailbox(), get_proxy_info());
+	r->enter_room(get_role_id(), get_mailbox(), get_proxy());
 	on_enter_room(r->get_mailbox());
 	r->set_room_id(room_id);
 }
 
 void role::enter_room(TRoomID_t room_id, const dynamic_string & pwd)
 {
-	DRpcWrapper.call_stub("room_stub", "enter_room", room_id, m_role_id, m_mailbox, m_proxy_info, pwd);
+	DRpcWrapper.call_stub("room_stub", "enter_room", room_id, get_role_id(), get_mailbox(), get_proxy(), pwd);
 }
 
 void role::on_enter_room(const mailbox_info & mailbox)
@@ -264,11 +265,12 @@ void role::on_enter_room(const mailbox_info & mailbox)
 
 void role::ready_start()
 {
+	DRpcWrapper.call_entity(m_room_mailbox, "ready_start", get_role_id());
 }
 
 void role::pop_cards(const dynamic_array<TCardIndex_t>& cards)
 {
-	DRpcWrapper.call_entity(m_room_mailbox, "pop_cards", m_role_id, cards);
+	DRpcWrapper.call_entity(m_room_mailbox, "pop_cards", get_role_id(), cards);
 }
 
 void role::fight(TNpcIndex_t npc_id, dynamic_array<soldier_info>& soldiers, const game_pos& src_pos, const game_pos& dest_pos)
@@ -399,45 +401,6 @@ TSocketIndex_t role::get_test_client_id() const
 	return m_test_client_id;
 }
 
-void role::set_server_id(TServerID_t server_id)
-{
-	m_proxy_info.server_id = server_id;
-}
-
-TServerID_t role::get_server_id() const
-{
-	return m_mailbox.server_id;
-}
-
-void role::set_gate_id(TProcessID_t gate_id)
-{
-	m_proxy_info.gate_id = gate_id;
-}
-
-TProcessID_t role::get_gate_id() const
-{
-	return m_proxy_info.gate_id;
-}
-
-void role::set_game_id(TProcessID_t game_id)
-{
-}
-
-TProcessID_t role::get_game_id() const
-{
-	return m_mailbox.game_id;
-}
-
-void role::set_client_id(TSocketIndex_t client_id)
-{
-	m_proxy_info.client_id = client_id;
-}
-
-TSocketIndex_t role::get_client_id() const
-{
-	return m_proxy_info.client_id;
-}
-
 void role::set_role_name(const TRoleName_t & role_name)
 {
 	m_role_name = role_name;
@@ -478,11 +441,6 @@ const TUserID_t & role::get_user_id() const
 	return m_user_id;
 }
 
-const proxy_info & role::get_proxy_info() const
-{
-	return m_proxy_info;
-}
-
 void role::save()
 {
 }
@@ -497,7 +455,6 @@ void role::clean_up()
 {
 	m_login_success = false;
 	m_destroy_flag = false;
-	m_proxy_info.clean_up();
 	m_role_id = INVALID_ROLE_ID;
 	m_level = 1;
 	m_sex = INVALID_SEX;

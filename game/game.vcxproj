@@ -193,6 +193,7 @@
     <ClCompile Include="src\room.cpp" />
     <ClCompile Include="src\room_stub.cpp" />
     <ClCompile Include="src\sequence.cpp" />
+    <ClCompile Include="src\server_entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\city.h" />
@@ -212,6 +213,7 @@
     <ClInclude Include="src\room.h" />
     <ClInclude Include="src\room_stub.h" />
     <ClInclude Include="src\sequence.h" />
+    <ClInclude Include="src\server_entity.h" />
     <ClInclude Include="src\tbl_test.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

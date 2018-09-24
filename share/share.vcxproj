@@ -241,6 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\debug.cpp" />
+    <ClCompile Include="src\entity.cpp" />
     <ClCompile Include="src\game_random.cpp" />
     <ClCompile Include="src\ini_file.cpp" />
     <ClCompile Include="src\log.cpp" />
