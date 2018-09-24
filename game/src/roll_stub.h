@@ -9,12 +9,14 @@
 
 class roll_stub : public entity
 {
+	typedef entity TBaseType_t;
+
 public:
 	roll_stub();
 	virtual ~roll_stub();
 
 public:
-	virtual bool init() override;
+	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id) override;
 
 public:
 	void register_account(TPlatformID_t platform_id, TUserID_t user_id, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);

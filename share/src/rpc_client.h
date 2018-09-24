@@ -21,11 +21,11 @@ rpc_by_name_packet packet; \
 int buffer_index = 0; \
 init_client_packet(transfer_packet, packet, client_id, func_name);
 
-#define DRpcCreateRolePacket \
-transfer_role_packet transfer_packet; \
-role_rpc_by_name_packet packet; \
+#define DRpcCreateEntityPacket \
+transfer_entity_packet transfer_packet; \
+entity_rpc_by_name_packet packet; \
 int buffer_index = 0; \
-init_role_packet(transfer_packet, packet, server_id, game_server_id, entity_id, func_name);
+init_entity_packet(transfer_packet, packet, server_id, game_server_id, entity_id, func_name);
 
 #define DRpcCreateStubPacket \
 std::string real_name = class_name + func_name; \
@@ -92,14 +92,14 @@ public:
 
 public:
 	// call role function, will transfer by gate
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name) {
-		DRpcCreateRolePacket;
+	void call_entity(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name) {
+		DRpcCreateEntityPacket;
 		send_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class... Args>
-	void call_role(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const Args&... args) {
-		DRpcCreateRolePacket;
+	void call_entity(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const Args&... args) {
+		DRpcCreateEntityPacket;
 		fill_packet(packet.m_buffer, buffer_index, args...);
 		send_packet(&packet, &transfer_packet, buffer_index);
 	}
@@ -130,7 +130,7 @@ private:
 		init_packet(packet, func_name);
 	}
 
-	void init_role_packet(transfer_role_packet& transfer_packet, role_rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id, const std::string& func_name) {
+	void init_entity_packet(transfer_entity_packet& transfer_packet, entity_rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id, const std::string& func_name) {
 		transfer_packet.m_server_id = server_id;
 		transfer_packet.m_game_id = game_id;
 		packet.m_entity_id = entity_id;

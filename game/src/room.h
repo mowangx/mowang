@@ -8,16 +8,21 @@
 
 class room : public entity
 {
+	typedef entity TBaseType_t;
+
 public:
 	room();
 	virtual ~room();
 
 public:
-	virtual bool init() override;
+	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id) override;
 
 public:
 	void enter_room(TRoleID_t role_id, const mailbox_info& mailbox, const proxy_info& proxy);
 	void leave_room(TRoleID_t role_id);
+
+public:
+	void set_room_id(TRoomID_t room_id);
 
 public:
 	void ready_start(TRoleID_t role_id);

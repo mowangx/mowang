@@ -8,12 +8,14 @@
 
 class fight_stub : public entity
 {
+	typedef entity TBaseType_t;
+
 public:
 	fight_stub();
 	virtual ~fight_stub();
 
 public:
-	virtual bool init() override;
+	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id) override;
 
 public:
 	void add_fight(TRoleID_t role_id, TNpcIndex_t npc_id, const game_pos& src_pos, const game_pos& dest_pos,

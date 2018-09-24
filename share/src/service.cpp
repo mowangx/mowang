@@ -304,3 +304,13 @@ rpc_client* service::get_client(TSocketIndex_t socket_index)
 	auto itr = m_clients.find(socket_index);
 	return itr != m_clients.end() ? itr->second : NULL;
 }
+
+TServerID_t service::get_server_id() const
+{
+	return m_server_info.process_info.server_id;
+}
+
+TProcessID_t service::get_game_id() const
+{
+	return m_server_info.process_info.process_id;
+}

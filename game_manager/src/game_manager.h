@@ -35,8 +35,8 @@ private:
 	void unicast_core(rpc_client* rpc, TServerID_t server_id, const std::vector<TProcessType_t>& process_types) const;
 
 public:
-	void create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TStubName_t& stub_name);
-	void register_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name, const game_process_info& process_info);
+	void create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TEntityName_t& entity_name);
+	void register_entity(TSocketIndex_t socket_index, const TEntityName_t& entity_name, const game_process_info& process_info);
 
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;

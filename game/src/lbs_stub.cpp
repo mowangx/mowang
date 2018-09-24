@@ -14,7 +14,7 @@ lbs_stub::~lbs_stub()
 	clean_up();
 }
 
-bool lbs_stub::init()
+bool lbs_stub::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
 {
 	log_info("lbs stub init");
 	DRegisterStubRpc(this, lbs_stub, query_city, 3);
@@ -27,7 +27,7 @@ bool lbs_stub::init()
 		}
 	});
 
-	return true;
+	return TBaseType_t::init(server_id, game_id, entity_id);
 }
 
 void lbs_stub::query_city(const game_pos& pos, const mailbox_info& mailbox, const dynamic_string& callback)
@@ -38,7 +38,7 @@ void lbs_stub::query_city(const game_pos& pos, const mailbox_info& mailbox, cons
 	if (itr != m_pos_2_role.end()) {
 		role_id = itr->second;
 	}
-	DRpcWrapper.call_role(mailbox, callback.data(), role_id);
+	DRpcWrapper.call_entity(mailbox, callback.data(), role_id);
 }
 
 void lbs_stub::update_city(const game_pos& pos, TRoleID_t role_id)

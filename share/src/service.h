@@ -67,6 +67,8 @@ protected:
 
 public:
 	rpc_client* get_client(TSocketIndex_t socket_index);
+	TServerID_t get_server_id() const;
+	TProcessID_t get_game_id() const;
 
 protected:
 	TGameTime_t m_reconnect_interval_time;

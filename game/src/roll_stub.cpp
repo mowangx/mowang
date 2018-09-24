@@ -14,14 +14,14 @@ roll_stub::~roll_stub()
 	clean_up();
 }
 
-bool roll_stub::init()
+bool roll_stub::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
 {
 	log_info("roll stub init");
 	DRegisterStubRpc(this, roll_stub, register_account, 5);
 	DRegisterStubRpc(this, roll_stub, unregister_account, 2);
 	DRegisterStubRpc(this, roll_stub, register_role, 6);
 	DRegisterStubRpc(this, roll_stub, unregister_role, 1);
-	return true;
+	return TBaseType_t::init(server_id, game_id, entity_id);
 }
 
 void roll_stub::register_account(TPlatformID_t platform_id, TUserID_t user_id, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)
@@ -33,12 +33,12 @@ void roll_stub::register_account(TPlatformID_t platform_id, TUserID_t user_id, c
 		role_info.proxy = proxy;
 		role_info.mailbox = mailbox;
 		m_user_id_2_role_info[key_id] = role_info;
-		DRpcWrapper.call_role(role_info.mailbox, "on_register_account", true, proxy, mailbox, test_client_id);
+		DRpcWrapper.call_entity(role_info.mailbox, "on_register_account", true, proxy, mailbox, test_client_id);
 		log_info("register account success! platform id %u, user id %s, client id %" I64_FMT "u", platform_id, user_id.data(), proxy.client_id);
 	}
 	else {
 		stub_role_info& role_info = itr->second;
-		DRpcWrapper.call_role(role_info.mailbox, "on_register_account", false, proxy, mailbox, test_client_id);
+		DRpcWrapper.call_entity(role_info.mailbox, "on_register_account", false, proxy, mailbox, test_client_id);
 		log_info("register account success, but has registered, platform id %u, user id %s, cur client id %" I64_FMT "u, old client id %" I64_FMT "u",
 			platform_id, user_id.data(), proxy.client_id, role_info.proxy.client_id);
 
@@ -70,12 +70,12 @@ void roll_stub::register_role(TPlatformID_t platform_id, TUserID_t user_id, TRol
 		role_info.mailbox = mailbox;
 		m_user_id_2_role_info[key_id] = role_info;
 		m_role_id_2_role_info[role_id] = role_info;
-		DRpcWrapper.call_role(mailbox, "on_register_role", true, proxy, mailbox, test_client_id);
+		DRpcWrapper.call_entity(mailbox, "on_register_role", true, proxy, mailbox, test_client_id);
 		log_info("register role success! client id %" I64_FMT "u, role id %" I64_FMT "u", proxy.client_id, role_id);
 	}
 	else {
 		stub_role_info& role_info = itr->second;
-		DRpcWrapper.call_role(role_info.mailbox, "on_register_role", false, proxy, mailbox, test_client_id);
+		DRpcWrapper.call_entity(role_info.mailbox, "on_register_role", false, proxy, mailbox, test_client_id);
 		log_info("register role success, but role has registered! client id %" I64_FMT "u, role id %" I64_FMT "u", role_info.proxy.client_id, role_id);
 
 		role_info.proxy = proxy;

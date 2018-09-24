@@ -95,12 +95,12 @@ void rpc_stub::call_with_index(const std::string & func_name, char * buffer, TSo
 	m_proxy->call_with_index(func_name, buffer, socket_index);
 }
 
-rpc_role::rpc_role()
+rpc_entity::rpc_entity()
 {
 	m_proxys.clear();
 }
 
-rpc_role::~rpc_role()
+rpc_entity::~rpc_entity()
 {
 	for (auto itr = m_proxys.begin(); itr != m_proxys.end(); ++itr) {
 		rpc_proxy* proxy = itr->second;
@@ -111,7 +111,7 @@ rpc_role::~rpc_role()
 	m_proxys.clear();
 }
 
-void rpc_role::call(TEntityID_t entity_id, uint8 func_index, char * buffer)
+void rpc_entity::call(TEntityID_t entity_id, uint8 func_index, char * buffer)
 {
 	rpc_proxy* proxy = get_proxy(entity_id);
 	if (NULL != proxy) {
@@ -122,7 +122,7 @@ void rpc_role::call(TEntityID_t entity_id, uint8 func_index, char * buffer)
 	}
 }
 
-void rpc_role::call(TEntityID_t entity_id, const std::string & func_name, char * buffer)
+void rpc_entity::call(TEntityID_t entity_id, const std::string & func_name, char * buffer)
 {
 	rpc_proxy* proxy = get_proxy(entity_id);
 	if (NULL != proxy) {
@@ -133,7 +133,7 @@ void rpc_role::call(TEntityID_t entity_id, const std::string & func_name, char *
 	}
 }
 
-rpc_proxy * rpc_role::get_proxy(TEntityID_t entity_id) const
+rpc_proxy * rpc_entity::get_proxy(TEntityID_t entity_id) const
 {
 	auto itr = m_proxys.find(entity_id);
 	return itr != m_proxys.end() ? itr->second : NULL;

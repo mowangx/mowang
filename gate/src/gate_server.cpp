@@ -68,6 +68,9 @@ void gate_server::init_ws_process_func()
 {
 	m_cmd_2_parse_func["login"] = std::bind(&gate_server::process_login, this, std::placeholders::_1, std::placeholders::_2);
 	m_cmd_2_parse_func["test"] = std::bind(&gate_server::process_test, this, std::placeholders::_1, std::placeholders::_2);
+	m_cmd_2_parse_func["create_room"] = std::bind(&gate_server::process_create_room, this, std::placeholders::_1, std::placeholders::_2);
+	m_cmd_2_parse_func["enter_room"] = std::bind(&gate_server::process_enter_room, this, std::placeholders::_1, std::placeholders::_2);
+	m_cmd_2_parse_func["pop_cards"] = std::bind(&gate_server::process_pop_cards, this, std::placeholders::_1, std::placeholders::_2);
 }
 
 void gate_server::work_run()
@@ -257,6 +260,53 @@ void gate_server::process_test(TSocketIndex_t socket_index, boost::property_tree
 	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
 	transfer_server(socket_index, &packet);
 	log_debug("parse test!!! socket index %" I64_FMT "u,  param_1 %d, param_2 %d", socket_index, json->get<uint8>("param_1", 0), json->get<uint16>("param_2", 0));
+}
+
+void gate_server::process_create_room(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
+{
+	std::string tmp_pwd = json->get<std::string>("pwd", "");
+	dynamic_string pwd(tmp_pwd.c_str(), tmp_pwd.length());
+	transfer_server_by_name_packet packet;
+	std::string func_name = "create_room";
+	int buffer_index = 0;
+	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	fill_packet(packet.m_buffer, buffer_index, pwd);
+	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
+	transfer_server(socket_index, &packet);
+}
+
+void gate_server::process_enter_room(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
+{
+	TRoomID_t room_id = json->get<TRoomID_t>("room_id", 0);
+	std::string tmp_pwd = json->get<std::string>("pwd", "");
+	dynamic_string pwd(tmp_pwd.c_str(), tmp_pwd.length());
+	transfer_server_by_name_packet packet;
+	std::string func_name = "enter_room";
+	int buffer_index = 0;
+	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	fill_packet(packet.m_buffer, buffer_index, room_id);
+	fill_packet(packet.m_buffer, buffer_index, pwd);
+	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
+	transfer_server(socket_index, &packet);
+}
+
+void gate_server::process_pop_cards(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
+{
+	dynamic_array<TCardIndex_t> cards;
+	boost::property_tree::ptree json_cards = json->get_child("cards");
+	for (auto itr=json_cards.begin(); itr != json_cards.end(); ++itr)
+	{
+		TCardIndex_t card_id = itr->second.get_value<TCardIndex_t>();
+		cards.push_back(card_id);
+	}
+
+	transfer_server_by_name_packet packet;
+	std::string func_name = "pop_cards";
+	int buffer_index = 0;
+	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	fill_packet(packet.m_buffer, buffer_index, cards);
+	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
+	transfer_server(socket_index, &packet);
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

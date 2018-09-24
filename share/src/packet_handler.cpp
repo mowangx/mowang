@@ -71,17 +71,17 @@ bool game_handler::handle_stub_rpc_by_name(packet_base * packet) const
 	return true;
 }
 
-bool game_handler::handle_role_rpc_by_index(packet_base * packet) const
+bool game_handler::handle_entity_rpc_by_index(packet_base * packet) const
 {
-	role_rpc_by_index_packet* rpc_info = (role_rpc_by_index_packet*)packet;
-	DRpcRole.call(rpc_info->m_role_id, rpc_info->m_rpc_index, rpc_info->m_buffer);
+	entity_rpc_by_index_packet* rpc_info = (entity_rpc_by_index_packet*)packet;
+	DRpcEntity.call(rpc_info->m_entity_id, rpc_info->m_rpc_index, rpc_info->m_buffer);
 	return true;
 }
 
-bool game_handler::handle_role_rpc_by_name(packet_base * packet) const
+bool game_handler::handle_entity_rpc_by_name(packet_base * packet) const
 {
-	role_rpc_by_name_packet* rpc_info = (role_rpc_by_name_packet*)packet;
-	DRpcRole.call(rpc_info->m_entity_id, rpc_info->m_rpc_name, rpc_info->m_buffer);
+	entity_rpc_by_name_packet* rpc_info = (entity_rpc_by_name_packet*)packet;
+	DRpcEntity.call(rpc_info->m_entity_id, rpc_info->m_rpc_name, rpc_info->m_buffer);
 	return true;
 }
 

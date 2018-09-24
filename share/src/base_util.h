@@ -41,7 +41,7 @@ static const uint32 MAX_INI_VALUE = 1024;
 
 static const uint32 DELAY_KICK_SOCKET_TIME = 1; // 延迟清理socket的时间
 
-static const uint32 STUB_NAME_LEN = 32;	// stub长度
+static const uint32 ENTITY_NAME_LEN = 32;	// entity长度
 
 static const uint64 MAX_RESOURCE_INDEX = 64; // 建筑索引
 
@@ -136,7 +136,7 @@ typedef std::array<char, ROLE_NAME_LEN> TRoleName_t; // 角色名
 
 typedef std::array<char, TOKEN_LEN> TTokenID_t;		// token
 
-typedef std::array<char, STUB_NAME_LEN> TStubName_t;
+typedef std::array<char, ENTITY_NAME_LEN> TEntityName_t;
 
 typedef uint64 TEntityID_t;				// entity id
 const TEntityID_t INVALID_ENTITY_ID = 0;

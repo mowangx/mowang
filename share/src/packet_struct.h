@@ -108,14 +108,14 @@ struct mailbox_info
 
 struct game_stub_info
 {
-	TStubName_t stub_name;
+	TEntityName_t stub_name;
 	game_process_info process_info;
 	game_stub_info() {
 		clean_up();
 	}
 
 	void clean_up() {
-		memset(stub_name.data(), 0, STUB_NAME_LEN);
+		memset(stub_name.data(), 0, ENTITY_NAME_LEN);
 		process_info.clean_up();
 	}
 };

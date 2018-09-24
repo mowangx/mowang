@@ -13,12 +13,13 @@
 #include "roll_stub.h"
 #include "fight_stub.h"
 #include "timer.h"
+#include "entity_manager.h"
 
 #include "sequence.h"
 
 game_server::game_server() :service(PROCESS_GAME)
 {
-
+	m_entity_id = INVALID_ENTITY_ID;
 }
 
 game_server::~game_server()
@@ -38,7 +39,7 @@ bool game_server::init(TProcessID_t process_id)
 	//}
 	//log_info("load config success");
 
-
+	m_entity_id = ((TEntityID_t)m_server_info.process_info.server_id << 48) + ((TEntityID_t)m_server_info.process_info.process_id << 40);
 	m_opt_id = ((TOptID_t)m_server_info.process_info.server_id << 48) + ((TOptID_t)m_server_info.process_info.process_id << 40);
 
 	gate_handler::Setup();
@@ -55,6 +56,7 @@ bool game_server::init(TProcessID_t process_id)
 	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_result, 4);
 	DRegisterServerRpc(this, game_server, on_http_response, 4);
+	DRegisterServerRpc(this, game_server, destroy_entity, 1);
 
 	DRegisterStubRpc(this, game_server, remove_entity, 1);
 
@@ -64,6 +66,9 @@ bool game_server::init(TProcessID_t process_id)
 	}
 
 	log_info("init socket manager success");
+
+	DEntityMgr.init();
+	log_info("init entity manager success");
 
 	return true;
 }
@@ -195,25 +200,20 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 {
 	// send msg to db manager to query role id from db by platform id and user id
 	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
-	static TRoleID_t entity_id = ((TRoleID_t)m_server_info.process_info.server_id << 48) + ((TRoleID_t)m_server_info.process_info.process_id << 40);
-	++entity_id;
-	role* p = new role();
+	role* p = (role*)create_entity_locally("role");
 	p->set_server_id(100);
 	p->set_game_id(m_server_info.process_info.process_id);
 	p->set_client_id(client_id);
 	p->set_gate_id(gate_id);
-	p->set_entity_id(entity_id);
 	p->set_role_name(account.role_name);
 	p->set_sex(account.sex);
 	// @TODO just test, should load from db
-	p->set_role_id(entity_id);
 	p->set_test_client_id(account.test_client_id);
-	p->init();
 	m_client_id_2_role[client_id] = p;
 	p->login(platform_id, account.token);
 
 	log_info("login server, client id %" I64_FMT "u, gate id %u, entity id %" I64_FMT "u, platform id %u, token %s", 
-		client_id, gate_id, entity_id, platform_id, account.token.data());
+		client_id, gate_id, p->get_entity_id(), platform_id, account.token.data());
 }
 
 void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id)
@@ -263,9 +263,9 @@ void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t s
 	}
 }
 
-void game_server::create_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name)
+void game_server::create_entity(TSocketIndex_t socket_index, const TEntityName_t& entity_name)
 {
-	create_entity_locally(stub_name.data());
+	create_entity_locally(entity_name.data());
 }
 
 void game_server::remove_entity(TSocketIndex_t client_id)
@@ -346,7 +346,7 @@ bool game_server::remove_entity_core(TSocketIndex_t client_id)
 
 		DTimer.add_timer(10, false, p, [](void* param, TTimerID_t timer_id) {
 			role* r = (role*)param;
-			delete r;
+			DEntityMgr.destroy_entity(r->get_entity_id());
 		});
 
 		return true;
@@ -361,54 +361,47 @@ void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 	log_info("transfer client, gate id %u, client id %" I64_FMT "u, packet id %u", gate_id, client_id, packet_id);
 	if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_NAME) {
 		transfer_server_by_name_packet* rpc_info = (transfer_server_by_name_packet*)packet;
-		DRpcRole.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_name, rpc_info->m_buffer);
+		DRpcEntity.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_name, rpc_info->m_buffer);
 	}
 	else if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_INDEX) {
 		transfer_server_by_index_packet* rpc_info = (transfer_server_by_index_packet*)packet;
-		DRpcRole.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_index, rpc_info->m_buffer);
+		DRpcEntity.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_index, rpc_info->m_buffer);
 	}
 	else {
 		log_error("transfer client failed, not find packet id, gate id %u, packet id %u", gate_id, packet_id);
 	}
 }
 
-void game_server::create_entity_globally(const std::string& stub_name)
+void game_server::create_entity_globally(const std::string& entity_name)
 {
-	TServerID_t server_id = 100;
-	rpc_client* rpc = DRpcWrapper.get_random_client(server_id, PROCESS_GAME_MANAGER);
+	rpc_client* rpc = DRpcWrapper.get_random_client(get_server_id(), PROCESS_GAME_MANAGER);
 	if (NULL == rpc) {
 		return;
 	}
-	TStubName_t name;
-	memset(name.data(), 0, STUB_NAME_LEN);
-	memcpy((void*)name.data(), stub_name.c_str(), stub_name.length());
-	rpc->call_remote_func("create_entity", server_id, name);
+	TEntityName_t name;
+	memset(name.data(), 0, ENTITY_NAME_LEN);
+	memcpy((void*)name.data(), entity_name.c_str(), entity_name.length());
+	rpc->call_remote_func("create_entity", get_server_id(), name);
 }
 
-void game_server::create_entity_locally(const std::string& stub_name)
+entity* game_server::create_entity_locally(const std::string& entity_name)
 {
-	entity* e = NULL;
-	if (strcmp(stub_name.data(), "roll_stub") == 0) {
-		e = new roll_stub();
-	}
-	else if (strcmp(stub_name.data(), "lbs_stub") == 0) {
-		e = new lbs_stub();
-	}
-	else if (strcmp(stub_name.data(), "fight_stub") == 0) {
-		e = new fight_stub();
-	}
-	if (NULL != e) {
-		e->init();
-	}
-	TServerID_t server_id = 100;
-	rpc_client* rpc = DRpcWrapper.get_random_client(server_id, PROCESS_GAME_MANAGER);
+	entity* e = DEntityMgr.create_entity(entity_name);
+	rpc_client* rpc = DRpcWrapper.get_random_client(get_server_id(), PROCESS_GAME_MANAGER);
 	if (NULL == rpc) {
-		return;
+		// @TODO need delete entity
+		return nullptr;
 	}
-	TStubName_t name;
-	memset(name.data(), 0, STUB_NAME_LEN);
-	memcpy((void*)name.data(), stub_name.c_str(), stub_name.length());
+	TEntityName_t name;
+	memset(name.data(), 0, ENTITY_NAME_LEN);
+	memcpy((void*)name.data(), entity_name.c_str(), entity_name.length());
 	rpc->call_remote_func("register_entity", name, m_server_info.process_info);
+	return e;
+}
+
+void game_server::destroy_entity(TEntityID_t entity_id)
+{
+	DEntityMgr.destroy_entity(entity_id);
 }
 
 role* game_server::get_role_by_client_id(TSocketIndex_t client_id) const

@@ -13,12 +13,14 @@ class city;
 
 class role : public entity
 {
+	typedef entity TBaseType_t;
+
 public:
 	role();
 	virtual ~role();
 
 public:
-	virtual bool init() override;
+	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id) override;
 
 public:
 	void test(uint8 param_1, uint16 param_2);
@@ -45,11 +47,12 @@ private:
 public:
 	void enter_random();
 	void create_room(const dynamic_string& pwd);
+	void on_create_room(TEntityID_t entity_id, TRoomID_t room_id);
 	void enter_room(TRoomID_t room_id, const dynamic_string& pwd);
+	void on_enter_room(const mailbox_info& mailbox);
 
 public:
 	void ready_start();
-	void add_cards(const dynamic_array<TCardIndex_t>& cards);
 	void pop_cards(const dynamic_array<TCardIndex_t>& cards);
 
 public:
@@ -96,9 +99,6 @@ public:
 	void set_client_id(TSocketIndex_t client_id);
 	TSocketIndex_t get_client_id() const;
 
-	void set_entity_id(TEntityID_t entity_id);
-	TEntityID_t get_entity_id() const;
-
 	void set_role_name(const TRoleName_t& role_name);
 	const TRoleName_t& get_role_name() const;
 	
@@ -113,7 +113,6 @@ public:
 
 public:
 	const proxy_info& get_proxy_info() const;
-	const mailbox_info& get_mailbox_info() const;
 
 private:
 	void save();
@@ -126,7 +125,6 @@ public:
 	bool m_login_success;
 	bool m_destroy_flag;
 	proxy_info m_proxy_info;
-	mailbox_info m_mailbox_info;
 	TSocketIndex_t m_test_client_id;
 	TPlatformID_t m_platform_id;
 	TUserID_t m_user_id;
@@ -136,6 +134,7 @@ public:
 	THonorNum_t m_honor;
 	TRmbNum_t m_rmb;
 	TRoleName_t m_role_name;
+	mailbox_info m_room_mailbox;
 	std::vector<city*> m_cities;
 	std::vector<TNpcIndex_t> m_fight_npc_ids;	// don't need save db
 };

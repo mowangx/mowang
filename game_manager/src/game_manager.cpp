@@ -163,30 +163,23 @@ void game_manager::unicast_core(rpc_client* rpc, TServerID_t server_id, const st
 	}
 }
 
-void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TStubName_t& stub_name)
+void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TEntityName_t& entity_name)
 {
 	dynamic_array<game_server_info> game_servers;
 	DRpcWrapper.get_server_infos(server_id, PROCESS_GAME, game_servers);
 	if (game_servers.empty()) {
 		return;
 	}
-	std::string tmp_stub_name = stub_name.data();
-	auto itr = m_stub_name_2_process_id.find(tmp_stub_name);
-	if (itr != m_stub_name_2_process_id.end()) {
-		log_info("create entity repeat! stub name %s has create on game %d", tmp_stub_name.c_str(), itr->second);
-		return;
-	}
 	TProcessID_t process_id = DGameRandom.get_rand<int>(0, (int)(game_servers.size() - 1));
-	m_stub_name_2_process_id[tmp_stub_name] = process_id;
 	rpc_client* rpc = DRpcWrapper.get_client(game_servers[process_id].process_info);
-	rpc->call_remote_func("create_entity", stub_name);
+	rpc->call_remote_func("create_entity", entity_name);
 }
 
-void game_manager::register_entity(TSocketIndex_t socket_index, const TStubName_t& stub_name, const game_process_info& process_info)
+void game_manager::register_entity(TSocketIndex_t socket_index, const TEntityName_t& entity_name, const game_process_info& process_info)
 {
 	dynamic_array<game_stub_info> stub_infos;
 	game_stub_info stub_info;
-	stub_info.stub_name = stub_name;
+	stub_info.stub_name = entity_name;
 	stub_info.process_info = process_info;
 	stub_infos.push_back(stub_info);
 	TBaseType_t::on_register_entity(socket_index, stub_infos);

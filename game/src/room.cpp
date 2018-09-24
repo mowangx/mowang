@@ -4,6 +4,8 @@
 #include "string_common.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
+#include "game_random.h"
+#include "entity_manager.h"
 
 room::room()
 {
@@ -16,14 +18,14 @@ room::~room()
 	m_role_id_2_role_info.clear();
 }
 
-bool room::init()
+bool room::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
 {
 	log_info("room init");
 	DRegisterStubRpc(this, room, enter_room, 3);
 	DRegisterStubRpc(this, room, leave_room, 1);
 	DRegisterStubRpc(this, room, ready_start, 1);
 	DRegisterStubRpc(this, room, pop_cards, 2);
-	return true;
+	return TBaseType_t::init(server_id, game_id, entity_id);
 }
 
 void room::enter_room(TRoleID_t role_id, const mailbox_info & mailbox, const proxy_info& proxy)
@@ -54,6 +56,11 @@ void room::leave_room(TRoleID_t role_id)
 	if (m_role_id_2_role_info.empty()) {
 		DRpcWrapper.call_stub("room_stub", "destroy_room", m_room_id);
 	}
+}
+
+void room::set_room_id(TRoomID_t room_id)
+{
+	m_room_id = room_id;
 }
 
 void room::ready_start(TRoleID_t role_id)
@@ -111,19 +118,28 @@ void room::pop_cards(TRoleID_t role_id, const dynamic_array<TCardIndex_t>& card_
 
 void room::start_game()
 {
-	if (m_role_id_2_role_info.size() < 3) {
-		return;
-	}
+	//if (m_role_id_2_role_info.size() < 3) {
+	//	return;
+	//}
+
+	//for (auto itr = m_role_id_2_role_info.begin(); itr != m_role_id_2_role_info.end(); ++itr) {
+	//	const room_role_info& role_info = itr->second;
+	//	if (!role_info.status) {
+	//		return;
+	//	}
+	//}
 
 	for (auto itr = m_role_id_2_role_info.begin(); itr != m_role_id_2_role_info.end(); ++itr) {
-		const room_role_info& role_info = itr->second;
-		if (!role_info.status) {
-			return;
+		room_role_info& role_info = itr->second;
+
+		while (role_info.cards.size() < 17) {
+			TCardIndex_t card_id = DGameRandom.get_rand<TCardIndex_t>(1, 54);
+			if (std::find(role_info.cards.begin(), role_info.cards.end(), card_id) != role_info.cards.end()) {
+				continue;
+			}
+			role_info.cards.push_back(card_id);
 		}
-	}
 
-	for (auto itr = m_role_id_2_role_info.begin(); itr != m_role_id_2_role_info.end(); ++itr) {
-		const room_role_info& role_info = itr->second;
 		std::string cards = "";
 		for (auto itr = role_info.cards.begin(); itr != role_info.cards.end(); ++itr) {
 			if (itr == role_info.cards.begin()) {

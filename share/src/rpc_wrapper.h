@@ -56,18 +56,18 @@ public:
 	}
 
 public:
-	void call_role(const mailbox_info& mailbox, const std::string& func_name) {
+	void call_entity(const mailbox_info& mailbox, const std::string& func_name) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name);
+			rpc->call_entity(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name);
 		}
 	}
 
 	template <class... Args>
-	void call_role(const mailbox_info& mailbox, const std::string& func_name, const Args&... args) {
+	void call_entity(const mailbox_info& mailbox, const std::string& func_name, const Args&... args) {
 		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
 		if (NULL != rpc) {
-			rpc->call_role(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, args...);
+			rpc->call_entity(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, args...);
 		}
 	}
 

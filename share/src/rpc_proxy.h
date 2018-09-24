@@ -89,11 +89,11 @@ private:
 
 #define DRpcStub singleton<rpc_stub>::get_instance()
 
-class rpc_role : public singleton<rpc_role>
+class rpc_entity : public singleton<rpc_entity>
 {
 public:
-	rpc_role();
-	~rpc_role();
+	rpc_entity();
+	~rpc_entity();
 
 public:
 	template <size_t N, class F1, class F2>
@@ -120,7 +120,7 @@ private:
 	std::map<TEntityID_t, rpc_proxy*> m_proxys;
 };
 
-#define DRpcRole singleton<rpc_role>::get_instance()
+#define DRpcEntity singleton<rpc_entity>::get_instance()
 
 #define DRpcBindFunc_0(obj) obj
 #define DRpcBindFunc_1(obj) DRpcBindFunc_0(obj), std::placeholders::_1
@@ -148,8 +148,8 @@ private:
 }
 
 // call with transfer send, such as game ---> gate ---> game, callback will call by role id
-#define DRegisterRoleRpc(role_id, obj, class_name, func_name, args_count) { \
-	DRpcRole.register_func<args_count>(role_id, #func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+#define DRegisterEntityRpc(role_id, obj, class_name, func_name, args_count) { \
+	DRpcEntity.register_func<args_count>(role_id, #func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
 #endif // !_RPC_PROXY_H_
