@@ -118,7 +118,7 @@ void rpc_entity::call(TEntityID_t entity_id, uint8 func_index, char * buffer)
 		proxy->call(func_index, buffer);
 	}
 	else {
-		log_error("call role func, but not find role id, role id %" I64_FMT "u", entity_id);
+		log_error("call entity func, but not find entity id, entity id %" I64_FMT "u", entity_id);
 	}
 }
 
@@ -129,7 +129,7 @@ void rpc_entity::call(TEntityID_t entity_id, const std::string & func_name, char
 		proxy->call(func_name, buffer);
 	}
 	else {
-		log_error("call role func, but not find role id, role id %" I64_FMT "u", entity_id);
+		log_error("call entity func, but not find entity id, entity id %" I64_FMT "u", entity_id);
 	}
 }
 

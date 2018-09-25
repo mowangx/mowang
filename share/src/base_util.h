@@ -33,7 +33,7 @@ static const uint32 ROLE_NAME_LEN = 64; // 角色名长度
 
 static const uint32 TOKEN_LEN = 128;	// token长度
 
-static const uint32 MAX_PROCESS_TYPE_NUM = 4; // 进程类型数量
+static const uint32 MAX_PROCESS_TYPE_NUM = 6; // 进程类型数量
 
 static const uint32 MAX_SEQUENCE_TYPE_NUM = 8;	// 序列ID数量
 

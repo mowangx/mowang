@@ -73,10 +73,11 @@ private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;
 	bool remove_entity_core(TSocketIndex_t client_id);
+	void on_game_start();
 
 public:
 	void transfer_client(TSocketIndex_t client_id, packet_base* packet);
-	void create_entity_globally(const std::string& entity_name);
+	void create_entity_globally(const std::string& entity_name, bool check_repeat = false);
 	entity* create_entity_locally(const std::string& entity_name);
 	void destroy_entity(TEntityID_t entity_id);
 
@@ -85,7 +86,7 @@ public:
 	void update_role_proxy_info(const proxy_info& old_proxy_info, const proxy_info& new_proxy_info);
 
 private:
-	TRoleID_t get_role_id_by_client_id(TSocketIndex_t client_id) const;
+	TRoleID_t get_entity_id_by_client_id(TSocketIndex_t client_id) const;
 
 private:
 	TEntityID_t m_entity_id;
@@ -99,6 +100,7 @@ private:
 	obj_memory_pool<farmland, 1024> m_farmland_pool;
 	obj_memory_pool<resource_up_info, 128> m_resource_up_pool;
 	std::unordered_map<TSocketIndex_t, role*> m_client_id_2_role;
+	TProcessNum_t m_process_num[MAX_PROCESS_TYPE_NUM];
 };
 
 #define DGameServer singleton<game_server>::get_instance()

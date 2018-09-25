@@ -1,12 +1,15 @@
 
 #include "entity_manager.h"
+#include "log.h"
+#include "game_server.h"
 #include "roll_stub.h"
 #include "lbs_stub.h"
 #include "fight_stub.h"
-#include "game_server.h"
+#include "room_stub.h"
 
 entity_manager::entity_manager()
 {
+	m_entity_id = INVALID_ENTITY_ID;
 }
 
 entity_manager::~entity_manager()
@@ -15,6 +18,11 @@ entity_manager::~entity_manager()
 
 void entity_manager::init()
 {
+	m_entity_id = DGameServer.get_server_id();
+	m_entity_id <<= 8;
+	m_entity_id += DGameServer.get_game_id();
+	m_entity_id <<= 40;
+
 	m_create_entity_funcs["roll_stub"] = [&]() {
 		return new roll_stub();
 	};
@@ -23,6 +31,9 @@ void entity_manager::init()
 	};
 	m_create_entity_funcs["fight_stub"] = [&]() {
 		return new fight_stub();
+	};
+	m_create_entity_funcs["room_stub"] = [&]() {
+		return new room_stub();
 	};
 	m_create_entity_funcs["role"] = [&]() {
 		return m_role_pool.allocate();
@@ -36,6 +47,7 @@ entity * entity_manager::create_entity(const std::string& entity_name)
 {
 	auto itr = m_create_entity_funcs.find(entity_name);
 	if (itr == m_create_entity_funcs.end()) {
+		log_error("create entity failed for not find entity name: %s", entity_name.c_str());
 		return nullptr;
 	}
 	const std::function<entity*()>& create_func = itr->second;
@@ -48,6 +60,9 @@ entity * entity_manager::create_entity(const std::string& entity_name)
 		info.e = e;
 		info.name = entity_name;
 		m_entities[m_entity_id] = info;
+	}
+	else {
+		log_error("create entity failed for new failed! entity name: %s", entity_name.c_str());
 	}
 	return e;
 }

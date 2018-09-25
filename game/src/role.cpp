@@ -28,11 +28,22 @@ role::~role()
 
 bool role::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
 {
-	DRegisterEntityRpc(get_role_id(), this, role, test, 2);
-	DRegisterEntityRpc(get_role_id(), this, role, on_register_account, 4);
-	DRegisterEntityRpc(get_role_id(), this, role, on_register_role, 4);
-	DRegisterEntityRpc(get_role_id(), this, role, on_relay_logout, 0);
-	return TBaseType_t::init(server_id, game_id, entity_id);
+	if (!TBaseType_t::init(server_id, game_id, entity_id)) {
+		return false;
+	}
+	DRegisterEntityRpc(get_entity_id(), this, role, test, 2);
+	DRegisterEntityRpc(get_entity_id(), this, role, on_register_account, 4);
+	DRegisterEntityRpc(get_entity_id(), this, role, on_register_role, 4);
+	DRegisterEntityRpc(get_entity_id(), this, role, on_relay_logout, 0);
+
+	DRegisterEntityRpc(get_entity_id(), this, role, enter_random, 0);
+	DRegisterEntityRpc(get_entity_id(), this, role, create_room, 1);
+	DRegisterEntityRpc(get_entity_id(), this, role, on_create_room, 2);
+	DRegisterEntityRpc(get_entity_id(), this, role, enter_room, 2);
+	DRegisterEntityRpc(get_entity_id(), this, role, on_enter_room, 1);
+	DRegisterEntityRpc(get_entity_id(), this, role, ready_start, 0);
+	DRegisterEntityRpc(get_entity_id(), this, role, pop_cards, 1);
+	return true;
 }
 
 void role::test(uint8 param_1, uint16 param_2)
@@ -237,8 +248,9 @@ void role::enter_random()
 
 void role::create_room(const dynamic_string & pwd)
 {
+	log_info("start create room! pwd %s", pwd.data());
 	room* r = (room*)DGameServer.create_entity_locally("room");
-	DRpcWrapper.call_stub("room_stub", "create_room", pwd, r->get_mailbox());
+	DRpcWrapper.call_stub("room_stub", "create_room", r->get_mailbox(), pwd, get_mailbox());
 }
 
 void role::on_create_room(TEntityID_t entity_id, TRoomID_t room_id)
@@ -251,6 +263,7 @@ void role::on_create_room(TEntityID_t entity_id, TRoomID_t room_id)
 	r->enter_room(get_role_id(), get_mailbox(), get_proxy());
 	on_enter_room(r->get_mailbox());
 	r->set_room_id(room_id);
+	log_info("on create room success! room id %u", room_id);
 }
 
 void role::enter_room(TRoomID_t room_id, const dynamic_string & pwd)
@@ -265,11 +278,13 @@ void role::on_enter_room(const mailbox_info & mailbox)
 
 void role::ready_start()
 {
+	log_info("ready_start!");
 	DRpcWrapper.call_entity(m_room_mailbox, "ready_start", get_role_id());
 }
 
 void role::pop_cards(const dynamic_array<TCardIndex_t>& cards)
 {
+	log_info("pop_cards!");
 	DRpcWrapper.call_entity(m_room_mailbox, "pop_cards", get_role_id(), cards);
 }
 

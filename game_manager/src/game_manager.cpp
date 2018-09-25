@@ -12,7 +12,6 @@ game_manager::game_manager() : service(PROCESS_GAME_MANAGER)
 	m_broadcast_flag = false;
 	for (int i = 0; i < MAX_PROCESS_TYPE_NUM; ++i) {
 		m_process_num[i] = 0;
-		m_desire_process_num[i] = 0;
 	}
 	m_stub_name_2_process_id.clear();
 }
@@ -31,7 +30,7 @@ bool game_manager::init(TProcessID_t process_id)
 	server_handler::Setup();
 
 	DRegisterServerRpc(this, game_manager, register_server, 2);
-	DRegisterServerRpc(this, game_manager, create_entity, 3);
+	DRegisterServerRpc(this, game_manager, create_entity, 5);
 	DRegisterServerRpc(this, game_manager, register_entity, 3);
 
 	if (!DNetMgr.start_listen<server_handler>(m_server_info.port)) {
@@ -44,30 +43,10 @@ bool game_manager::init(TProcessID_t process_id)
 	return true;
 }
 
-bool game_manager::load_config(ini_file& ini, const std::string& module_name)
-{
-	if (!ini.read_type_if_exist(module_name.c_str(), "desire_gate", m_desire_process_num[PROCESS_GATE])) {
-		log_error("load config failed for not find desire gate in module %s!", module_name.c_str());
-		return false;
-	}
-
-	if (!ini.read_type_if_exist(module_name.c_str(), "desire_game", m_desire_process_num[PROCESS_GAME])) {
-		log_error("load config failed for not find desire game in module %s!", module_name.c_str());
-		return false;
-	}
-
-	if (!ini.read_type_if_exist(module_name.c_str(), "desire_db", m_desire_process_num[PROCESS_DB])) {
-		log_error("load config failed for not find desire db in module %s!", module_name.c_str());
-		return false;
-	}
-
-	return true;
-}
-
 bool game_manager::check_all_process_start() const
 {
 	for (int i = 0; i < MAX_PROCESS_TYPE_NUM; ++i) {
-		if (m_process_num[i] < m_desire_process_num[i]) {
+		if (m_process_num[i] < m_config.get_desire_process_num(i)) {
 			return false;
 		}
 	}
@@ -163,15 +142,25 @@ void game_manager::unicast_core(rpc_client* rpc, TServerID_t server_id, const st
 	}
 }
 
-void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TEntityName_t& entity_name)
+void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TEntityName_t& entity_name, TProcessID_t process_id, bool check_repeat)
 {
 	dynamic_array<game_server_info> game_servers;
 	DRpcWrapper.get_server_infos(server_id, PROCESS_GAME, game_servers);
 	if (game_servers.empty()) {
 		return;
 	}
-	TProcessID_t process_id = DGameRandom.get_rand<int>(0, (int)(game_servers.size() - 1));
-	rpc_client* rpc = DRpcWrapper.get_client(game_servers[process_id].process_info);
+
+	TProcessID_t random_process_id = DGameRandom.get_rand<int>(0, (int)(game_servers.size() - 1));
+	if (check_repeat) {
+		std::string stub_name = entity_name.data();
+		auto itr = m_stub_name_2_process_id.find(stub_name);
+		if (itr != m_stub_name_2_process_id.end() && itr->second != process_id) {
+			log_info("create entity repeat! stub name %s has create on game %d", stub_name.c_str(), itr->second);
+			return;
+		}
+		m_stub_name_2_process_id[stub_name] = random_process_id;
+	}
+	rpc_client* rpc = DRpcWrapper.get_client(game_servers[random_process_id].process_info);
 	rpc->call_remote_func("create_entity", entity_name);
 }
 

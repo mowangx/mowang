@@ -22,6 +22,7 @@ public:
 	TPort_t get_listen_port() const;
 	const char* get_game_manager_listen_ip() const;
 	TPort_t get_game_manager_listen_port() const;
+	TProcessNum_t get_desire_process_num(TProcessType_t process_type) const;
 
 private:
 	void clean_up();
@@ -32,6 +33,7 @@ private:
 	TPort_t m_listen_port;
 	TPort_t m_game_manager_listen_port;
 	char m_game_manager_listen_ip[IP_SIZE];
+	TProcessNum_t m_desire_process_num[MAX_PROCESS_TYPE_NUM];
 };
 
 #endif // !_SERVICE_CONFIG_H_

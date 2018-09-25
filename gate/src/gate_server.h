@@ -45,6 +45,7 @@ private:
 private:
 	void process_login(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 	void process_test(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_ready_start(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 	void process_create_room(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 	void process_enter_room(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 	void process_pop_cards(TSocketIndex_t socket_index, boost::property_tree::ptree* json);

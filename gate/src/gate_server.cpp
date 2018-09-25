@@ -68,6 +68,7 @@ void gate_server::init_ws_process_func()
 {
 	m_cmd_2_parse_func["login"] = std::bind(&gate_server::process_login, this, std::placeholders::_1, std::placeholders::_2);
 	m_cmd_2_parse_func["test"] = std::bind(&gate_server::process_test, this, std::placeholders::_1, std::placeholders::_2);
+	m_cmd_2_parse_func["ready_start"] = std::bind(&gate_server::process_ready_start, this, std::placeholders::_1, std::placeholders::_2);
 	m_cmd_2_parse_func["create_room"] = std::bind(&gate_server::process_create_room, this, std::placeholders::_1, std::placeholders::_2);
 	m_cmd_2_parse_func["enter_room"] = std::bind(&gate_server::process_enter_room, this, std::placeholders::_1, std::placeholders::_2);
 	m_cmd_2_parse_func["pop_cards"] = std::bind(&gate_server::process_pop_cards, this, std::placeholders::_1, std::placeholders::_2);
@@ -260,6 +261,16 @@ void gate_server::process_test(TSocketIndex_t socket_index, boost::property_tree
 	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
 	transfer_server(socket_index, &packet);
 	log_debug("parse test!!! socket index %" I64_FMT "u,  param_1 %d, param_2 %d", socket_index, json->get<uint8>("param_1", 0), json->get<uint16>("param_2", 0));
+}
+
+void gate_server::process_ready_start(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
+{
+	transfer_server_by_name_packet packet;
+	std::string func_name = "ready_start";
+	int buffer_index = 0;
+	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
+	transfer_server(socket_index, &packet);
 }
 
 void gate_server::process_create_room(TSocketIndex_t socket_index, boost::property_tree::ptree * json)

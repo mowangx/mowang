@@ -16,8 +16,6 @@ public:
 	
 public:
 	virtual bool init(TProcessID_t process_id) override;
-private:
-	virtual bool load_config(ini_file& ini, const std::string& module_name) override;
 
 private:
 	bool check_all_process_start() const;
@@ -35,7 +33,7 @@ private:
 	void unicast_core(rpc_client* rpc, TServerID_t server_id, const std::vector<TProcessType_t>& process_types) const;
 
 public:
-	void create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TEntityName_t& entity_name);
+	void create_entity(TSocketIndex_t socket_index, TServerID_t server_id, const TEntityName_t& entity_name, TProcessID_t process_id, bool check_repeat);
 	void register_entity(TSocketIndex_t socket_index, const TEntityName_t& entity_name, const game_process_info& process_info);
 
 private:
@@ -45,7 +43,6 @@ private:
 private:
 	bool m_broadcast_flag;
 	TProcessNum_t m_process_num[MAX_PROCESS_TYPE_NUM];
-	TProcessNum_t m_desire_process_num[MAX_PROCESS_TYPE_NUM];
 	std::map<std::string, TProcessID_t> m_stub_name_2_process_id;
 };
 

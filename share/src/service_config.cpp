@@ -1,6 +1,7 @@
 
 #include "service_config.h"
 #include "log.h"
+#include "game_enum.h"
 
 service_config::service_config()
 {
@@ -27,6 +28,21 @@ bool service_config::load(const std::string& filename, const std::string& module
 
 	if (!ini.read_type_if_exist("common", "server_id", m_server_id)) {
 		log_error("load config failed for not find server id in module common!");
+		return false;
+	}
+
+	if (!ini.read_type_if_exist("common", "desire_gate", m_desire_process_num[PROCESS_GATE])) {
+		log_error("load config failed for not find desire gate in module %s!", module_name.c_str());
+		return false;
+	}
+
+	if (!ini.read_type_if_exist("common", "desire_game", m_desire_process_num[PROCESS_GAME])) {
+		log_error("load config failed for not find desire game in module %s!", module_name.c_str());
+		return false;
+	}
+
+	if (!ini.read_type_if_exist("common", "desire_db", m_desire_process_num[PROCESS_DB])) {
+		log_error("load config failed for not find desire db in module %s!", module_name.c_str());
 		return false;
 	}
 
@@ -71,6 +87,11 @@ TPort_t service_config::get_game_manager_listen_port() const
 	return m_game_manager_listen_port;
 }
 
+TProcessNum_t service_config::get_desire_process_num(TProcessType_t process_type) const
+{
+	return m_desire_process_num[process_type];
+}
+
 TGameTime_t service_config::get_frame_time() const
 {
 	return m_frame_time;
@@ -83,4 +104,7 @@ void service_config::clean_up()
 	m_listen_port = 0;
 	m_game_manager_listen_port = 0;
 	memset(m_game_manager_listen_ip, 0, IP_SIZE);
+	for (int i = 0; i < MAX_PROCESS_TYPE_NUM; ++i) {
+		m_desire_process_num[i] = 0;
+	}
 }

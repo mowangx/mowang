@@ -151,6 +151,7 @@ void room::start_game()
 		}
 		std::string msg = gx_to_string("{\"cmd\": \"add_cards\", \"cards\": [%s]}", cards.data());
 		DRpcWrapper.call_ws_client(role_info.proxy, msg);
+		log_info("send add cards msg! msg %s", msg);
 	}
 }
 

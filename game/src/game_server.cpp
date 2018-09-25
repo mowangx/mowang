@@ -20,6 +20,9 @@
 game_server::game_server() :service(PROCESS_GAME)
 {
 	m_entity_id = INVALID_ENTITY_ID;
+	for (int i = 0; i < MAX_PROCESS_TYPE_NUM; ++i) {
+		m_process_num[i] = 0;
+	}
 }
 
 game_server::~game_server()
@@ -224,9 +227,10 @@ void game_server::register_server(TSocketIndex_t socket_index, const game_server
 {
 	TBaseType_t::register_server(socket_index, server_info);
 	if (server_info.process_info.process_type == PROCESS_DB) {
-		create_entity_globally("roll_stub");
-		create_entity_globally("lbs_stub");
-		create_entity_globally("fight_stub");
+		m_process_num[PROCESS_DB] += 1;
+		if (m_process_num[PROCESS_DB] >= m_config.get_desire_process_num(PROCESS_DB)) {
+			on_game_start();
+		}
 	}
 }
 
@@ -352,6 +356,13 @@ bool game_server::remove_entity_core(TSocketIndex_t client_id)
 	return false;
 }
 
+void game_server::on_game_start()
+{
+	log_info("on_game_start");
+	create_entity_globally("roll_stub", true);
+	create_entity_globally("room_stub", true);
+}
+
 void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 {
 	TPacketID_t packet_id = packet->get_packet_id();
@@ -359,18 +370,18 @@ void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
 	log_info("transfer client, gate id %u, client id %" I64_FMT "u, packet id %u", gate_id, client_id, packet_id);
 	if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_NAME) {
 		transfer_server_by_name_packet* rpc_info = (transfer_server_by_name_packet*)packet;
-		DRpcEntity.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_name, rpc_info->m_buffer);
+		DRpcEntity.call(get_entity_id_by_client_id(client_id), rpc_info->m_rpc_name, rpc_info->m_buffer);
 	}
 	else if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_INDEX) {
 		transfer_server_by_index_packet* rpc_info = (transfer_server_by_index_packet*)packet;
-		DRpcEntity.call(get_role_id_by_client_id(client_id), rpc_info->m_rpc_index, rpc_info->m_buffer);
+		DRpcEntity.call(get_entity_id_by_client_id(client_id), rpc_info->m_rpc_index, rpc_info->m_buffer);
 	}
 	else {
 		log_error("transfer client failed, not find packet id, gate id %u, packet id %u", gate_id, packet_id);
 	}
 }
 
-void game_server::create_entity_globally(const std::string& entity_name)
+void game_server::create_entity_globally(const std::string & entity_name, bool check_repeat)
 {
 	rpc_client* rpc = DRpcWrapper.get_random_client(get_server_id(), PROCESS_GAME_MANAGER);
 	if (NULL == rpc) {
@@ -379,7 +390,7 @@ void game_server::create_entity_globally(const std::string& entity_name)
 	TEntityName_t name;
 	memset(name.data(), 0, ENTITY_NAME_LEN);
 	memcpy((void*)name.data(), entity_name.c_str(), entity_name.length());
-	rpc->call_remote_func("create_entity", get_server_id(), name);
+	rpc->call_remote_func("create_entity", get_server_id(), name, check_repeat, get_game_id());
 }
 
 entity* game_server::create_entity_locally(const std::string& entity_name)
@@ -422,11 +433,11 @@ void game_server::update_role_proxy_info(const proxy_info& old_proxy_info, const
 	}
 }
 
-TRoleID_t game_server::get_role_id_by_client_id(TSocketIndex_t client_id) const
+TRoleID_t game_server::get_entity_id_by_client_id(TSocketIndex_t client_id) const
 {
 	auto itr = m_client_id_2_role.find(client_id);
 	if (itr != m_client_id_2_role.end()) {
-		return (itr->second)->get_role_id();
+		return (itr->second)->get_entity_id();
 	}
 	return INVALID_ROLE_ID;
 }
