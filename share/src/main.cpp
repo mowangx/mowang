@@ -1,6 +1,7 @@
-#include "iostream"
-#include "iomanip"
-#include "cstdlib"
+
+#include <stdio.h>
+#include <cstdlib>
+#include <iostream>
 #include <vector>
 #include <map>
 
@@ -12,42 +13,52 @@ int dy[8] = {-1, -2, -2, -1, 1,  2, 1, 2};
 int n, m;
 int startx, starty;
 bool first_flag = true;
+
+// 初始化结构化子棋盘, 6*6的子棋盘
 int h1[6][6] = { 
 	{ 1,30,33,16,3,24 }, { 32,17,2,23,34,15 }, { 29,36,31,14,25,4 }, 
 	{ 18,9,6,35,22,13 }, { 7,28,11,20,5,26 }, { 10,19,8,27,12,21 }
 };
+// 6*8的子棋盘
 int h2[6][8] = { 
 	{ 1,10,31,40,21,14,29,38 },{ 32,41,2,11,30,39,22,13 },{ 9,48,33,20,15,12,37,28 },
 	{ 42,3,44,47,6,25,18,23 },{ 45,8,5,34,19,16,27,36 },{ 4,43,46,7,26,35,24,17 } 
 };
+// 8*6的子棋盘
 int h2_1[8][6] = {
 	{ 1,32,9,42,45,4 }, {10,41,48,3,8,43}, { 31,2,33,44,5,46 }, { 40,11,20,47,34,7 },
 	{21,30,15,6,19,26}, { 14,39,12,25,16,35 }, { 29,22,37,18,27,24 }, { 38,13,28,23,36,17 }
 };
+// 8*8的子棋盘
 int h3[8][8] = { 
 	{ 1,46,17,50,3,6,31,52 }, { 18,49,2,7,30,51,56,5 }, { 45,64,47,16,27,4,53,32 }, { 48,19,8,29,10,55,26,57 },
 	{ 63,44,11,22,15,28,33,54 }, { 12,41,20,9,36,23,58,25 }, { 43,62,39,14,21,60,37,34 }, { 40,13,42,61,38,35,24,59 }
 };
+// 8*10的子棋盘
 int h4[8][10] = { 
 	{1,46,37,66,3,48,35,68,5,8}, { 38,65,2,47,36,67,4,7,34,69 }, { 45,80,39,24,49,18,31,52,9,6 }, { 64,23,44,21,30,15,50,19,70,33 },
 	{ 79,40,25,14,17,20,53,32,51,10 }, { 26,63,22,43,54,29,16,73,58,71 }, { 41,78,61,28,13,76,59,56,11,74 }, { 62,27,42,77,60,55,12,75,72,57 }
 };
+// 10*8的子棋盘
 int h4_1[10][8] = {
 	{ 1,38,45,64,79,26,41,62 }, { 46,65,80,23,40,63,78,27 }, { 37,2,39,44,25,22,61,42 }, { 66,47,24,21,14,43,28,77 },
 	{ 3,36,49,30,17,54,13,60 }, { 48,67,18,15,20,29,76,55 }, { 35,4,31,50,53,16,59,12 }, { 68,7,52,19,32,73,56,75 },
 	{ 5,34,9,70,51,58,11,72 }, { 8,69,6,33,10,71,74,57 }
 };
+// 10*10的子棋盘
 int h5[10][10] = { 
 	{ 1,54,69,66,3,56,39,64,5,8 }, { 68,71,2,55,38,65,4,7,88,63 }, { 53,100,67,70,57,26,35,40,9,6 }, { 72,75,52,27,42,37,58,87,62,89 },
 	{ 99,30,73,44,25,34,41,36,59,10 }, { 74,51,76,31,28,43,86,81,90,61 }, { 77,98,29,24,45,80,33,60,11,92 }, { 50,23,48,79,32,85,82,91,14,17 },
 	{ 97,78,21,84,95,46,19,16,93,12 }, { 22,49,96,47,20,83,94,13,18,15 }
 };
+// 10*12的子棋盘
 int h6[10][12] = {
 	{ 1,4,119,100,65,6,69,102,71,8,75,104 }, { 118,99,2,5,68,101,42,7,28,103,72,9 }, { 3,120,97,64,41,66,25,70,39,74,105,76 },
 	{ 98,117,48,67,62,43,40,27,60,29,10,73 }, { 93,96,63,44,47,26,61,24,33,38,77,106 }, { 116,51,94,49,20,23,46,37,30,59,34,11 },
 	{ 95,92,115,52,45,54,21,32,35,80,107,78 }, { 114,89,50,19,22,85,36,55,58,31,12,81 }, { 91,18,87,112,53,16,57,110,83,14,79,108 },
 	{ 88,113,90,17,86,111,84,15,56,109,82,13 }
 };
+// 12*10的子棋盘
 int h6_1[12][10] = {
 	{ 1,118,3,98,93,116,95,114,91,88 }, { 4,99,120,117,96,51,92,89,18,113 }, { 119,2,97,48,63,94,115,50,87,90 },
 	{ 100,5,64,67,44,49,52,19,112,17 }, { 65,68,41,62,47,20,45,22,53,86 }, { 6,101,66,43,26,23,54,85,16,111 },
@@ -55,16 +66,19 @@ int h6_1[12][10] = {
 	{ 8,103,74,29,38,59,80,31,14,109 }, { 75,72,105,10,77,34,107,12,79,82 }, { 104,9,76,73,106,11,78,81,108,13 }
 };
 
+// 点信息
 struct point_info {
 	int x;
 	int y;
 };
 
+// 区域信息
 struct area_info {
 	int row;
 	int coln;
 };
 
+// 节点跳转信息
 struct jump_info {
 	int x;
 	int y;
@@ -72,102 +86,26 @@ struct jump_info {
 	int absolute_y;
 	area_info area;
 };
+
+// 开始坐标所属区域
 jump_info start_area;
+
+// 路线图
 int ary[100][100];
 
+// 节点跳转信息对，key为x + y * coln， value为跳转信息
 std::map<int, jump_info> jump_map;
+
+// 节点跳转信息对，key为x + y * coln， value为jump.x + jump.y * coln
 std::map<int, int> jump_pair;
+
+// 已跳转的节点索引(x + y * coln)
 std::vector<int> jump_ary;
 
-std::map<int, point_info> point_map_6;
-std::map<int, point_info> point_map_6_8;
-std::map<int, point_info> point_map_8_6;
-std::map<int, point_info> point_map_8;
-std::map<int, point_info> point_map_8_10;
-std::map<int, point_info> point_map_10_8;
-std::map<int, point_info> point_map_10;
-std::map<int, point_info> point_map_10_12;
-std::map<int, point_info> point_map_12_10;
-
-void init_point_map()
-{
-	for (int i = 0; i < 6; ++i) {
-		for (int j = 0; j < 6; ++j) {
-			point_info point;
-			point.x = j;
-			point.y = i;
-			int index = h1[point.y][point.x];
-			point_map_6[index] = point;
-		}
-	}
-
-	for (int i = 0; i < 6; ++i) {
-		for (int j = 0; j < 8; ++j) {
-			point_info point;
-			point.x = j;
-			point.y = i;
-			int index = h2[point.y][point.x];
-			point_map_6_8[index] = point;
-
-			int x = 5 - i;
-			int y = j;
-			index = h2[x][y];
-			point_map_8_6[index] = point;
-		}
-	}
-
-	for (int i = 0; i < 8; ++i) {
-		for (int j = 0; j < 8; ++j) {
-			point_info point;
-			point.x = j;
-			point.y = i;
-			int index = h3[point.y][point.x];
-			point_map_8[index] = point;
-		}
-	}
-
-	for (int i = 0; i < 8; ++i) {
-		for (int j = 0; j < 10; ++j) {
-			point_info point;
-			point.x = j;
-			point.y = i;
-			int index = h4[point.y][point.x];
-			point_map_8_10[index] = point;
-
-			int x = 7 - i;
-			int y = j;
-			index = h4[x][y];
-			point_map_10_8[index] = point;
-		}
-	}
-
-	for (int i = 0; i < 10; ++i) {
-		for (int j = 0; j < 10; ++j) {
-			point_info point;
-			point.x = j;
-			point.y = i;
-			int index = h5[point.y][point.x];
-			point_map_10[index] = point;
-		}
-	}
-
-	for (int i = 0; i < 10; ++i) {
-		for (int j = 0; j < 12; ++j) {
-			point_info point;
-			point.x = j;
-			point.y = i;
-			int index = h6[point.y][point.x];
-			point_map_10_12[index] = point;
-
-			point.x = 9 - i;
-			point.y = j;
-			point_map_12_10[index] = point;
-		}
-	}
-}
-
+// 增加跳转信息,参数依次为：实际的x坐标，y坐标, 在所属区域的相对x, y坐标, 所属区域的行数，列数，棋盘总列数
 void add_jump_info(int x, int y, int absolute_x1, int absolute_y1, int absolute_x2, int absolute_y2, int row, int coln, int total_coln)
 {
+	// 支持二种坐标跳转方式
 	jump_info jump_0;
 	jump_0.x = x + coln + absolute_x1;
 	jump_0.y = y + row + absolute_y1;
@@ -191,6 +129,7 @@ void add_jump_info(int x, int y, int absolute_x1, int absolute_y1, int absolute_
 	jump_pair[pair_index] = index;
 }
 
+// 分割区域，把给定的棋盘分割成由6*6, 6*8, 8*8, 8*10, 10*10, 10*12的棋盘
 void split_area(int x, int y, int row, int coln, int total_coln)
 {
 	if ((row + coln) <= 22) {
@@ -198,6 +137,7 @@ void split_area(int x, int y, int row, int coln, int total_coln)
 		for (int i = 0; i < row; ++i) {
 			for (int j = 0; j < coln; ++j) {
 				if (startx == (x + j) && starty == (y + i)) {
+					// 更新开始坐标所在的区域信息
 					start_area.area.row = row;
 					start_area.area.coln = coln;
 					start_area.x = startx;
@@ -216,6 +156,7 @@ void split_area(int x, int y, int row, int coln, int total_coln)
 					//cout << "not find" << x + j << "  " << y + i << endl;
 					continue;
 				}
+				// 更新子棋盘的区域大小
 				jump_info& jump = itr->second;
 				jump.area.row = row;
 				jump.area.coln = coln;
@@ -257,12 +198,14 @@ void split_area(int x, int y, int row, int coln, int total_coln)
 
 void show(const jump_info& jump, int& sequence, int coln);
 
+// 是否需要跳转
 bool need_jump(int x, int y, int coln) {
 	int index = x + y * coln;
 	std::map<int, jump_info>::iterator itr = jump_map.find(index);
 	return itr != jump_map.end();
 }
 
+// 检测是否跳转，如果要则跳转过去
 bool check_jump(int x, int y, int coln, int& sequence) {
 	int index = x + y * coln;
 	std::map<int, jump_info>::iterator itr = jump_map.find(index);
@@ -289,6 +232,7 @@ bool check_jump(int x, int y, int coln, int& sequence) {
 	return false;
 }
 
+// 根据区域的相对坐标转化为棋盘中的实际坐标
 void calc_absolute_pos(int& x, int& y, const jump_info& jump)
 {
 	x = jump.absolute_x;
@@ -301,33 +245,39 @@ void calc_absolute_pos(int& x, int& y, const jump_info& jump)
 	}
 }
 
+// 显示6*6棋盘,参数依次为：跳转信息，序列号，棋盘总列数，顺序标记（true为递增，false为递减）
 void show_detail_1(const jump_info& jump, int& sequence, int coln, bool order_flag = true)
 {
+	// 这里的时间复杂度是由于是常数，因此可以认为是O(1)
 	int num = 0;
 	int absolute_x(0), absolute_y(0);
 	calc_absolute_pos(absolute_x, absolute_y, jump);
-	int absolute_value = h1[absolute_y][absolute_x];
+	int absolute_value = h1[absolute_y][absolute_x];	// 在初始子棋盘中的顺序值
 	for (int i = 0; i < 36; ++i) {
 		for (int k = 0; k < 6; ++k) {
 			for (int l = 0; l < 6; ++l) {
-				int x = jump.x - absolute_x + l;
+				int x = jump.x - absolute_x + l;	// 计算在总棋盘中的实际坐标
 				int y = jump.y - absolute_y + k;
-				int cur_value = 0;
+				int cur_value = 0;	// 在子棋盘中的的序列值
 				if (order_flag) {
+					// 递增模式
 					cur_value = (36 + h1[k][l] - absolute_value) % 36;
 				}
 				else {
+					// 递减模式
 					cur_value = (36 - h1[k][l] + absolute_value) % 36;
 				}
 				if (cur_value == i) {
 					++num;
 					if (!first_flag && x == startx && y == starty) {
+						// 已到达起点，该退出了
 						return;
 					}
 					first_flag = false;
 					if (need_jump(x, y, coln) && num < 3) {
+						// 不能刚跳转进来就跳转出去，这种是走特殊的边,因此此时要改为递减子棋盘中的序列值来遍历完所有的子棋盘
 						sequence -= 1;
-						show_detail_1(jump, sequence, coln, false);
+						show_detail_1(jump, sequence, coln, false); // 递减遍历子棋盘
 						return;
 					}
 					++sequence;
@@ -335,6 +285,7 @@ void show_detail_1(const jump_info& jump, int& sequence, int coln, bool order_fl
 					int order = order_flag ? 1 : 0;
 					//cout << "sequence: " << sequence << ", pos: " << x << " " << y << ", order flag: " << order << endl;
 					if (check_jump(x, y, coln, sequence)) {
+						// 跳转到其他区域后就中断当前区域的遍历，如果还有未遍历完的，到时会从当前区域的其他节点跳转进来继续遍历
 						return;
 					}
 				}
@@ -343,6 +294,7 @@ void show_detail_1(const jump_info& jump, int& sequence, int coln, bool order_fl
 	}
 }
 
+// 显示6*8棋盘
 void show_detail_2(const jump_info& jump, int& sequence, int coln, bool order_flag = true)
 {
 	int num = 0;
@@ -387,6 +339,7 @@ void show_detail_2(const jump_info& jump, int& sequence, int coln, bool order_fl
 	}
 }
 
+// 显示8*6棋盘
 void show_detail_2_1(const jump_info& jump, int& sequence, int coln, bool order_flag = true)
 {
 	int num = 0;
@@ -431,6 +384,7 @@ void show_detail_2_1(const jump_info& jump, int& sequence, int coln, bool order_
 	}
 }
 
+// 显示8*8棋盘
 void show_detail_3(const jump_info& jump, int& sequence, int coln, bool order_flag = true)
 {
 	int num(0);
@@ -473,6 +427,7 @@ void show_detail_3(const jump_info& jump, int& sequence, int coln, bool order_fl
 	}
 }
 
+// 显示8*10棋盘
 void show_detail_4(const jump_info& jump, int& sequence, int coln, bool order_flag = true)
 {
 	int num(0);
@@ -517,7 +472,7 @@ void show_detail_4(const jump_info& jump, int& sequence, int coln, bool order_fl
 	}
 }
 
-
+// 显示10*8棋盘
 void show_detail_4_1(const jump_info& jump, int& sequence, int coln, bool order_flag = true)
 {
 	int num(0);
@@ -562,6 +517,7 @@ void show_detail_4_1(const jump_info& jump, int& sequence, int coln, bool order_
 	}
 }
 
+// 显示10*10棋盘
 void show_detail_5(const jump_info& jump, int& sequence, int coln, bool order_flag = true)
 {
 	int num(0);
@@ -604,6 +560,7 @@ void show_detail_5(const jump_info& jump, int& sequence, int coln, bool order_fl
 	}
 }
 
+// 显示10*12棋盘
 void show_detail_6(const jump_info& jump, int& sequence, int coln, int order_flag = true)
 {
 	int num(0);
@@ -648,6 +605,7 @@ void show_detail_6(const jump_info& jump, int& sequence, int coln, int order_fla
 	}
 }
 
+// 显示12*10棋盘
 void show_detail_6_1(const jump_info& jump, int& sequence, int coln, int order_flag = true)
 {
 	int num(0);
@@ -692,8 +650,10 @@ void show_detail_6_1(const jump_info& jump, int& sequence, int coln, int order_f
 	}
 }
 
+// 显示棋盘，参数依次为：跳转节点，序列号，棋盘总列数
 void show(const jump_info& jump, int& sequence, int coln)
 {
+	// 由于各个子棋盘的遍历是O(1)时间复杂度，因此总的时间复杂度为O(m, n) = 4 * O(m/2, n/2)
 	if (jump.area.row == 6 && jump.area.coln == 6) {
 		show_detail_1(jump, sequence, coln);
 	}
@@ -726,7 +686,6 @@ void show(const jump_info& jump, int& sequence, int coln)
 int main()
 {
 	// https://blog.csdn.net/yuanyirui/article/details/3892583
-	init_point_map();
 	cout << "请输入行数：";
 	cin >> m;
 	cout << "请输入列数：";
@@ -736,28 +695,9 @@ int main()
 	cin >> startx >> starty;
 	jump_map.clear();
 	jump_pair.clear();
-	first_flag = true;
-	split_area(0, 0, m, n, n);
-	for (auto itr = jump_map.begin(); itr != jump_map.end(); ++itr) {
-		int index = itr->first;
-		int x = int(index % n);
-		int y = int(index / n);
-		const jump_info& jump = itr->second;
-		//cout << "cur pos: " << x << " " << y << ", jump pos: " << jump.x << " " << jump.y << ", area: " << jump.area.row << " " << jump.area.coln << endl;
-		int idx = jump.x + jump.y * n;
-		auto pair_itr = jump_pair.find(idx);
-		if (pair_itr == jump_pair.end()) {
-			//cout << "cur pos not find" << x << " " << y << endl;
-		}
-		else {
-			index = pair_itr->second;
-			x = index % n;
-			y = index / n;
-			//cout << "pair pos: " << x << " " << y << endl;;
-		}
-	}
+	split_area(0, 0, m, n, n);	// 先分割棋盘为子棋盘
 	int sequence = 0;
-	show(start_area, sequence, n);
+	show(start_area, sequence, n); // 从开始坐标开始显示所有子棋盘
 	for (int i = 0; i < m; ++i) {
 		for (int j = 0; j < n; ++j) {
 			cout << ary[i][j] << "  ";
