@@ -22,7 +22,11 @@ TINYXPATH_INC=${SHARE_INC}/tinyxpath/
 #boost
 BOOST_INC=${SHARE_INC}/boost/
 #core_dumper
-CORE_DUMPER_INC=${SHARE_INC}/core_dumper/}
+CORE_DUMPER_INC=${SHARE_INC}/core_dumper/
+#websocketpp
+WEBSOCKET_INC=${SHARE_INC}/websocketpp/
+#openssl
+OPENSSL_INC=${SHARE_INC}/openssl/
 
 #源码目录
 SRC_DIR=${WORKSPACE}/
@@ -41,13 +45,14 @@ DEST_LIB_DIR=${THIRD_LIB_DIR}
 
 #=============编译选项=============
 #编译包含的头文件
-CC_INC=-I"${SRC_DIR}" -I"${SRC_DIR}/src/" -I${EVENT_INC} -I${MYSQL_INC} -I${MYSQLPP_INC} -I${CORE_DUMPER_INC}
+CC_INC=-I"${SRC_DIR}" -I"${SRC_DIR}/src/" -I${EVENT_INC} -I${MYSQL_INC} -I${MYSQLPP_INC} -I${CORE_DUMPER_INC} -I${WEBSOCKET_INC} -I${OPENSSL_INC}
 #编译优化
 CC_OPT=-O0
 #编译忽略的警告
 CC_IGO=-Wno-deprecated -Wno-unused-function -Wno-unused
 #编译的标记
-CC_FLAG=-g3 -Wall -Werror -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++11
+CC_FLAG=-g3 -Wall -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++11
+#CC_FLAG=-g3 -Wall -Werror -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++11
 #编译依赖关系
 CC_DEP=-MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 #编译obj选项
@@ -98,7 +103,7 @@ start:
 
 #=============编译后=============
 finish: 
-	@mv share_d.a ${DEST_LIB_DIR}/share_d.a
+	@mv libshare_d.a ${DEST_LIB_DIR}/libshare_d.a
 	@echo " "
 	@echo " "
 	@echo "compiler finish!"
@@ -107,7 +112,7 @@ finish:
 share.lib: ${OBJS}
 	@echo 'Building target: $@'
 	@echo 'Invoking: gnu C++ Linker'
-	ar rcs share_d.a ${OBJS}
+	ar rcs libshare_d.a ${OBJS}
 	@echo 'Finished building target: $@'
 	@echo ' '
 

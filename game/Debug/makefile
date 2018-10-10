@@ -44,7 +44,7 @@ EXE_NAME=game
 
 #=============编译选项=============
 #编译包含的头文件
-CC_INC=-I"${SRC_DIR}" -I"${SRC_DIR}/src/" -I${EVENT_INC} -I${MYSQL_INC}	-I${TINYXPATH_INC} -I${SHARE_INC} 
+CC_INC=-I"${SRC_DIR}" -I"${SRC_DIR}/src/" -I${EVENT_INC} -I${MYSQL_INC}	-I${TINYXPATH_INC} -I${SHARE_INC}
 #编译优化
 CC_OPT=-O
 #编译忽略的警告
