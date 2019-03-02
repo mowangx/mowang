@@ -27,4 +27,14 @@
 7. wss
 	7.1 自签证书 https://www.cnblogs.com/liqingjht/p/6267563.html  && https://blog.csdn.net/oldmtn/article/details/52208747 && https://segmentfault.com/a/1190000002554673
 	7.2 server证书有域名，client证书无域名
+
+8. nginx
+	8.1 添加nginx yum资源库：rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+	8.2 启动nginx报bind() to x.x.x.x:port failed, 执行setenforce 0，设置SELinux 成为permissive模式
+	8.3 wget的post方式：wget --post-data='{"user_name":"mowang","password":"abc123"}' localhost:9010/user/login
+
+9. pip
+	9.1 安装epel扩展源: yum -y install epel-release
+	9.2 安装pip： yum -y install python-pip
+
 	

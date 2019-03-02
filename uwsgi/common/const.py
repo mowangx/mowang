@@ -1,0 +1,7 @@
+#coding: utf-8
+
+SUCCESS = 0
+ERROR_PATH = -1
+ERROR_PARAM = -2
+ERROR_CLASS = -3
+ERROR_METHOD = -4
