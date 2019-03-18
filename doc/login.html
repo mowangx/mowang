@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title>mowang</title>
+		<style type="text/css">
+			div#header,div#footer,div#content {
+				border:1px solid grey;
+				margin:5px;margin-bottom:15px;padding:8px;
+				background-color:white;
+		}
+		</style>
+	</head>
+	<body>
+		<div id="header">
+			<h2 align="center"> Welcome login </h2>
+		</div>
+		<div id="content" align="center">
+			用户名:
+			<input type="text" name="user" id="user_name"/>
+			<br/>
+			<br/>
+			密&nbsp;&nbsp;&nbsp;&nbsp;码:
+			<input type="password" name="pwd" id="user_pwd"/>
+			<br/>
+			<br/>
+			<input type="button" value="登陆" id="login"/>
+			&nbsp;&nbsp;&nbsp;
+			<input type="button" value="注册" id="register"/>
+		</div>
+		<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
+		</script>
+		<script>
+			$(document).ready(function(){
+				$("#login").click(function(){
+					$.ajax({
+						url:"http://127.0.0.1:9011/user/login",
+						type: 'POST',
+						contentType: 'application/json',
+						dataType: "json",
+						async:true,
+						data: JSON.stringify({
+							user_name: $("#user_name").val(),
+							password: $("#user_pwd").val()
+						}),
+						success:function(data) {
+							console.log(data);
+							console.log(data["msg"]);
+						},
+						error: function (xhr, status, p3, p4) {
+							var err = "Error " + " " + status + " " + p3;
+							if (xhr.responseText && xhr.responseText[0] == "{")
+								err = JSON.parse(xhr.responseText).message;
+							alert(err);
+						}
+					});
+				});
+			});
+		</script>
+	</body>
+</html>
