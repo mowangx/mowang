@@ -6,25 +6,31 @@
 #include "packet_struct.h"
 #include "binary_string.h"
 
-template <class T>
-struct func_param : func_param<decltype(&T::operator())> {};
-
-template<class C, class R, class... Args>
-struct func_param<R(C::*)(Args...)> : public func_param<R(*)(Args...)> {
-
-};
-
-template <class C, class R, class... Args>
-struct func_param<R(C::*)(Args...) const> : public func_param<R(*)(Args...)> {
-
-};
-
-template<class R, class... Args>
-struct func_param<R(*)(Args...)> {
+template<class Ret, class... Args>
+struct func_param_helper {
 	typedef typename std::integral_constant<std::size_t, sizeof...(Args)> args_count;
 	typedef typename std::tuple<typename std::decay<Args>::type...> args_type;
 };
 
+template <class Callable>
+struct func_param : func_param<decltype(&Callable::operator())> {
+
+};
+
+template <class Cls, class Ret, class... Args>
+struct func_param<Ret(Cls::*)(Args...)> : public func_param_helper<Ret, Args...> {
+
+};
+
+template <class Cls, class Ret, class... Args>
+struct func_param<Ret(Cls::*)(Args...) const> : public func_param_helper<Ret, Args...> {
+
+};
+
+template <class Ret, class... Args>
+struct func_param<Ret(*)(Args...)> : public func_param_helper<Ret, Args...> {
+
+};
 
 template <class C>
 struct template_type {
@@ -200,18 +206,18 @@ struct rpc_param<0, M> {
 template <size_t N>
 struct call_helper
 {
-	template <class Functor, class... ArgsT, class... ArgsF>
-	static auto call(const Functor& f, std::tuple<ArgsT...>& args_t, ArgsF&&... args_f) -> decltype(call_helper<N - 1>::call(f, args_t, std::get<N - 1>(args_t), std::forward<ArgsF>(args_f)...)) {
-		return call_helper<N - 1>::call(f, args_t, std::get<N - 1>(args_t), std::forward<ArgsF>(args_f)...);
+	template <class Functor, class... TupleArgs, class... Args>
+	static auto call(const Functor& f, std::tuple<TupleArgs...>& tuple_args, Args&&... args) -> decltype(call_helper<N - 1>::call(f, tuple_args, std::get<N - 1>(tuple_args), std::forward<Args>(args)...)) {
+		return call_helper<N - 1>::call(f, tuple_args, std::get<N - 1>(tuple_args), std::forward<Args>(args)...);
 	}
 };
 
 template <>
 struct call_helper<0>
 {
-	template <class Functor, class... ArgsT, class... ArgsF>
-	static auto call(const Functor& f, std::tuple<ArgsT...>&, ArgsF&&... args_f) -> decltype(f(std::forward<ArgsF>(args_f)...)) {
-		return f(std::forward<ArgsF>(args_f)...);
+	template <class Functor, class... TupleArgs, class... Args>
+	static auto call(const Functor& f, std::tuple<TupleArgs...>&, Args&&... args) -> decltype(f(std::forward<Args>(args)...)) {
+		return f(std::forward<Args>(args)...);
 	}
 };
 
