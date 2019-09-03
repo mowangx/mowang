@@ -20,8 +20,8 @@ public:
 	TGameTime_t get_frame_time() const;
 	TServerID_t get_server_id() const;
 	TPort_t get_listen_port() const;
-	const char* get_game_manager_listen_ip() const;
-	TPort_t get_game_manager_listen_port() const;
+	const char* get_http_client_listen_ip() const;
+	TPort_t get_http_client_listen_port() const;
 	TProcessNum_t get_desire_process_num(TProcessType_t process_type) const;
 
 private:
@@ -31,8 +31,8 @@ private:
 	TGameTime_t m_frame_time;
 	TServerID_t m_server_id;
 	TPort_t m_listen_port;
-	TPort_t m_game_manager_listen_port;
-	char m_game_manager_listen_ip[IP_SIZE];
+	TPort_t m_http_client_listen_port;
+	TIP_t m_http_client_listen_ip;
 	TProcessNum_t m_desire_process_num[MAX_PROCESS_TYPE_NUM];
 };
 

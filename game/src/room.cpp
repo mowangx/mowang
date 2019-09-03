@@ -1,5 +1,6 @@
 
 #include "room.h"
+#include <algorithm>
 #include "game_enum.h"
 #include "string_common.h"
 #include "rpc_proxy.h"
@@ -7,7 +8,7 @@
 #include "game_random.h"
 #include "entity_manager.h"
 
-room::room()
+room::room() : server_entity()
 {
 	m_room_id = INVALID_ROOM_ID;
 	m_role_id_2_role_info.clear();
@@ -18,14 +19,14 @@ room::~room()
 	m_role_id_2_role_info.clear();
 }
 
-bool room::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
+bool room::init(TEntityID_t entity_id)
 {
 	log_info("room init");
 	DRegisterStubRpc(this, room, enter_room, 3);
 	DRegisterStubRpc(this, room, leave_room, 1);
 	DRegisterStubRpc(this, room, ready_start, 1);
 	DRegisterStubRpc(this, room, pop_cards, 2);
-	return TBaseType_t::init(server_id, game_id, entity_id);
+	return TBaseType_t::init(entity_id);
 }
 
 void room::enter_room(TRoleID_t role_id, const mailbox_info & mailbox, const proxy_info& proxy)
@@ -151,7 +152,7 @@ void room::start_game()
 		}
 		std::string msg = gx_to_string("{\"cmd\": \"add_cards\", \"cards\": [%s]}", cards.data());
 		DRpcWrapper.call_ws_client(role_info.proxy, msg);
-		log_info("send add cards msg! msg %s", msg);
+		log_info("send add cards msg! msg %s", msg.c_str());
 	}
 }
 

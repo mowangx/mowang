@@ -4,19 +4,19 @@
 
 #include <unordered_map>
 
-#include "entity.h"
+#include "server_entity.h"
 #include "packet_struct.h"
 
-class roll_stub : public entity
+class roll_stub : public server_entity
 {
-	typedef entity TBaseType_t;
+	typedef server_entity TBaseType_t;
 
 public:
 	roll_stub();
 	virtual ~roll_stub();
 
 public:
-	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id) override;
+	virtual bool init(TEntityID_t entity_id) override;
 
 public:
 	void register_account(TPlatformID_t platform_id, TUserID_t user_id, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id);

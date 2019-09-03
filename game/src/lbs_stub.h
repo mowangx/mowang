@@ -4,19 +4,19 @@
 
 #include <unordered_map>
 
-#include "entity.h"
+#include "server_entity.h"
 #include "packet_struct.h"
 
-class lbs_stub : public entity
+class lbs_stub : public server_entity
 {
-	typedef entity TBaseType_t;
+	typedef server_entity TBaseType_t;
 
 public:
 	lbs_stub();
 	virtual ~lbs_stub();
 
 public:
-	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id) override;
+	virtual bool init(TEntityID_t entity_id) override;
 
 public:
 	void query_city(const game_pos& pos, const mailbox_info& mailbox, const dynamic_string& callback);

@@ -8,7 +8,7 @@
 
 client_handler::client_handler() : packet_handler<client_handler>()
 {
-	m_rpc_client = new rpc_client(this);
+
 }
 
 client_handler::~client_handler()

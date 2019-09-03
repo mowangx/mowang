@@ -43,18 +43,19 @@ void entity_manager::init()
 	};
 }
 
-entity * entity_manager::create_entity(const std::string& entity_name)
+server_entity* entity_manager::create_entity(const std::string& entity_name)
 {
 	auto itr = m_create_entity_funcs.find(entity_name);
 	if (itr == m_create_entity_funcs.end()) {
 		log_error("create entity failed for not find entity name: %s", entity_name.c_str());
 		return nullptr;
 	}
-	const std::function<entity*()>& create_func = itr->second;
-	entity* e = create_func();
+	const game_server_info& server_info = DGameServer.get_server_info();
+	const std::function<server_entity*()>& create_func = itr->second;
+	server_entity* e = create_func();
 	if (NULL != e) {
 		++m_entity_id;
-		e->init(DGameServer.get_server_id(), DGameServer.get_game_id(), m_entity_id);
+		e->init(m_entity_id);
 
 		entity_info info;
 		info.e = e;
@@ -87,7 +88,7 @@ void entity_manager::destroy_entity(TEntityID_t entity_id)
 	m_entities.erase(itr);
 }
 
-entity* entity_manager::get_entity(TEntityID_t entity_id)
+server_entity* entity_manager::get_entity(TEntityID_t entity_id)
 {
 	auto itr = m_entities.find(entity_id);
 	if (itr == m_entities.end()) {

@@ -65,6 +65,9 @@ protected:
 
 	TSocketIndex_t gen_socket_index();
 
+public:
+	socket_type* get_socket(TSocketIndex_t socket_index) const;
+
 protected:
 	std::mutex m_mutex;
 	TSocketIndex_t m_socket_sequence_index;

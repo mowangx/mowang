@@ -233,9 +233,9 @@ sint32 socket_base::get_port()const
 	return m_port;
 }
 
-TIP_t socket_base::get_host_ip()const
+TIPInt_t socket_base::get_host_ip()const
 {
-	return (TIP_t)(m_socket_addr.sin_addr.s_addr);
+	return (TIPInt_t)(m_socket_addr.sin_addr.s_addr);
 }
 
 bool socket_base::is_valid()const
@@ -521,9 +521,9 @@ sint32 socket_base::get_remote_port() const
 	return m_remote_port;
 }
 
-TIP_t socket_base::get_remote_host_ip() const
+TIPInt_t socket_base::get_remote_host_ip() const
 {
-	return (TIP_t)(m_remote_socket_addr.sin_addr.s_addr);
+	return (TIPInt_t)(m_remote_socket_addr.sin_addr.s_addr);
 }
 
 std::string socket_base::get_remote_host_ip_str() const

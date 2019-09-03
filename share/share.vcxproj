@@ -199,11 +199,15 @@
     <ClInclude Include="src\debug.h" />
     <ClInclude Include="src\dynamic_array.h" />
     <ClInclude Include="src\entity.h" />
+    <ClInclude Include="src\etcd_listener.h" />
+    <ClInclude Include="src\etcd_manager.h" />
+    <ClInclude Include="src\etcd_struct.h" />
     <ClInclude Include="src\game_enum.h" />
     <ClInclude Include="src\game_random.h" />
     <ClInclude Include="src\game_struct.h" />
     <ClInclude Include="src\ini_file.h" />
     <ClInclude Include="src\log.h" />
+    <ClInclude Include="src\mailbox_manager.h" />
     <ClInclude Include="src\memory_pool.h" />
     <ClInclude Include="src\msg_queue.h" />
     <ClInclude Include="src\packet_handler.h" />
@@ -242,9 +246,12 @@
   <ItemGroup>
     <ClCompile Include="src\debug.cpp" />
     <ClCompile Include="src\entity.cpp" />
+    <ClCompile Include="src\etcd_listener.cpp" />
+    <ClCompile Include="src\etcd_manager.cpp" />
     <ClCompile Include="src\game_random.cpp" />
     <ClCompile Include="src\ini_file.cpp" />
     <ClCompile Include="src\log.cpp" />
+    <ClCompile Include="src\mailbox_manager.cpp" />
     <ClCompile Include="src\packet_handler.cpp" />
     <ClCompile Include="src\rpc_proxy.cpp" />
     <ClCompile Include="src\rpc_wrapper.cpp" />

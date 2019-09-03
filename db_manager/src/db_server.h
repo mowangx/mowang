@@ -19,9 +19,8 @@ public:
 private:
 	virtual void work_run() override;
 	virtual void do_loop(TGameTime_t diff) override;
-	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
-
-private:
+public:
+	virtual bool connect_server(const char* ip, TPort_t port) override;
 };
 
 #define DDbServer singleton<db_server>::get_instance()

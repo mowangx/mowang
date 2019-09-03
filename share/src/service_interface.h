@@ -5,7 +5,7 @@
 #include "base_packet.h"
 #include "packet_struct.h"
 
-class rpc_client;
+class game_handler;
 
 class service_interface
 {
@@ -19,8 +19,8 @@ public:
 	virtual void kick_ws_socket(TSocketIndex_t socket_index) = 0;
 
 public:
-	virtual void register_client(rpc_client* client) = 0;
-	virtual void unregister_client(TSocketIndex_t socket_index) = 0;
+	virtual void register_handler(game_handler* handler) = 0;
+	virtual void unregister_handler(TSocketIndex_t socket_index) = 0;
 
 public:
 	virtual void register_server(TSocketIndex_t socket_index, const game_server_info& server_info) = 0;

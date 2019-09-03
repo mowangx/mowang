@@ -28,8 +28,6 @@ public:
 
 	virtual bool handle_rpc_by_index(packet_base* packet) const;
 	virtual bool handle_rpc_by_name(packet_base* packet) const;
-	virtual bool handle_stub_rpc_by_index(packet_base* packet) const;
-	virtual bool handle_stub_rpc_by_name(packet_base* packet) const;
 	virtual bool handle_entity_rpc_by_index(packet_base* packet) const;
 	virtual bool handle_entity_rpc_by_name(packet_base* packet) const;
 
@@ -48,7 +46,6 @@ public:
 
 protected:
 	TSocketIndex_t m_socket_index;
-	rpc_client* m_rpc_client;
 };
 
 typedef bool (game_handler::*packet_handler_func)(packet_base* packet);
@@ -113,8 +110,6 @@ public:
 	static void Setup() {
 		register_handler((TPacketID_t)PACKET_ID_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_rpc_by_index);
 		register_handler((TPacketID_t)PACKET_ID_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_rpc_by_name);
-		register_handler((TPacketID_t)PACKET_ID_STUB_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_stub_rpc_by_index);
-		register_handler((TPacketID_t)PACKET_ID_STUB_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_stub_rpc_by_name);
 		register_handler((TPacketID_t)PACKET_ID_ENTITY_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_entity_rpc_by_index);
 		register_handler((TPacketID_t)PACKET_ID_ENTITY_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_entity_rpc_by_name);
 	}

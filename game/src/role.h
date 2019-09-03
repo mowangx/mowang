@@ -20,7 +20,7 @@ public:
 	virtual ~role();
 
 public:
-	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id) override;
+	virtual bool init(TEntityID_t entity_id) override;
 
 public:
 	void test(uint8 param_1, uint16 param_2);

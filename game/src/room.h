@@ -3,19 +3,19 @@
 
 #include <map>
 
-#include "entity.h"
+#include "server_entity.h"
 #include "game_struct.h"
 
-class room : public entity
+class room : public server_entity
 {
-	typedef entity TBaseType_t;
+	typedef server_entity TBaseType_t;
 
 public:
 	room();
 	virtual ~room();
 
 public:
-	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id) override;
+	virtual bool init(TEntityID_t entity_id) override;
 
 public:
 	void enter_room(TRoleID_t role_id, const mailbox_info& mailbox, const proxy_info& proxy);

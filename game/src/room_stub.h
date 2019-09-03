@@ -3,19 +3,19 @@
 
 #include <unordered_map>
 
-#include "entity.h"
+#include "server_entity.h"
 #include "game_struct.h"
 
-class room_stub : public entity
+class room_stub : public server_entity
 {
-	typedef entity TBaseType_t;
+	typedef server_entity TBaseType_t;
 
 public:
 	room_stub();
 	virtual ~room_stub();
 
 public:
-	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id) override;
+	virtual bool init(TEntityID_t entity_id) override;
 
 public:
 	void create_room(const mailbox_info& mailbox, const dynamic_string& pwd, const mailbox_info& role_mailbox);

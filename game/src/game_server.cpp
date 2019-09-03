@@ -1,9 +1,7 @@
 
 #include "game_server.h"
 #include "tbl_test.h"
-#include "gate_handler.h"
-#include "game_manager_handler.h"
-#include "db_manager_handler.h"
+#include "game_packet_handler.h"
 #include "http_client_handler.h"
 #include "rpc_proxy.h"
 #include "rpc_client.h"
@@ -14,6 +12,8 @@
 #include "fight_stub.h"
 #include "timer.h"
 #include "entity_manager.h"
+#include "etcd_manager.h"
+#include "mailbox_manager.h"
 
 #include "sequence.h"
 
@@ -43,27 +43,23 @@ bool game_server::init(TProcessID_t process_id)
 	//log_info("load config success");
 
 	m_entity_id = ((TEntityID_t)m_server_info.process_info.server_id << 48) + ((TEntityID_t)m_server_info.process_info.process_id << 40);
-	m_opt_id = ((TOptID_t)m_server_info.process_info.server_id << 48) + ((TOptID_t)m_server_info.process_info.process_id << 40);
 
-	gate_handler::Setup();
-	game_manager_handler::Setup();
-	db_manager_handler::Setup();
+	game_packet_handler::Setup();
 	http_client_handler::Setup();
 
 	DRegisterServerRpc(this, game_server, register_server, 2);
-	DRegisterServerRpc(this, game_server, on_register_servers, 4);
 	DRegisterServerRpc(this, game_server, login_server, 4);
 	DRegisterServerRpc(this, game_server, logout_server, 2);
 	DRegisterServerRpc(this, game_server, create_entity, 2);
-	DRegisterServerRpc(this, game_server, on_register_entity, 2);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_result, 4);
-	DRegisterServerRpc(this, game_server, on_http_response, 4);
 	DRegisterServerRpc(this, game_server, destroy_entity, 1);
+	DRegisterServerRpc(this, game_server, on_register_entities, 5);
+	DRegisterServerRpc(this, game_server, on_unregister_process, 4);
 
 	DRegisterStubRpc(this, game_server, remove_entity, 1);
 
-	if (!DNetMgr.start_listen<gate_handler>(m_server_info.port)) {
+	if (!DNetMgr.start_listen<game_packet_handler>(m_server_info.port)) {
 		log_info("init socket manager failed");
 		return false;
 	}
@@ -76,15 +72,9 @@ bool game_server::init(TProcessID_t process_id)
 	return true;
 }
 
-void game_server::work_run()
+bool game_server::connect_server(const char * ip, TPort_t port)
 {
-	connect_game_manager_loop(m_config.get_game_manager_listen_ip(), m_config.get_game_manager_listen_port());
-	TBaseType_t::work_run();
-}
-
-bool game_server::connect_game_manager(const char * ip, TPort_t port)
-{
-	return DNetMgr.start_connect<game_manager_handler>(ip, port);
+	return DNetMgr.start_connect<game_packet_handler>(ip, port);
 }
 
 resource* game_server::allocate_resource()
@@ -180,7 +170,7 @@ void game_server::db_opt_with_result(uint8 opt_type, const char * table, const c
 void game_server::db_opt(uint8 opt_type, const char * table, const char * query, const char * fields)
 {
 	m_opt_id += 1;
-	rpc_client* rpc = DRpcWrapper.get_random_client(m_server_info.process_info.server_id, PROCESS_DB);
+	rpc_client* rpc = DRpcWrapper.get_client_by_process_type(PROCESS_DB);
 	if (NULL != rpc) {
 		dynamic_string tmp_table(table);
 		dynamic_string tmp_query(query);
@@ -189,21 +179,11 @@ void game_server::db_opt(uint8 opt_type, const char * table, const char * query,
 	}
 }
 
-void game_server::http_request(const dynamic_string& host, const dynamic_string& url, const dynamic_string& params, bool usessl, const std::function<void(int, const dynamic_string&)>& callback)
-{
-	m_opt_id += 1;
-	rpc_client* rpc = DRpcWrapper.get_random_client(m_server_info.process_info.server_id, PROCESS_HTTP_CLIENT);
-	if (NULL != rpc) {
-		rpc->call_remote_func("http_request", m_opt_id, host, url, params, usessl);
-	}
-	m_http_response_callbacks[m_opt_id] = callback;
-}
-
 void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, const account_info& account)
 {
 	// send msg to db manager to query role id from db by platform id and user id
 	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
-	role* p = (role*)create_entity_locally("role");
+	role* p = (role*)DEntityMgr.create_entity("role");
 	p->set_client_id(client_id);
 	p->set_gate_id(gate_id);
 	p->set_role_name(account.role_name);
@@ -223,6 +203,19 @@ void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t clie
 	remove_entity_core(client_id);
 }
 
+void game_server::add_process(const game_server_info& server_info)
+{
+	TBaseType_t::add_process(server_info);
+	if (server_info.process_info.process_type == PROCESS_DB) {
+		if (DNetMgr.start_connect<game_packet_handler>(server_info.ip.data(), server_info.port)) {
+			log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+		}
+		else {
+			log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
+		}
+	}
+}
+
 void game_server::register_server(TSocketIndex_t socket_index, const game_server_info & server_info)
 {
 	TBaseType_t::register_server(socket_index, server_info);
@@ -234,40 +227,9 @@ void game_server::register_server(TSocketIndex_t socket_index, const game_server
 	}
 }
 
-void game_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
-{
-	log_info("on_register_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
-	for (int i = 0; i < servers.size(); ++i) {
-		const game_server_info& server_info = servers[i];
-
-		game_server_info tmp_server_info;
-		if (DRpcWrapper.get_server_info(server_info.process_info, tmp_server_info)) {
-			log_info("server has registerted, ip = %s, port = %d", server_info.ip.data(), server_info.port);
-			continue;
-		}
-
-		if (server_info.process_info.process_type == PROCESS_DB) {
-			if (DNetMgr.start_connect<db_manager_handler>(server_info.ip.data(), server_info.port)) {
-				log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
-			}
-			else {
-				log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
-			}
-		}
-		else if (server_info.process_info.process_type == PROCESS_HTTP_CLIENT) {
-			if (DNetMgr.start_connect<http_client_handler>(server_info.ip.data(), server_info.port)) {
-				log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
-			}
-			else {
-				log_info("connect failed, ip = %s, port = %d", server_info.ip.data(), server_info.port);
-			}
-		}
-	}
-}
-
 void game_server::create_entity(TSocketIndex_t socket_index, const TEntityName_t& entity_name)
 {
-	create_entity_locally(entity_name.data());
+	//create_entity_locally(entity_name.data());
 }
 
 void game_server::remove_entity(TSocketIndex_t client_id)
@@ -297,45 +259,22 @@ void game_server::on_opt_db_with_result(TSocketIndex_t socket_index, TOptID_t op
 	callback(status, result);
 }
 
-void game_server::on_http_response(TSocketIndex_t socket_index, TOptID_t opt_id, int status, const dynamic_string& result)
-{
-	auto itr = m_http_response_callbacks.find(opt_id);
-	if (itr == m_http_response_callbacks.end()) {
-		return;
-	}
-	const std::function<void(int, const dynamic_string&)>& callback = itr->second;
-	callback(status, result);
-}
-
 void game_server::on_connect(TSocketIndex_t socket_index)
 {
 	TBaseType_t::on_connect(socket_index);
-	game_process_info process_info;
-	if (DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index)) {
-		if (process_info.process_type == PROCESS_DB) {
-			DSequence.save();
-		}
-		else if (process_info.process_type == PROCESS_HTTP_CLIENT) {
-			http_request("www.boost.org", "/LICENSE_1_0.txt", "user_name=mowang", true, [&](int status, const dynamic_string& result) {
-				log_info("status %d, result %s", status, result.data());
-			});
-			//http_request("localhost", "/sentry/process_trace", "user_name=mowang", false);
-		}
-	}
+	//game_process_info process_info;
+	//if (process_info.process_type == PROCESS_DB) {
+	//	DSequence.save();
+	//}
+	//else if (process_info.process_type == PROCESS_HTTP_CLIENT) {
+	//	
+	//	//http_request("localhost", "/sentry/process_trace", "user_name=mowang", false);
+	//}
 }
 
 void game_server::on_disconnect(TSocketIndex_t socket_index)
 {
-	game_process_info process_info;
-	if (!DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index) ||
-		process_info.process_type != PROCESS_GAME) {
-		return;
-	}
-
-	for (auto itr = m_client_id_2_role.begin(); itr != m_client_id_2_role.end(); ++itr) {
-		role* p = itr->second;
-		p->logout();
-	}
+	
 }
 
 bool game_server::remove_entity_core(TSocketIndex_t client_id)
@@ -359,52 +298,43 @@ bool game_server::remove_entity_core(TSocketIndex_t client_id)
 void game_server::on_game_start()
 {
 	log_info("on_game_start");
-	create_entity_globally("roll_stub", true);
-	create_entity_globally("room_stub", true);
-}
-
-void game_server::transfer_client(TSocketIndex_t client_id, packet_base* packet)
-{
-	TPacketID_t packet_id = packet->get_packet_id();
-	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
-	log_info("transfer client, gate id %u, client id %" I64_FMT "u, packet id %u", gate_id, client_id, packet_id);
-	if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_NAME) {
-		transfer_server_by_name_packet* rpc_info = (transfer_server_by_name_packet*)packet;
-		DRpcEntity.call(get_entity_id_by_client_id(client_id), rpc_info->m_rpc_name, rpc_info->m_buffer);
-	}
-	else if (packet_id == PACKET_ID_TRANSFER_SERVER_BY_INDEX) {
-		transfer_server_by_index_packet* rpc_info = (transfer_server_by_index_packet*)packet;
-		DRpcEntity.call(get_entity_id_by_client_id(client_id), rpc_info->m_rpc_index, rpc_info->m_buffer);
-	}
-	else {
-		log_error("transfer client failed, not find packet id, gate id %u, packet id %u", gate_id, packet_id);
+	//http_request("www.boost.org", "/LICENSE_1_0.txt", "user_name=mowang", true, [&](int status, const dynamic_string& result) {
+	//	log_info("status %d, result %s", status, result.data());
+	//});
+	//http_request("km.netease.com", "/article/278519", "", false, [&](int status, const dynamic_string& result) {
+	//	log_info("status %d, result %s", status, result.data());
+	//});
+	if (m_server_info.process_info.process_id == 1) {
+		create_entity_locally("roll_stub_tag", "roll_stub");
 	}
 }
 
 void game_server::create_entity_globally(const std::string & entity_name, bool check_repeat)
 {
-	rpc_client* rpc = DRpcWrapper.get_random_client(get_server_id(), PROCESS_GAME_MANAGER);
-	if (NULL == rpc) {
-		return;
-	}
-	TEntityName_t name;
-	memset(name.data(), 0, ENTITY_NAME_LEN);
-	memcpy((void*)name.data(), entity_name.c_str(), entity_name.length());
-	rpc->call_remote_func("create_entity", get_server_id(), name, check_repeat, get_game_id());
+	//rpc_client* rpc = DRpcWrapper.get_random_client(get_server_id(), PROCESS_GAME_MANAGER);
+	//if (NULL == rpc) {
+	//	return;
+	//}
+	//TEntityName_t name;
+	//memset(name.data(), 0, ENTITY_NAME_LEN);
+	//memcpy((void*)name.data(), entity_name.c_str(), entity_name.length());
+	//rpc->call_remote_func("create_entity", get_server_id(), name, check_repeat, get_game_id());
 }
 
-entity* game_server::create_entity_locally(const std::string& entity_name)
+entity* game_server::create_entity_locally(const std::string& tag, const std::string& entity_name)
 {
 	entity* e = DEntityMgr.create_entity(entity_name);
-	rpc_client* rpc = DRpcWrapper.get_random_client(get_server_id(), PROCESS_GAME_MANAGER);
-	if (NULL == rpc) {
-		// @TODO need delete entity
-		return nullptr;
-	}
-	TEntityName_t name;
-	memset(name.data(), 0, ENTITY_NAME_LEN);
-	memcpy((void*)name.data(), entity_name.c_str(), entity_name.length());
-	rpc->call_remote_func("register_entity", name, m_server_info.process_info);
+	std::string server_id = gx_to_string("%d", m_server_info.process_info.server_id);
+	TNamespace_t name;
+	memset(name.data(), 0, NAMESPACE_LEN);
+	memcpy(name.data(), server_id.c_str(), server_id.length());
+	TTagName_t global_tag;
+	memset(global_tag.data(), 0, TAG_NAME_LEN);
+	memcpy(global_tag.data(), tag.c_str(), tag.length());
+	TEntityName_t global_entity_name;
+	memset(global_entity_name.data(), 0, ENTITY_NAME_LEN);
+	memcpy(global_entity_name.data(), entity_name.c_str(), entity_name.length());
+	DEtcdMgr.register_entity(name, global_tag, e->get_entity_id(), global_entity_name);
 	return e;
 }
 
@@ -433,11 +363,11 @@ void game_server::update_role_proxy_info(const proxy_info& old_proxy_info, const
 	}
 }
 
-TRoleID_t game_server::get_entity_id_by_client_id(TSocketIndex_t client_id) const
+TEntityID_t game_server::get_entity_id_by_client_id(TSocketIndex_t client_id) const
 {
 	auto itr = m_client_id_2_role.find(client_id);
 	if (itr != m_client_id_2_role.end()) {
 		return (itr->second)->get_entity_id();
 	}
-	return INVALID_ROLE_ID;
+	return INVALID_ENTITY_ID;
 }

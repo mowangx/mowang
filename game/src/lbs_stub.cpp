@@ -4,7 +4,7 @@
 #include "rpc_wrapper.h"
 #include "game_server.h"
 
-lbs_stub::lbs_stub()
+lbs_stub::lbs_stub() : server_entity()
 {
 	clean_up();
 }
@@ -14,7 +14,7 @@ lbs_stub::~lbs_stub()
 	clean_up();
 }
 
-bool lbs_stub::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
+bool lbs_stub::init(TEntityID_t entity_id)
 {
 	log_info("lbs stub init");
 	DRegisterStubRpc(this, lbs_stub, query_city, 3);
@@ -27,7 +27,7 @@ bool lbs_stub::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t ent
 		}
 	});
 
-	return TBaseType_t::init(server_id, game_id, entity_id);
+	return TBaseType_t::init(entity_id);
 }
 
 void lbs_stub::query_city(const game_pos& pos, const mailbox_info& mailbox, const dynamic_string& callback)

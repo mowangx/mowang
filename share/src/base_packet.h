@@ -105,32 +105,6 @@ public:
 	char m_buffer[65000];
 };
 
-class stub_rpc_by_index_packet : public packet_base
-{
-public:
-	stub_rpc_by_index_packet() : packet_base(PACKET_ID_STUB_RPC_BY_INDEX) {
-		m_rpc_index = 0;
-		memset(m_buffer, 0, 65000);
-	}
-
-public:
-	uint8 m_rpc_index;
-	char m_buffer[65000];
-};
-
-class stub_rpc_by_name_packet : public packet_base
-{
-public:
-	stub_rpc_by_name_packet() : packet_base(PACKET_ID_STUB_RPC_BY_NAME) {
-		memset(m_rpc_name, 0, 100);
-		memset(m_buffer, 0, 65000);
-	}
-
-public:
-	char m_rpc_name[100];
-	char m_buffer[65000];
-};
-
 class entity_rpc_by_index_packet : public packet_base
 {
 public:
@@ -156,38 +130,8 @@ public:
 	}
 
 public:
-	TRoleID_t m_entity_id;
+	TEntityID_t m_entity_id;
 	char m_rpc_name[100];
-	char m_buffer[65000];
-};
-
-class transfer_entity_packet : public packet_base
-{
-public:
-	transfer_entity_packet() : packet_base(PACKET_ID_TRANSFER_ENTITY) {
-		m_server_id = INVALID_SERVER_ID;
-		m_game_id = INVALID_PROCESS_ID;
-		memset(m_buffer, 0, 65000);
-	}
-
-public:
-	TServerID_t m_server_id;
-	TProcessID_t m_game_id;
-	char m_buffer[65000];
-};
-
-class transfer_stub_packet : public packet_base
-{
-public:
-	transfer_stub_packet() : packet_base(PACKET_ID_TRANSFER_STUB) {
-		m_server_id = INVALID_SERVER_ID;
-		m_game_id = INVALID_PROCESS_ID;
-		memset(m_buffer, 0, 65000);
-	}
-
-public:
-	TServerID_t m_server_id;
-	TProcessID_t m_game_id;
 	char m_buffer[65000];
 };
 
@@ -214,32 +158,6 @@ public:
 
 public:
 	TSocketIndex_t m_client_id;
-	char m_buffer[65000];
-};
-
-class transfer_server_by_index_packet : public packet_base
-{
-public:
-	transfer_server_by_index_packet() : packet_base(PACKET_ID_TRANSFER_SERVER_BY_INDEX) {
-		m_rpc_index = 0;
-		memset(m_buffer, 0, 65000);
-	}
-
-public:
-	uint8 m_rpc_index;
-	char m_buffer[65000];
-};
-
-class transfer_server_by_name_packet : public packet_base
-{
-public:
-	transfer_server_by_name_packet() : packet_base(PACKET_ID_TRANSFER_SERVER_BY_NAME) {
-		memset(m_rpc_name, 0, 100);
-		memset(m_buffer, 0, 65000);
-	}
-
-public:
-	char m_rpc_name[100];
 	char m_buffer[65000];
 };
 

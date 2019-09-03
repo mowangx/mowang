@@ -8,7 +8,7 @@
 
 gate_handler::gate_handler() : packet_handler<gate_handler>()
 {
-	m_rpc_client = new rpc_client(this);
+
 }
 
 gate_handler::~gate_handler()
@@ -29,7 +29,5 @@ service_interface* gate_handler::get_service() const
 
 bool gate_handler::handle_transfer_client(packet_base * packet)
 {
-	transfer_client_packet* transfer_info = (transfer_client_packet*)packet;
-	DGameServer.transfer_client(transfer_info->m_client_id, (packet_base*)transfer_info->m_buffer);
 	return true;
 }

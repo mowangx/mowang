@@ -1,4 +1,6 @@
+
 #include "server_entity.h"
+#include "game_server.h"
 
 server_entity::server_entity()
 {
@@ -10,10 +12,9 @@ server_entity::~server_entity()
 	m_proxy.clean_up();
 }
 
-bool server_entity::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
+bool server_entity::init(TEntityID_t entity_id)
 {
-	m_proxy.server_id = server_id;
-	return TBaseType_t::init(server_id, game_id, entity_id);
+	return TBaseType_t::initialize(entity_id, DGameServer.get_server_info().ip, DGameServer.get_server_info().port);
 }
 
 void server_entity::set_gate_id(TProcessID_t gate_id)

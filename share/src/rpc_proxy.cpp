@@ -33,7 +33,7 @@ void rpc_proxy::call(const std::string& func_name, char* buffer) const
 	}
 }
 
-void rpc_proxy::call_with_index(uint8 rpc_index, char * buffer, TSocketIndex_t socket_index) const
+void rpc_proxy::call_with_index(uint8 rpc_index, char* buffer, TSocketIndex_t socket_index) const
 {
 	auto itr = m_index_2_name.find(rpc_index);
 	if (itr != m_index_2_name.end()) {
@@ -44,7 +44,7 @@ void rpc_proxy::call_with_index(uint8 rpc_index, char * buffer, TSocketIndex_t s
 	}
 }
 
-void rpc_proxy::call_with_index(const std::string & func_name, char * buffer, TSocketIndex_t socket_index) const
+void rpc_proxy::call_with_index(const std::string& func_name, char* buffer, TSocketIndex_t socket_index) const
 {
 	auto itr = m_name_2_func_with_index.find(func_name.c_str());
 	if (itr != m_name_2_func_with_index.end()) {

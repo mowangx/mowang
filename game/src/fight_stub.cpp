@@ -7,7 +7,7 @@
 #include "rpc_param.h"
 #include "binary_string.h"
 
-fight_stub::fight_stub()
+fight_stub::fight_stub() : server_entity()
 {
 	clean_up();
 }
@@ -21,7 +21,7 @@ fight_stub::~fight_stub()
 	clean_up();
 }
 
-bool fight_stub::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
+bool fight_stub::init(TEntityID_t entity_id)
 {
 	log_info("fight stub init");
 	DGameServer.db_query("fight", NULL, "role_id, npc_id, src_x, src_y, dest_x, dest_y, soldiers, unix_timestamp(fight_time)", [&](bool status, const binary_data& result) {
@@ -50,7 +50,7 @@ bool fight_stub::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t e
 		}
 		
 	});
-	return TBaseType_t::init(server_id, game_id, entity_id);
+	return TBaseType_t::init(entity_id);
 }
 
 void fight_stub::add_fight(TRoleID_t role_id, TNpcIndex_t npc_id, const game_pos& src_pos, const game_pos& dest_pos, 

@@ -1,133 +1,99 @@
 
 #include "rpc_wrapper.h"
+#include "string_common.h"
 #include "game_random.h"
+#include "tcp_manager.h"
+#include "service.h"
 
 rpc_wrapper::rpc_wrapper()
 {
+	m_service = nullptr;
 }
 
 rpc_wrapper::~rpc_wrapper()
 {
 }
 
-void rpc_wrapper::register_handler_info(rpc_client* client, const game_server_info& server_info)
+void rpc_wrapper::init(service* s)
 {
-	const game_process_info& process_info = server_info.process_info;
-	uint64 key_id = get_key_id_by_process_id(process_info);
-	auto id_itr = m_server_process_id_2_clients.find(key_id);
-	if (id_itr != m_server_process_id_2_clients.end()) {
-		id_itr->second->get_handler()->kick();
-		log_info("kick server, server id = %u, process type = %u, process id = %u",
-			process_info.server_id, process_info.process_type, process_info.process_id);
-	}
-	m_server_process_id_2_clients[key_id] = client;
+	m_service = s;
+}
 
-	rpc_client_wrapper_info* wrapper_info = new rpc_client_wrapper_info(process_info.process_id, client);
-	key_id = get_key_id_by_process_type(process_info.server_id, process_info.process_type);
-	auto itr = m_server_process_type_2_clients.find(key_id);
-	if (itr != m_server_process_type_2_clients.end()) {
-		std::vector<rpc_client_wrapper_info*>& rpc_wrappers = itr->second;
-		rpc_wrappers.push_back(wrapper_info);
+void rpc_wrapper::register_handler_info(game_handler* handler)
+{
+	TSocketIndex_t socket_index = handler->get_socket_index();
+	socket_base* socket = DNetMgr.get_socket(socket_index);
+	std::string key = gx_to_string("%s%d", socket->get_remote_host_ip_str().data(), socket->get_remote_port());
+	auto itr = m_directly_games.find(key);
+	rpc_client* client = nullptr;
+	if (itr == m_directly_games.end()) {
+		client = new rpc_client(handler);
 	}
 	else {
-		std::vector<rpc_client_wrapper_info*> rpc_wrappers;
-		rpc_wrappers.push_back(wrapper_info);
-		m_server_process_type_2_clients[key_id] = rpc_wrappers;
+		client = itr->second->rpc;
+		client->set_handler(handler);
 	}
-	
-	m_server_manager.register_server(server_info);
-	
-	log_info("register handle info, server id = %d, process type = %d, process id = %d, listen ip = %s, port = %d",
-		process_info.server_id, (TProcessType_t)process_info.process_type, process_info.process_id, server_info.ip.data(), server_info.port);
+	m_socket_index_2_client[handler->get_socket_index()] = client;
+}
+
+void rpc_wrapper::update_handler_info(TSocketIndex_t socket_index, const game_server_info& server_info)
+{
+	auto itr = m_socket_index_2_client.find(socket_index);
+	if (itr == m_socket_index_2_client.end()) {
+		log_error("update handler info failed! %" I64_FMT "u", socket_index);
+		return;
+	}
+	rpc_client* client = itr->second;
+	const game_process_info& process_info = server_info.process_info;
+	uint32 key_id = get_key_id_by_process_id(process_info.process_type, process_info.process_id);
+	m_process_id_2_client[key_id] = client;
+	if (m_service->get_server_info().process_info.process_type == PROCESS_GAME) {
+		if (process_info.process_type == PROCESS_GAME) {
+			std::string key = gx_to_string("%s%d", server_info.ip.data(), server_info.port);
+			auto game_itr = m_directly_games.find(key);
+			rpc_client_wrapper_info* rpc_wrapper = nullptr;
+			if (game_itr == m_directly_games.end()) {
+				rpc_wrapper = new rpc_client_wrapper_info();
+				rpc_wrapper->rpc = client;
+				m_directly_games[key] = rpc_wrapper;
+			}
+			else {
+				rpc_wrapper = game_itr->second;
+				rpc_wrapper->rpc->process_cache_packets();
+			}
+			rpc_wrapper->send_time = DTimeMgr.now_sys_time();
+		}
+	}
+	log_info("update handler info! socket index %" I64_FMT "u, server id %u, process type %u, process id %u, ip %s, port %u",
+		socket_index, server_info.process_info.server_id, server_info.process_info.process_type, server_info.process_info.process_id,
+		server_info.ip.data(), server_info.port);
 }
 
 void rpc_wrapper::unregister_handler_info(TSocketIndex_t socket_index)
 {
-	for (auto itr = m_server_process_id_2_clients.begin(); itr != m_server_process_id_2_clients.end(); ++itr) {
+	for (auto itr = m_directly_games.begin(); itr != m_directly_games.end(); ++itr) {
+		rpc_client_wrapper_info* rpc_wrapper = itr->second;
+		rpc_client* rpc = rpc_wrapper->rpc;
+		if (NULL != rpc && NULL != rpc->get_handler() && rpc->get_handler()->get_socket_index() == socket_index) {
+			delete rpc;
+			delete rpc_wrapper;
+			m_directly_games.erase(itr);
+			return;
+		}
+	}
+	for (auto itr = m_process_id_2_client.begin(); itr != m_process_id_2_client.end(); ++itr) {
 		rpc_client* rpc = itr->second;
 		if (NULL != rpc && NULL != rpc->get_handler() && rpc->get_handler()->get_socket_index() == socket_index) {
-			m_server_process_id_2_clients.erase(itr);
-			break;
+			delete rpc;
+			m_process_id_2_client.erase(itr);
+			return;
 		}
 	}
-
-	game_process_info process_info;
-	for (auto itr = m_server_process_type_2_clients.begin(); itr != m_server_process_type_2_clients.end(); ++itr) {
-		std::vector<rpc_client_wrapper_info*>& wrappers = itr->second;
-		for (auto wrapper_itr = wrappers.begin(); wrapper_itr != wrappers.end(); ++wrapper_itr) {
-			rpc_client_wrapper_info* wrapper_info = *wrapper_itr;
-			if (wrapper_info->rpc->get_handler()->get_socket_index() == socket_index) {
-				process_info.process_id = wrapper_info->process_id;
-				parse_key_id_by_process_type(process_info, itr->first);
-				delete wrapper_info;
-				wrappers.erase(wrapper_itr);
-				break;
-			}
-		}
-	}
-
-	m_server_manager.unregister_server(process_info);
-}
-
-void rpc_wrapper::register_stub_info(const std::string & stub_name, const game_process_info & process_info)
-{
-	log_info("register stub info, stub name = %s, process id = %d", stub_name.c_str(), process_info.process_id);
-	m_stub_name_2_process_infos[stub_name] = process_info;
-}
-
-bool rpc_wrapper::get_server_info(const game_process_info& process_info, game_server_info & server_info) const
-{
-	return m_server_manager.get_server_info(process_info, server_info);
-}
-
-void rpc_wrapper::get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const
-{
-	m_server_manager.get_server_infos(server_id, process_type, servers);
-}
-
-void rpc_wrapper::get_stub_infos(dynamic_array<game_stub_info>& stub_infos) const
-{
-	for (auto itr = m_stub_name_2_process_infos.begin(); itr != m_stub_name_2_process_infos.end(); ++itr) {
-		game_stub_info stub_info;
-		const std::string& stub_name = itr->first;
-		memcpy((void*)stub_info.stub_name.data(), stub_name.c_str(), stub_name.length());
-		stub_info.process_info = itr->second;
-		stub_infos.push_back(stub_info);
-	}
-}
-
-bool rpc_wrapper::get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const
-{
-	for (auto itr = m_server_process_id_2_clients.begin(); itr != m_server_process_id_2_clients.end(); ++itr) {
-		const rpc_client* rpc = itr->second;
-		if (rpc->get_handler()->get_socket_index() != socket_index) {
-			continue;
-		}
-
-		parse_key_id_by_process_id(process_info, itr->first);
-		return true;
-	}
-
-	for (auto itr = m_server_process_type_2_clients.begin(); itr != m_server_process_type_2_clients.end(); ++itr) {
-		const std::vector<rpc_client_wrapper_info*>& wrappers = itr->second;
-		for (auto wrapper_itr = wrappers.begin(); wrapper_itr != wrappers.end(); ++wrapper_itr) {
-			const rpc_client_wrapper_info* wrapper_info = *wrapper_itr;
-			if (wrapper_info->rpc->get_handler()->get_socket_index() != socket_index) {
-				continue;
-			}
-			
-			process_info.process_id = wrapper_info->process_id;
-			parse_key_id_by_process_type(process_info, itr->first);
-			return true;
-		}
-	}
-
-	return false;
 }
 
 TSocketIndex_t rpc_wrapper::get_socket_index(const game_process_info& process_info) const
 {
-	rpc_client* rpc = get_client(process_info);
+	rpc_client* rpc = get_client_by_process_id(process_info.process_type, process_info.process_id);
 	if (NULL == rpc) {
 		log_error("get socket index failed for rpc is NULL! server id = %u, process type = %u, process id = %u", 
 			process_info.server_id, process_info.process_type, process_info.process_id);
@@ -142,71 +108,86 @@ TSocketIndex_t rpc_wrapper::get_socket_index(const game_process_info& process_in
 	return handler->get_socket_index();
 }
 
-TProcessID_t rpc_wrapper::get_random_process_id(TServerID_t server_id, TProcessType_t process_type) const
+rpc_client* rpc_wrapper::get_client_by_socket_index(TSocketIndex_t socket_index) const
 {
-	auto itr = m_server_process_type_2_clients.find(get_key_id_by_process_type(server_id, process_type));
-	if (itr == m_server_process_type_2_clients.end()) {
-		log_error("get random process id for not find server id! server id = %u, process type = %u", server_id, process_type);
-		return INVALID_PROCESS_ID;
-	}
-	const std::vector<rpc_client_wrapper_info*>& rpc_wrappers = itr->second;
-	if (rpc_wrappers.empty()) {
-		log_error("get random process id for empty! server id = %u, process type = %u", server_id, process_type);
-		return INVALID_PROCESS_ID;
-	}
-	int wrapper_index = DGameRandom.get_rand<int>(0, (int)(rpc_wrappers.size() - 1));
-	return rpc_wrappers[wrapper_index]->process_id;
-}
-
-rpc_client* rpc_wrapper::get_client(const game_process_info& process_info) const
-{
-	auto itr = m_server_process_id_2_clients.find(get_key_id_by_process_id(process_info));
-	if (itr == m_server_process_id_2_clients.end()) {
-		log_error("rpc wrapper get client failed! server id = %u, process type = %u, process id = %u", process_info.server_id, process_info.process_type, process_info.process_id);
-		return NULL;
+	auto itr = m_socket_index_2_client.find(socket_index);
+	if (itr == m_socket_index_2_client.end()) {
+		log_error("rpc wrapper get client failed! socket index = %" I64_FMT "u", socket_index);
+		return nullptr;
 	}
 	return itr->second;
 }
 
-rpc_client* rpc_wrapper::get_random_client(TServerID_t server_id, TProcessType_t process_type) const
+rpc_client* rpc_wrapper::get_client_by_process_type(TProcessType_t process_type) const
 {
-	auto itr = m_server_process_type_2_clients.find(get_key_id_by_process_type(server_id, process_type));
-	if (itr == m_server_process_type_2_clients.end()) {
-		log_error("rpc wrapper get random client failed for not find server id! server id = %u, process type = %u", server_id, process_type);
-		return NULL;
+	std::vector<rpc_client*> clients;
+	for (auto itr = m_process_id_2_client.begin(); itr != m_process_id_2_client.end(); ++itr) {
+		uint32 key_id = itr->first;
+		TProcessType_t cur_process_type = (TProcessType_t)(key_id >> (sizeof(TProcessID_t) * 8));
+		if (cur_process_type == process_type) {
+			clients.push_back(itr->second);
+		}
 	}
-	const std::vector<rpc_client_wrapper_info*>& rpc_wrappers = itr->second;
-	if (rpc_wrappers.empty()) {
-		log_error("rcp wrapper get random client failed for empty! server id = %u, process_type", server_id, process_type);
-		return NULL;
+	if (clients.empty()) {
+		log_error("rpc wrapper get client failed! process type = %u", process_type);
+		return nullptr;
 	}
-	int wrapper_index = DGameRandom.get_rand<int>(0, (int)(rpc_wrappers.size() - 1));
-	return rpc_wrappers[wrapper_index]->rpc;
+	int idx = DGameRandom.get_rand<int>(0, (int)(clients.size() - 1));
+	return clients[idx];
 }
 
-rpc_client* rpc_wrapper::get_stub_client_and_prcoess_info(const std::string & stub_name, game_process_info& process_info)
+rpc_client* rpc_wrapper::get_client_by_process_id(TProcessType_t process_type, TProcessID_t process_id) const
 {
-	auto itr = m_stub_name_2_process_infos.find(stub_name);
-	if (itr != m_stub_name_2_process_infos.end()) {
-		process_info = itr->second;
-		return get_random_client(process_info.server_id, PROCESS_GATE);
+	uint32 key_id = get_key_id_by_process_id(process_type, process_id);
+	auto itr = m_process_id_2_client.find(key_id);
+	if (itr == m_process_id_2_client.end()) {
+		log_error("rpc wrapper get client failed! process type = %u, process id = %u", process_type, process_id);
+		return nullptr;
 	}
-	log_error("get stub client and process info failed! stub name = %s", stub_name.c_str());
-	return NULL;
+	return itr->second;
 }
 
-uint64 rpc_wrapper::get_key_id_by_process_id(const game_process_info& process_info) const
+rpc_client* rpc_wrapper::get_client_by_address(const TIP_t& ip, TPort_t port)
 {
-	uint64 key_id = process_info.server_id;
-	key_id = (key_id << (sizeof(process_info.process_type) * 8)) + process_info.process_type;
-	key_id = (key_id << (sizeof(process_info.process_id) * 8)) + process_info.process_id;
+	rpc_client_wrapper_info* rpc_wrapper = NULL;
+	std::string key = gx_to_string("%s%d", ip.data(), port);
+	auto itr = m_directly_games.find(key);
+	if (itr != m_directly_games.end()) {
+		rpc_wrapper = itr->second;
+	}
+	else {
+		rpc_wrapper = new rpc_client_wrapper_info();
+		rpc_wrapper->rpc = new rpc_client();
+		m_directly_games[key] = rpc_wrapper;
+		m_service->connect_server(ip.data(), port);
+	}
+	rpc_wrapper->send_time = DTimeMgr.now_sys_time();
+	return rpc_wrapper->rpc;
+}
+
+TProcessID_t rpc_wrapper::get_random_process_id(TProcessType_t process_type) const
+{
+	std::vector<TProcessID_t> process_ids;
+	for (auto itr = m_process_id_2_client.begin(); itr != m_process_id_2_client.end(); ++itr) {
+		uint32 key_id = itr->first;
+		TProcessType_t cur_process_type = (TProcessType_t)(key_id >> (sizeof(TProcessID_t) * 8));
+		if (cur_process_type != process_type) {
+			continue;
+		}
+		process_ids.push_back((TProcessID_t)(key_id & 0xFFFF));
+	}
+	if (process_ids.empty()) {
+		return INVALID_PROCESS_ID;
+	}
+	int idx = DGameRandom.get_rand<int>(0, (int)(process_ids.size() - 1));
+	return process_ids[idx];
+}
+
+uint32 rpc_wrapper::get_key_id_by_process_id(TProcessType_t process_type, TProcessID_t process_id) const
+{
+	uint32 key_id = process_type;
+	key_id = (key_id << (sizeof(process_id) * 8)) + process_id;
 	return key_id;
-}
-
-uint64 rpc_wrapper::get_key_id_by_process_type(TServerID_t server_id, TProcessType_t process_type) const
-{
-	uint64 key_id = server_id;
-	return ((key_id << (sizeof(process_type) * 8)) + process_type);
 }
 
 void rpc_wrapper::parse_key_id_by_process_id(game_process_info& process_info, uint64 key_id) const

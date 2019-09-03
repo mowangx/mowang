@@ -4,7 +4,7 @@
 #include "rpc_wrapper.h"
 #include "string_common.h"
 
-roll_stub::roll_stub()
+roll_stub::roll_stub() : server_entity()
 {
 	clean_up();
 }
@@ -14,14 +14,17 @@ roll_stub::~roll_stub()
 	clean_up();
 }
 
-bool roll_stub::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
+bool roll_stub::init(TEntityID_t entity_id)
 {
 	log_info("roll stub init");
-	DRegisterStubRpc(this, roll_stub, register_account, 5);
-	DRegisterStubRpc(this, roll_stub, unregister_account, 2);
-	DRegisterStubRpc(this, roll_stub, register_role, 6);
-	DRegisterStubRpc(this, roll_stub, unregister_role, 1);
-	return TBaseType_t::init(server_id, game_id, entity_id);
+	if (!TBaseType_t::init(entity_id)) {
+		return false;
+	}
+	DRegisterEntityRpc(get_entity_id(), this, roll_stub, register_account, 5);
+	DRegisterEntityRpc(get_entity_id(), this, roll_stub, unregister_account, 2);
+	DRegisterEntityRpc(get_entity_id(), this, roll_stub, register_role, 6);
+	DRegisterEntityRpc(get_entity_id(), this, roll_stub, unregister_role, 1);
+	return true;
 }
 
 void roll_stub::register_account(TPlatformID_t platform_id, TUserID_t user_id, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)

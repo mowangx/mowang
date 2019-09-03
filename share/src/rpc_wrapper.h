@@ -9,21 +9,24 @@
 #include "server_manager.h"
 #include "rpc_client.h"
 #include "game_enum.h"
+#include "mailbox_manager.h"
+
+class service;
 
 // rpc client wrapper for server
 class rpc_wrapper : public singleton<rpc_wrapper>
 {
 	struct rpc_client_wrapper_info
 	{
-		TProcessID_t process_id;
+		TGameTime_t send_time;
 		rpc_client* rpc;
 		rpc_client_wrapper_info() {
-			process_id = INVALID_PROCESS_ID;
+			send_time = INVALID_GAME_TIME;
 			rpc = NULL;
 		}
 
-		rpc_client_wrapper_info(TProcessID_t _process_id, rpc_client* _rpc) {
-			process_id = _process_id;
+		rpc_client_wrapper_info(TGameTime_t _send_time, rpc_client* _rpc) {
+			send_time = _send_time;
 			rpc = _rpc;
 		}
 	};
@@ -34,7 +37,7 @@ public:
 
 public:
 	void call_client(const proxy_info& proxy, const std::string& func_name) {
-		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
+		rpc_client* rpc = get_client_by_process_id(PROCESS_GATE, proxy.gate_id);
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name);
 		}
@@ -42,14 +45,14 @@ public:
 
 	template <class... Args>
 	void call_client(const proxy_info& proxy, const std::string& func_name, const Args&... args) {
-		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
+		rpc_client* rpc = get_client_by_process_id(PROCESS_GATE, proxy.gate_id);
 		if (NULL != rpc) {
 			rpc->call_client(proxy.client_id, func_name, args...);
 		}
 	}
 
 	void call_ws_client(const proxy_info& proxy, const std::string& msg) {
-		rpc_client* rpc = get_client(game_process_info(proxy.server_id, PROCESS_GATE, proxy.gate_id));
+		rpc_client* rpc = get_client_by_process_id(PROCESS_GATE, proxy.gate_id);
 		if (NULL != rpc) {
 			rpc->call_ws_client(proxy.client_id, msg);
 		}
@@ -57,63 +60,60 @@ public:
 
 public:
 	void call_entity(const mailbox_info& mailbox, const std::string& func_name) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
+		rpc_client* rpc = get_client_by_address(mailbox.ip, mailbox.port);
 		if (NULL != rpc) {
-			rpc->call_entity(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name);
+			rpc->call_entity(mailbox.entity_id, func_name);
 		}
 	}
 
 	template <class... Args>
 	void call_entity(const mailbox_info& mailbox, const std::string& func_name, const Args&... args) {
-		rpc_client* rpc = get_random_client(mailbox.server_id, PROCESS_GATE);
+		rpc_client* rpc = get_client_by_address(mailbox.ip, mailbox.port);
 		if (NULL != rpc) {
-			rpc->call_entity(mailbox.server_id, mailbox.game_id, mailbox.entity_id, func_name, args...);
+			rpc->call_entity(mailbox.entity_id, func_name, args...);
 		}
 	}
 
 public:
-	void call_stub(const std::string& class_name, const std::string& func_name) {
-		game_process_info process_info;
-		rpc_client* rpc = get_stub_client_and_prcoess_info(class_name, process_info);
-		if (NULL != rpc) {
-			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name);
+	void call_stub(const std::string& stub_name, const std::string& func_name) {
+		mailbox_info mailbox;
+		if (DMailboxMgr.get_mailbox_by_entity(mailbox, stub_name)) {
+			call_entity(mailbox, func_name);
 		}
 	}
 
 	template <class... Args>
-	void call_stub(const std::string& class_name, const std::string& func_name, const Args&... args) {
-		game_process_info process_info;
-		rpc_client* rpc = get_stub_client_and_prcoess_info(class_name, process_info);
-		if (NULL != rpc) {
-			rpc->call_stub(process_info.server_id, process_info.process_id, class_name, func_name, args...);
+	void call_stub(const std::string& stub_name, const std::string& func_name, const Args&... args) {
+		mailbox_info mailbox;
+		if (DMailboxMgr.get_mailbox_by_entity(mailbox, stub_name)) {
+			call_entity(mailbox, func_name, args...);
 		}
 	}
 
 public:
-	void register_handler_info(rpc_client* client, const game_server_info& server_info);
-	void unregister_handler_info(TSocketIndex_t socket_index);
-	void register_stub_info(const std::string& stub_name, const game_process_info& process_info);
+	void init(service* s);
 
 public:
-	bool get_server_info(const game_process_info& process_info, game_server_info& server_info) const;
-	void get_server_infos(TServerID_t server_id, TProcessType_t process_type, dynamic_array<game_server_info>& servers) const;
-	void get_stub_infos(dynamic_array<game_stub_info>& stub_infos) const;;
-	bool get_server_simple_info_by_socket_index(game_process_info& process_info, TSocketIndex_t socket_index) const;
+	void register_handler_info(game_handler* handler);
+	void update_handler_info(TSocketIndex_t socket_index, const game_server_info& server_info);
+	void unregister_handler_info(TSocketIndex_t socket_index);
+
+public:
 	TSocketIndex_t get_socket_index(const game_process_info& process_info) const;
-	TProcessID_t get_random_process_id(TServerID_t server_id, TProcessType_t process_type) const;
-	rpc_client* get_client(const game_process_info& process_info) const;
-	rpc_client* get_random_client(TServerID_t server_id, TProcessType_t process_type) const;
-	rpc_client* get_stub_client_and_prcoess_info(const std::string& stub_name, game_process_info& process_info);
-	uint64 get_key_id_by_process_id(const game_process_info& process_info) const;
-	uint64 get_key_id_by_process_type(TServerID_t server_id, TProcessType_t process_type) const;
+	rpc_client* get_client_by_socket_index(TSocketIndex_t socket_index) const;
+	rpc_client* get_client_by_process_type(TProcessType_t process_type) const;
+	rpc_client* get_client_by_process_id(TProcessType_t process_type, TProcessID_t process_id) const;
+	rpc_client* get_client_by_address(const TIP_t& ip, TPort_t port);
+	TProcessID_t get_random_process_id(TProcessType_t process_type) const;
+	uint32 get_key_id_by_process_id(TProcessType_t process_type, TProcessID_t process_id) const;
 	void parse_key_id_by_process_id(game_process_info& process_info, uint64 key_id) const;
 	void parse_key_id_by_process_type(game_process_info& process_info, uint64 key_id) const;
 
 private:
-	std::map<uint64, rpc_client*> m_server_process_id_2_clients;
-	std::map<uint64, std::vector<rpc_client_wrapper_info*>> m_server_process_type_2_clients;
-	std::map<std::string, game_process_info> m_stub_name_2_process_infos;
-	server_manager m_server_manager;
+	service* m_service;
+	std::map<uint32, rpc_client*> m_process_id_2_client;
+	std::map<std::string, rpc_client_wrapper_info*> m_directly_games;	// key: ip + port
+	std::map<TSocketIndex_t, rpc_client*> m_socket_index_2_client;
 };
 
 #define DRpcWrapper singleton<rpc_wrapper>::get_instance()

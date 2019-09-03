@@ -9,7 +9,7 @@
 #include "room.h"
 #include "entity_manager.h"
 
-role::role()
+role::role() : server_entity()
 {
 	clean_up();
 	m_cities.clear();
@@ -26,9 +26,9 @@ role::~role()
 	m_cities.clear();
 }
 
-bool role::init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id)
+bool role::init(TEntityID_t entity_id)
 {
-	if (!TBaseType_t::init(server_id, game_id, entity_id)) {
+	if (!TBaseType_t::init(entity_id)) {
 		return false;
 	}
 	DRegisterEntityRpc(get_entity_id(), this, role, test, 2);
@@ -135,7 +135,8 @@ void role::on_relay_logout()
 
 void role::create_role()
 {
-	set_role_id(((TRoleID_t)m_mailbox.server_id << 48) + DSequence.gen_sequence_id(SEQUENCE_ROLE));
+	TServerID_t server_id = DGameServer.get_server_info().process_info.server_id;
+	set_role_id(((TRoleID_t)server_id << 48) + DSequence.gen_sequence_id(SEQUENCE_ROLE));
 	DGameServer.db_insert("user", 
 		gx_to_string("platform_id %u, user_id %s, role_id %" I64_FMT "u", get_platform_id(), get_user_id().data(), get_role_id()).c_str(),
 		[&](bool status) {
@@ -178,18 +179,19 @@ void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox
 {
 	log_info("role on relay success! cur entity id %" I64_FMT "u, kick entity id %" I64_FMT "u", get_entity_id(), mailbox.entity_id);
 	DRpcWrapper.call_client(get_proxy(), "logout", (uint8)LOGOUT_RELAY, get_test_client_id());
-	game_process_info process_info;
-	process_info.server_id = get_server_id();
-	process_info.process_type = PROCESS_GATE;
-	process_info.process_id = get_gate_id();
-	rpc_client* rpc = DRpcWrapper.get_client(process_info);
+	rpc_client* rpc = DRpcWrapper.get_client_by_process_id(PROCESS_GATE, get_gate_id());
 	if (NULL != rpc) {
 		rpc->call_remote_func("kick_socket_delay", get_client_id());
 	}
 
 	set_test_client_id(test_client_id);
 
-	if (mailbox.game_id == get_game_id()) {
+	mailbox_info cur_mailbox_info;
+	const game_server_info& server_info = DGameServer.get_server_info();
+	cur_mailbox_info.entity_id = mailbox.entity_id;
+	cur_mailbox_info.ip = server_info.ip;
+	cur_mailbox_info.port = server_info.port;
+	if (mailbox != cur_mailbox_info) {
 		role* p = DGameServer.get_role_by_client_id(proxy.client_id);
 		if (NULL != p) {
 			p->on_relay_logout();
@@ -205,12 +207,9 @@ void role::on_relay_success(const proxy_info& proxy, const mailbox_info& mailbox
 	set_gate_id(proxy.gate_id);
 	set_client_id(proxy.client_id);
 
-	process_info.process_id = get_gate_id();
-	rpc = DRpcWrapper.get_client(process_info);
+	rpc = DRpcWrapper.get_client_by_address(mailbox.ip, mailbox.port);
 	if (NULL != rpc) {
-		process_info.process_type = PROCESS_GAME;
-		process_info.process_id = get_game_id();
-		rpc->call_remote_func("update_process_info", get_client_id(), process_info);
+		rpc->call_remote_func("update_process_info", get_client_id(), server_info.process_info);
 	}
 	else {
 		log_error("role update process info failed for rpc is NULL! client id %" I64_FMT "u, gate id %u", get_client_id(), get_gate_id());
@@ -248,9 +247,9 @@ void role::enter_random()
 
 void role::create_room(const dynamic_string & pwd)
 {
-	log_info("start create room! pwd %s", pwd.data());
-	room* r = (room*)DGameServer.create_entity_locally("room");
-	DRpcWrapper.call_stub("room_stub", "create_room", r->get_mailbox(), pwd, get_mailbox());
+	//log_info("start create room! pwd %s", pwd.data());
+	//room* r = (room*)DGameServer.create_entity_locally("tag_room", "room");
+	//DRpcWrapper.call_stub("room_stub", "create_room", r->get_mailbox(), pwd, get_mailbox());
 }
 
 void role::on_create_room(TEntityID_t entity_id, TRoomID_t room_id)

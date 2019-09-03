@@ -55,11 +55,7 @@ void executor_manager::update(TGameTime_t diff)
 
 void executor_manager::executor(db_opt_info* opt_info)
 {
-	game_process_info process_info;
-	if (!DRpcWrapper.get_server_simple_info_by_socket_index(process_info, opt_info->socket_index)) {
-		return;
-	}
-	rpc_client* rpc = DRpcWrapper.get_client(process_info);
+	rpc_client* rpc = DRpcWrapper.get_client_by_socket_index(opt_info->socket_index);
 	if (NULL == rpc) {
 		return;
 	}

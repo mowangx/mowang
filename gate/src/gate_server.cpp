@@ -1,8 +1,6 @@
 
 #include "gate_server.h"
-
-#include "game_manager_handler.h"
-#include "game_server_handler.h"
+#include "gate_packet_handler.h"
 #include "client_handler.h"
 #include "rpc_client.h"
 #include "rpc_proxy.h"
@@ -41,13 +39,13 @@ bool gate_server::init(TProcessID_t process_id)
 	}
 
 	DRegisterServerRpc(this, gate_server, register_server, 2);
-	DRegisterServerRpc(this, gate_server, on_register_servers, 4);
 	DRegisterServerRpc(this, gate_server, login_server, 4);
 	DRegisterServerRpc(this, gate_server, update_process_info, 3);
 	DRegisterServerRpc(this, gate_server, kick_socket_delay, 2);
+	DRegisterServerRpc(this, gate_server, on_register_entities, 5);
+	DRegisterServerRpc(this, gate_server, on_unregister_process, 4);
 
-	game_manager_handler::Setup();
-	game_server_handler::Setup();
+	gate_packet_handler::Setup();
 	client_handler::Setup();
 
 	if (!DNetMgr.start_listen<client_handler>(m_server_info.port)) {
@@ -72,12 +70,6 @@ void gate_server::init_ws_process_func()
 	m_cmd_2_parse_func["create_room"] = std::bind(&gate_server::process_create_room, this, std::placeholders::_1, std::placeholders::_2);
 	m_cmd_2_parse_func["enter_room"] = std::bind(&gate_server::process_enter_room, this, std::placeholders::_1, std::placeholders::_2);
 	m_cmd_2_parse_func["pop_cards"] = std::bind(&gate_server::process_pop_cards, this, std::placeholders::_1, std::placeholders::_2);
-}
-
-void gate_server::work_run()
-{
-	connect_game_manager_loop(m_config.get_game_manager_listen_ip(), m_config.get_game_manager_listen_port());
-	TBaseType_t::work_run();
 }
 
 void gate_server::do_loop(TGameTime_t diff)
@@ -114,39 +106,32 @@ void gate_server::do_loop(TGameTime_t diff)
 void gate_server::on_disconnect(TSocketIndex_t socket_index)
 {
 	TBaseType_t::on_disconnect(socket_index);
-	game_process_info process_info;
-	if (!DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index) ||
-		process_info.process_type != PROCESS_GAME) {
-		return;
-	}
+	//game_process_info process_info;
+	//if (!DRpcWrapper.get_server_simple_info_by_socket_index(process_info, socket_index) ||
+	//	process_info.process_type != PROCESS_GAME) {
+	//	return;
+	//}
 
-	for (auto itr = m_client_2_process.begin(); itr != m_client_2_process.end(); ++itr) {
-		const game_process_info& tmp_process_info = itr->second;
-		if (tmp_process_info.process_id == process_info.process_id &&
-			tmp_process_info.server_id == process_info.server_id) {
-			kick_socket(itr->first);
-		}
-	}
+	//for (auto itr = m_client_2_process.begin(); itr != m_client_2_process.end(); ++itr) {
+	//	const game_process_info& tmp_process_info = itr->second;
+	//	if (tmp_process_info.process_id == process_info.process_id &&
+	//		tmp_process_info.server_id == process_info.server_id) {
+	//		kick_socket(itr->first);
+	//	}
+	//}
 }
 
-bool gate_server::connect_game_manager(const char * ip, TPort_t port)
+bool gate_server::connect_server(const char * ip, TPort_t port)
 {
-	return DNetMgr.start_connect<game_manager_handler>(ip, port);
+	return DNetMgr.start_connect<gate_packet_handler>(ip, port);
 }
 
-void gate_server::on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers)
+void gate_server::add_process(const game_server_info& server_info)
 {
-	log_info("on_register_servers, server id = %d, process type = %d, server size = %u", server_id, process_type, servers.size());
-	for (int i = 0; i < servers.size(); ++i) {
-		const game_server_info& server_info = servers[i];
-
-		game_server_info tmp_server_info;
-		if (DRpcWrapper.get_server_info(server_info.process_info, tmp_server_info)) {
-			log_info("server has registerted, ip = %s, port = %d", server_info.ip.data(), server_info.port);
-			continue;
-		}
-
-		if (DNetMgr.start_connect<game_server_handler>(server_info.ip.data(), server_info.port)) {
+	log_info("on_register_servers, server id = %d, process type = %d, listen ip = %s, listen port = %d",
+		server_info.process_info.server_id, server_info.process_info.process_type, server_info.ip.data(), server_info.port);
+	if (server_info.process_info.process_type == PROCESS_GAME) {
+		if (DNetMgr.start_connect<gate_packet_handler>(server_info.ip.data(), server_info.port)) {
 			log_info("connect sucess, ip = %s, port = %d", server_info.ip.data(), server_info.port);
 		}
 		else {
@@ -160,10 +145,10 @@ void gate_server::login_server(TSocketIndex_t socket_index, TPlatformID_t platfo
 	game_process_info process_info;
 	process_info.server_id = server_id;
 	process_info.process_type = PROCESS_GAME;
-	process_info.process_id = DRpcWrapper.get_random_process_id(process_info.server_id, process_info.process_type);
+	process_info.process_id = DRpcWrapper.get_random_process_id(PROCESS_GAME);
 	m_client_2_process[socket_index] = process_info;
 	log_info("login, client id %" I64_FMT "u, token %s, game id %u", socket_index, account.token.data(), process_info.process_id);
-	rpc_client* rpc = DRpcWrapper.get_client(process_info);
+	rpc_client* rpc = DRpcWrapper.get_client_by_process_id(PROCESS_GAME, process_info.process_id);
 	if (NULL != rpc) {
 		rpc->call_remote_func("login_server", socket_index, platform_id, account);
 	}
@@ -179,7 +164,7 @@ void gate_server::logout_server(TSocketIndex_t socket_index)
 	auto itr = m_client_2_process.find(socket_index);
 	if (itr != m_client_2_process.end()) {
 		const game_process_info& process_info = itr->second;
-		rpc_client* rpc = DRpcWrapper.get_client(process_info);
+		rpc_client* rpc = DRpcWrapper.get_client_by_process_id(PROCESS_GAME, process_info.process_id);
 		if (NULL != rpc) {
 			rpc->call_remote_func("logout_server", socket_index);
 		}
@@ -252,72 +237,72 @@ void gate_server::process_login(TSocketIndex_t socket_index, boost::property_tre
 
 void gate_server::process_test(TSocketIndex_t socket_index, boost::property_tree::ptree* json)
 {
-	transfer_server_by_name_packet packet;
-	std::string func_name = "test";
-	int buffer_index = 0;
-	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
-	fill_packet(packet.m_buffer, buffer_index, json->get<uint8>("param_1", 0));
-	fill_packet(packet.m_buffer, buffer_index, json->get<uint16>("param_2", 0));
-	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
-	transfer_server(socket_index, &packet);
-	log_debug("parse test!!! socket index %" I64_FMT "u,  param_1 %d, param_2 %d", socket_index, json->get<uint8>("param_1", 0), json->get<uint16>("param_2", 0));
+	//transfer_server_by_name_packet packet;
+	//std::string func_name = "test";
+	//int buffer_index = 0;
+	//memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	//fill_packet(packet.m_buffer, buffer_index, json->get<uint8>("param_1", 0));
+	//fill_packet(packet.m_buffer, buffer_index, json->get<uint16>("param_2", 0));
+	//packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
+	//transfer_server(socket_index, &packet);
+	//log_debug("parse test!!! socket index %" I64_FMT "u,  param_1 %d, param_2 %d", socket_index, json->get<uint8>("param_1", 0), json->get<uint16>("param_2", 0));
 }
 
 void gate_server::process_ready_start(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
 {
-	transfer_server_by_name_packet packet;
-	std::string func_name = "ready_start";
-	int buffer_index = 0;
-	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
-	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
-	transfer_server(socket_index, &packet);
+	//transfer_server_by_name_packet packet;
+	//std::string func_name = "ready_start";
+	//int buffer_index = 0;
+	//memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	//packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
+	//transfer_server(socket_index, &packet);
 }
 
 void gate_server::process_create_room(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
 {
-	std::string tmp_pwd = json->get<std::string>("pwd", "");
-	dynamic_string pwd(tmp_pwd.c_str(), tmp_pwd.length());
-	transfer_server_by_name_packet packet;
-	std::string func_name = "create_room";
-	int buffer_index = 0;
-	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
-	fill_packet(packet.m_buffer, buffer_index, pwd);
-	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
-	transfer_server(socket_index, &packet);
+	//std::string tmp_pwd = json->get<std::string>("pwd", "");
+	//dynamic_string pwd(tmp_pwd.c_str(), tmp_pwd.length());
+	//transfer_server_by_name_packet packet;
+	//std::string func_name = "create_room";
+	//int buffer_index = 0;
+	//memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	//fill_packet(packet.m_buffer, buffer_index, pwd);
+	//packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
+	//transfer_server(socket_index, &packet);
 }
 
 void gate_server::process_enter_room(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
 {
-	TRoomID_t room_id = json->get<TRoomID_t>("room_id", 0);
-	std::string tmp_pwd = json->get<std::string>("pwd", "");
-	dynamic_string pwd(tmp_pwd.c_str(), tmp_pwd.length());
-	transfer_server_by_name_packet packet;
-	std::string func_name = "enter_room";
-	int buffer_index = 0;
-	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
-	fill_packet(packet.m_buffer, buffer_index, room_id);
-	fill_packet(packet.m_buffer, buffer_index, pwd);
-	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
-	transfer_server(socket_index, &packet);
+	//TRoomID_t room_id = json->get<TRoomID_t>("room_id", 0);
+	//std::string tmp_pwd = json->get<std::string>("pwd", "");
+	//dynamic_string pwd(tmp_pwd.c_str(), tmp_pwd.length());
+	//transfer_server_by_name_packet packet;
+	//std::string func_name = "enter_room";
+	//int buffer_index = 0;
+	//memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	//fill_packet(packet.m_buffer, buffer_index, room_id);
+	//fill_packet(packet.m_buffer, buffer_index, pwd);
+	//packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
+	//transfer_server(socket_index, &packet);
 }
 
 void gate_server::process_pop_cards(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
 {
-	dynamic_array<TCardIndex_t> cards;
-	boost::property_tree::ptree json_cards = json->get_child("cards");
-	for (auto itr=json_cards.begin(); itr != json_cards.end(); ++itr)
-	{
-		TCardIndex_t card_id = itr->second.get_value<TCardIndex_t>();
-		cards.push_back(card_id);
-	}
+	//dynamic_array<TCardIndex_t> cards;
+	//boost::property_tree::ptree json_cards = json->get_child("cards");
+	//for (auto itr=json_cards.begin(); itr != json_cards.end(); ++itr)
+	//{
+	//	TCardIndex_t card_id = itr->second.get_value<TCardIndex_t>();
+	//	cards.push_back(card_id);
+	//}
 
-	transfer_server_by_name_packet packet;
-	std::string func_name = "pop_cards";
-	int buffer_index = 0;
-	memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
-	fill_packet(packet.m_buffer, buffer_index, cards);
-	packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
-	transfer_server(socket_index, &packet);
+	//transfer_server_by_name_packet packet;
+	//std::string func_name = "pop_cards";
+	//int buffer_index = 0;
+	//memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
+	//fill_packet(packet.m_buffer, buffer_index, cards);
+	//packet.m_len = TPacketLen_t(sizeof(packet) - sizeof(packet.m_buffer) + buffer_index);
+	//transfer_server(socket_index, &packet);
 }
 
 TSocketIndex_t gate_server::get_server_socket_index(TSocketIndex_t socket_index) const

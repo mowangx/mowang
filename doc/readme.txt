@@ -16,7 +16,7 @@
 5. boost
     5.1 windows¶¯Ì¬¿â(https://dl.bintray.com/boostorg/release/1.65.1/binaries/)
 	5.2 Ô´´úÂë(https://www.boost.org/users/history/)
-	5.3 https://www.cnblogs.com/songxingzhu/p/7513519.html
+	5.3 https://www.cnblogs.com/songxingzhu/p/7513519.html && https://blog.csdn.net/this_capslock/article/details/47170313
 	5.4 .\b2 toolset=msvc-14.1 --build-type=complete --with-python python=2.7 -- address-model=64 link=static threading=multi install -j4 --prefix=E:\favourite\boost_1_65_1\boost_install --libdir=E:\favourite\boost_1_65_1\boost_lib --includedir=E:\favourite\boost_1_65_1\boost_include
 	
 6. openssl(https://github.com/openssl/openssl)

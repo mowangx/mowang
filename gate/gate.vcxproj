@@ -167,15 +167,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\client_handler.cpp" />
-    <ClCompile Include="src\game_manager_handler.cpp" />
-    <ClCompile Include="src\game_server_handler.cpp" />
+    <ClCompile Include="src\gate_packet_handler.cpp" />
     <ClCompile Include="src\gate_server.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\client_handler.h" />
-    <ClInclude Include="src\game_manager_handler.h" />
-    <ClInclude Include="src\game_server_handler.h" />
+    <ClInclude Include="src\gate_packet_handler.h" />
     <ClInclude Include="src\gate_server.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

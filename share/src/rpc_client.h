@@ -10,11 +10,6 @@ rpc_by_name_packet packet; \
 int buffer_index = 0; \
 init_packet(packet, func_name);
 
-#define DRpcCreateServerPacket \
-transfer_server_by_name_packet packet; \
-int buffer_index = 0; \
-init_packet(packet, func_name);
-
 #define DRpcCreateClientPacket \
 transfer_client_packet transfer_packet; \
 rpc_by_name_packet packet; \
@@ -22,21 +17,17 @@ int buffer_index = 0; \
 init_client_packet(transfer_packet, packet, client_id, func_name);
 
 #define DRpcCreateEntityPacket \
-transfer_entity_packet transfer_packet; \
 entity_rpc_by_name_packet packet; \
 int buffer_index = 0; \
-init_entity_packet(transfer_packet, packet, server_id, game_server_id, entity_id, func_name);
-
-#define DRpcCreateStubPacket \
-std::string real_name = class_name + func_name; \
-transfer_stub_packet transfer_packet; \
-stub_rpc_by_name_packet packet; \
-int buffer_index = 0; \
-init_stub_packet(transfer_packet, packet, server_id, game_server_id, real_name);
+init_entity_packet(packet, entity_id, func_name);
 
 class rpc_client
 {	
 public:
+	rpc_client() : m_handler(NULL) {
+
+	}
+
 	rpc_client(game_handler* handler) : m_handler(handler) {
 
 	}
@@ -51,20 +42,6 @@ public:
 	template <class... Args>
 	void call_remote_func(const std::string& func_name, const Args&... args) {
 		DRpcCreatePacket;
-		fill_packet(packet.m_buffer, buffer_index, args...);
-		send_packet(&packet, buffer_index);
-	}
-
-public:
-	// client call game function, will transfer by gate
-	void call_server(const std::string& func_name) {
-		DRpcCreateServerPacket;
-		send_packet(&packet, buffer_index);
-	}
-
-	template <class... Args>
-	void call_server(const std::string& func_name, const Args&... args) {
-		DRpcCreateServerPacket;
 		fill_packet(packet.m_buffer, buffer_index, args...);
 		send_packet(&packet, buffer_index);
 	}
@@ -91,32 +68,17 @@ public:
 	}
 
 public:
-	// call role function, will transfer by gate
-	void call_entity(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name) {
+	// call entity, will connect game directly
+	void call_entity(TEntityID_t entity_id, const std::string& func_name) {
 		DRpcCreateEntityPacket;
-		send_packet(&packet, &transfer_packet, buffer_index);
+		send_entity_packet(&packet, buffer_index);
 	}
 
 	template <class... Args>
-	void call_entity(TServerID_t server_id, TProcessID_t game_server_id, TEntityID_t entity_id, const std::string& func_name, const Args&... args) {
+	void call_entity(TEntityID_t entity_id, const std::string& func_name, const Args&... args) {
 		DRpcCreateEntityPacket;
 		fill_packet(packet.m_buffer, buffer_index, args...);
-		send_packet(&packet, &transfer_packet, buffer_index);
-	}
-
-public:
-	// call stub function, will transfer by gate
-	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name) {
-		DRpcCreateStubPacket;
-		send_packet(&packet, &transfer_packet, buffer_index);
-	}
-
-	template <class... Args>
-	void call_stub(TServerID_t server_id, TProcessID_t game_server_id, const std::string& class_name, const std::string& func_name,
-		const Args&... args) {
-		DRpcCreateStubPacket;
-		fill_packet(packet.m_buffer, buffer_index, args...);
-		send_packet(&packet, &transfer_packet, buffer_index);
+		send_entity_packet(&packet, buffer_index);
 	}
 
 private:
@@ -130,16 +92,8 @@ private:
 		init_packet(packet, func_name);
 	}
 
-	void init_entity_packet(transfer_entity_packet& transfer_packet, entity_rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id, const std::string& func_name) {
-		transfer_packet.m_server_id = server_id;
-		transfer_packet.m_game_id = game_id;
+	void init_entity_packet(entity_rpc_by_name_packet& packet, TEntityID_t entity_id, const std::string& func_name) {
 		packet.m_entity_id = entity_id;
-		init_packet(packet, func_name);
-	}
-
-	void init_stub_packet(transfer_stub_packet& transfer_packet, stub_rpc_by_name_packet& packet, TServerID_t server_id, TProcessID_t game_id, const std::string& func_name) {
-		transfer_packet.m_server_id = server_id;
-		transfer_packet.m_game_id = game_id;
 		init_packet(packet, func_name);
 	}
 
@@ -157,6 +111,16 @@ private:
 		m_handler->send_packet(transfer_packet);
 	}
 
+	void send_entity_packet(entity_rpc_by_name_packet* packet, int len) {
+		packet->m_len = TPacketLen_t(sizeof(entity_rpc_by_name_packet) - sizeof(packet->m_buffer) + len);
+		if (NULL != m_handler) {
+			m_handler->send_packet(packet);
+		}
+		else {
+			puch_cache_packet(*packet);
+		}
+	}
+
 //private:
 //	template <class T>
 //	void fill_packet(char* buffer, int& buffer_index, const T& p) {
@@ -171,12 +135,27 @@ private:
 //	}
 
 public:
-	const game_handler* get_handler() const {
+	void set_handler(game_handler* handler) {
+		m_handler = handler;
+	}
+
+	game_handler* get_handler() {
 		return m_handler;
+	}
+
+	void puch_cache_packet(const entity_rpc_by_name_packet& packet) {
+		m_cache_packets.push_back(packet);
+	}
+
+	void process_cache_packets() {
+		for (auto packet : m_cache_packets) {
+			m_handler->send_packet(&packet);
+		}
 	}
 
 private:
 	game_handler * m_handler;
+	std::vector<entity_rpc_by_name_packet> m_cache_packets;
 };
 
 #endif // !_RPC_CLIENT_H_

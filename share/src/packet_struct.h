@@ -28,17 +28,19 @@ struct game_process_info
 		process_type = INVALID_PROCESS_TYPE;
 		process_id = INVALID_PROCESS_ID;
 	}
+
+	bool operator == (const game_process_info& rhs) const {
+		return server_id == rhs.server_id && process_type == rhs.process_type && process_id == rhs.process_id;
+	}
 };
 
 struct game_server_info
 {
 	game_process_info process_info;
 	TPort_t port;
-	std::array<char, IP_SIZE> ip;
+	TIP_t ip;
 	game_server_info() {
-		process_info.clean_up();
-		port = 0;
-		memset(ip.data(), 0, IP_SIZE);
+		clean_up();
 	}
 
 	game_server_info(const game_server_info& rhs) {
@@ -46,15 +48,15 @@ struct game_server_info
 		process_info.process_type = rhs.process_info.process_type;
 		process_info.process_id = rhs.process_info.process_id;
 		port = rhs.port;
-		memcpy(ip.data(), rhs.ip.data(), IP_SIZE);
+		memcpy(ip.data(), rhs.ip.data(), IP_LEN);
 	}
 
-	game_server_info(TServerID_t _server_id, TProcessType_t _process_type, TProcessID_t _process_id, TPort_t _port, const std::array<char, IP_SIZE>& _ip) {
+	game_server_info(TServerID_t _server_id, TProcessType_t _process_type, TProcessID_t _process_id, TPort_t _port, const TIP_t& _ip) {
 		process_info.server_id = _server_id;
 		process_info.process_type = _process_type;
 		process_info.process_id = _process_id;
 		port = _port;
-		memcpy(ip.data(), _ip.data(), IP_SIZE);
+		memcpy(ip.data(), _ip.data(), IP_LEN);
 	}
 
 	bool operator == (const game_server_info& rhs) const {
@@ -62,12 +64,17 @@ struct game_server_info
 			&& process_info.process_type == rhs.process_info.process_type 
 			&& process_info.process_id == rhs.process_info.process_id;
 	}
+
+	void clean_up() {
+		process_info.clean_up();
+		port = 0;
+		memset(ip.data(), 0, IP_LEN);
+	}
 };
 
 // Game ---> Gate ---> Client
 struct proxy_info
 {
-	TServerID_t server_id;
 	TProcessID_t gate_id;
 	TSocketIndex_t client_id;
 	proxy_info() {
@@ -75,33 +82,32 @@ struct proxy_info
 	}
 
 	bool operator != (const proxy_info& rhs) const {
-		return client_id != rhs.client_id || gate_id != rhs.gate_id || server_id != rhs.server_id;
+		return client_id != rhs.client_id || gate_id != rhs.gate_id;
 	}
 
 	void clean_up() {
-		server_id = INVALID_SERVER_ID;
 		gate_id = INVALID_PROCESS_ID;
 		client_id = INVALID_SOCKET_INDEX;
 	}
 };
 
-// Game ---> Gate ---> Game
+// Game ---> Game
 struct mailbox_info
 {
-	TServerID_t server_id;
-	TProcessID_t game_id;
+	TIP_t ip;
+	TPort_t port;
 	TEntityID_t entity_id;
 	mailbox_info() {
 		clean_up();
 	}
 
 	bool operator != (const mailbox_info& rhs) const {
-		return entity_id != rhs.entity_id || game_id != rhs.game_id || server_id != rhs.server_id;
+		return entity_id != rhs.entity_id || port != rhs.port || ip != rhs.ip;
 	}
 
 	void clean_up() {
-		server_id = INVALID_SERVER_ID;
-		game_id = INVALID_PROCESS_ID;
+		memset(ip.data(), 0, IP_LEN);
+		port = 0;
 		entity_id = INVALID_ENTITY_ID;
 	}
 };
@@ -109,14 +115,14 @@ struct mailbox_info
 struct game_stub_info
 {
 	TEntityName_t stub_name;
-	game_process_info process_info;
+	mailbox_info mailbox;
 	game_stub_info() {
 		clean_up();
 	}
 
 	void clean_up() {
 		memset(stub_name.data(), 0, ENTITY_NAME_LEN);
-		process_info.clean_up();
+		mailbox.clean_up();
 	}
 };
 

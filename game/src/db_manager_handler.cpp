@@ -7,7 +7,7 @@
 
 db_manager_handler::db_manager_handler() : packet_handler<db_manager_handler>()
 {
-	m_rpc_client = new rpc_client(this);
+
 }
 
 db_manager_handler::~db_manager_handler()

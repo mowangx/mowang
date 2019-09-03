@@ -147,9 +147,9 @@ private:
 	DRpcStub.register_func<args_count>(append_string(#class_name, #func_name), &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
-// call with transfer send, such as game ---> gate ---> game, callback will call by role id
-#define DRegisterEntityRpc(role_id, obj, class_name, func_name, args_count) { \
-	DRpcEntity.register_func<args_count>(role_id, #func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
+// call with transfer send, such as game ---> gate ---> game, callback will call by entity id
+#define DRegisterEntityRpc(entity_id, obj, class_name, func_name, args_count) { \
+	DRpcEntity.register_func<args_count>(entity_id, #func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
 #endif // !_RPC_PROXY_H_

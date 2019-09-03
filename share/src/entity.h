@@ -13,16 +13,16 @@ public:
 	virtual ~entity();
 
 public:
-	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id);
+	bool initialize(TEntityID_t entity_id, const TIP_t& ip, TPort_t port);
 
 public:
-	void call_stub(const std::string& class_name, const std::string& func_name) {
-		DRpcWrapper.call_stub(class_name, func_name);
+	void call_stub(const std::string& stub_name, const std::string& func_name) {
+		DRpcWrapper.call_stub(stub_name, func_name);
 	}
 
 	template <class... Args>
-	void call_stub(const std::string& class_name, const std::string& func_name, const Args&... args) {
-		DRpcWrapper.call_stub(class_name, func_name, args...);
+	void call_stub(const std::string& stub_name, const std::string& func_name, const Args&... args) {
+		DRpcWrapper.call_stub(stub_name, func_name, args...);
 	}
 
 	void call_entity(const mailbox_info& mailbox, const std::string& func_name) {
@@ -35,8 +35,6 @@ public:
 	}
 
 public:
-	TServerID_t get_server_id() const;
-	TProcessID_t get_game_id() const;
 	TEntityID_t get_entity_id() const;
 	const mailbox_info& get_mailbox() const;
 

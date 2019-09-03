@@ -51,16 +51,16 @@ bool service_config::load(const std::string& filename, const std::string& module
 		return false;
 	}
 
-	std::string game_manager_module_name = "game_manager1";
+	std::string http_client_module_name = "http_client1";
 	std::string listen_ip;
-	if (!ini.read_type_if_exist(game_manager_module_name.c_str(), "listen_ip", listen_ip)) {
-		log_error("load config failed for not find listen ip in module %s!", game_manager_module_name.c_str());
+	if (!ini.read_type_if_exist(http_client_module_name.c_str(), "listen_ip", listen_ip)) {
+		log_error("load config failed for not find listen ip in module %s!", http_client_module_name.c_str());
 		return false;
 	}
-	strcpy(m_game_manager_listen_ip, listen_ip.c_str());
+	strcpy(m_http_client_listen_ip.data(), listen_ip.c_str());
 
-	if (!ini.read_type_if_exist(game_manager_module_name.c_str(), "listen_port", m_game_manager_listen_port)) {
-		log_error("load config failed for not find listen port in module %s!", game_manager_module_name.c_str());
+	if (!ini.read_type_if_exist(http_client_module_name.c_str(), "listen_port", m_http_client_listen_port)) {
+		log_error("load config failed for not find listen port in module %s!", http_client_module_name.c_str());
 		return false;
 	}
 
@@ -77,14 +77,14 @@ TPort_t service_config::get_listen_port() const
 	return m_listen_port;
 }
 
-const char* service_config::get_game_manager_listen_ip() const
+const char* service_config::get_http_client_listen_ip() const
 {
-	return m_game_manager_listen_ip;
+	return m_http_client_listen_ip.data();
 }
 
-TPort_t service_config::get_game_manager_listen_port() const
+TPort_t service_config::get_http_client_listen_port() const
 {
-	return m_game_manager_listen_port;
+	return m_http_client_listen_port;
 }
 
 TProcessNum_t service_config::get_desire_process_num(TProcessType_t process_type) const
@@ -102,8 +102,8 @@ void service_config::clean_up()
 	m_frame_time = INVALID_GAME_TIME;
 	m_server_id = INVALID_SERVER_ID;
 	m_listen_port = 0;
-	m_game_manager_listen_port = 0;
-	memset(m_game_manager_listen_ip, 0, IP_SIZE);
+	m_http_client_listen_port = 0;
+	memset(m_http_client_listen_ip.data(), 0, IP_LEN);
 	for (int i = 0; i < MAX_PROCESS_TYPE_NUM; ++i) {
 		m_desire_process_num[i] = 0;
 	}

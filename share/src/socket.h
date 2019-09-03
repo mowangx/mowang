@@ -118,12 +118,12 @@ public:
 
 	// get local address
 	sint32 get_port() const;
-	TIP_t get_host_ip() const;
+	TIPInt_t get_host_ip() const;
 	std::string get_host_ip_str() const;
 
 	// get remote address
 	sint32 get_remote_port() const;
-	TIP_t get_remote_host_ip() const;
+	TIPInt_t get_remote_host_ip() const;
 	std::string get_remote_host_ip_str() const;
 
 	// check if socket is valid

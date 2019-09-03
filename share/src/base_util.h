@@ -11,6 +11,8 @@ static const TThreadID_t INVALID_THREAD_ID = 0;
 typedef uint64 TSocketIndex_t;          // 唯一标识
 const TSocketIndex_t INVALID_SOCKET_INDEX = INVALID_UINT64_NUM;
 
+static const uint32 IP_LEN = 24; // IP长度
+
 static const uint32 LOG_SINGLE_FILE_SIZE = 5 * 1024 * 1024;
 
 static const sint32 MAX_PACKET_READ_SIZE = 30000;		// 一次读取的数据的字节数
@@ -33,6 +35,8 @@ static const uint32 ROLE_NAME_LEN = 64; // 角色名长度
 
 static const uint32 TOKEN_LEN = 128;	// token长度
 
+static const uint32 NAMESPACE_LEN = 64;	// namespace长度
+
 static const uint32 MAX_PROCESS_TYPE_NUM = 6; // 进程类型数量
 
 static const uint32 MAX_SEQUENCE_TYPE_NUM = 8;	// 序列ID数量
@@ -45,6 +49,10 @@ static const uint32 ENTITY_NAME_LEN = 32;	// entity长度
 
 static const uint64 MAX_RESOURCE_INDEX = 64; // 建筑索引
 
+static const uint32 TAG_NAME_LEN = 32;	// tag长度
+
+static const uint32 MAX_ETCD_ENTITY_NUM = 10;	// 每个进程最多的etcd entity数量
+
 static const char START_CHARACTER = 0x2; // 开始字符标识
 static const char END_CHARACTER = 0x3;	 // 结束字符标识
 
@@ -56,6 +64,8 @@ const TPacketLen_t INVALID_PACKET_LEN = 0;
 
 typedef uint8 TPacketID_t;				// 协议的id
 const TPacketID_t INVALID_PACKET_ID = 0;
+
+typedef std::array<char, IP_LEN> TIP_t; // ip
 
 typedef uint32 TSeedType_t;				// 随机种子
 const TSeedType_t INVALID_SEED_TYPE = 0;
@@ -138,8 +148,12 @@ typedef std::array<char, TOKEN_LEN> TTokenID_t;		// token
 
 typedef std::array<char, ENTITY_NAME_LEN> TEntityName_t;
 
+typedef std::array<char, NAMESPACE_LEN> TNamespace_t;
+
 typedef uint64 TEntityID_t;				// entity id
 const TEntityID_t INVALID_ENTITY_ID = 0;
+
+typedef std::array<char, TAG_NAME_LEN> TTagName_t;
 
 typedef uint64 TRoleID_t;				// 角色id
 const TRoleID_t INVALID_ROLE_ID = 0;
@@ -164,6 +178,9 @@ const TRoomID_t INVALID_ROOM_ID = 0;
 
 typedef uint8 TCardIndex_t;				// 牌索引
 const TCardIndex_t INVALID_CARD_INDEX = 0;
+
+typedef uint32 TWaitIndex_t;			// etcd索引
+const TWaitIndex_t INVALID_WAIT_INDEX = 0;
 
 //根据指针值删除内存
 #ifndef DSafeDelete

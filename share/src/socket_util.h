@@ -33,7 +33,7 @@ typedef uint16	TPort_t;
 
 #define IP_SIZE			24
 
-typedef unsigned long       TIP_t;
+typedef unsigned long       TIPInt_t;
 typedef struct sockaddr     SOCKADDR;
 typedef struct sockaddr_in  SOCKADDR_IN;
 typedef struct timeval		TTimeVal_t;      // Ê±¼ä

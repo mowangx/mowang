@@ -8,7 +8,7 @@
 
 game_manager_handler::game_manager_handler() : packet_handler<game_manager_handler>()
 {
-	m_rpc_client = new rpc_client(this);
+
 }
 
 game_manager_handler::~game_manager_handler()

@@ -337,4 +337,14 @@ TSocketIndex_t socket_manager<socket_type, packet_type>::gen_socket_index()
 	return ++m_socket_sequence_index;
 }
 
+template<class socket_type, class packet_type>
+socket_type* socket_manager<socket_type, packet_type>::get_socket(TSocketIndex_t socket_index) const
+{
+	auto itr = m_sockets.find(socket_index);
+	if (itr == m_sockets.end()) {
+		return nullptr;
+	}
+	return itr->second;
+}
+
 #endif // !_SOCKET_MANAGER_HPP_

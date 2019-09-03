@@ -13,7 +13,7 @@ public:
 	virtual ~server_entity();
 
 public:
-	virtual bool init(TServerID_t server_id, TProcessID_t game_id, TEntityID_t entity_id);
+	virtual bool init(TEntityID_t entity_id);
 
 public:
 	void call_client(const std::string& func_name) {

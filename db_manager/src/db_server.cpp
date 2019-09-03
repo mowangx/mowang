@@ -9,8 +9,7 @@
 
 #include "db_server.h"
 
-#include "game_manager_handler.h"
-#include "game_server_handler.h"
+#include "db_packet_handler.h"
 #include "tcp_manager.h"
 #include "rpc_proxy.h"
 #include "executor_manager.h"
@@ -35,12 +34,13 @@ bool db_server::init(TProcessID_t process_id)
 		return false;
 	}
 
-	game_server_handler::Setup();
-	game_manager_handler::Setup();
+	db_packet_handler::Setup();
 
 	DRegisterServerRpc(this, db_server, register_server, 2);
+	DRegisterServerRpc(this, db_server, on_register_entities, 5);
+	DRegisterServerRpc(this, db_server, on_unregister_process, 4);
 
-	if (!DNetMgr.start_listen<game_server_handler>(m_server_info.port)) {
+	if (!DNetMgr.start_listen<db_packet_handler>(m_server_info.port)) {
 		log_info("init socket manager failed");
 		return false;
 	}
@@ -85,7 +85,6 @@ void db_server::work_run()
 	//}
 
 
-	connect_game_manager_loop(m_config.get_game_manager_listen_ip(), m_config.get_game_manager_listen_port());
 	TBaseType_t::work_run();
 }
 
@@ -95,7 +94,7 @@ void db_server::do_loop(TGameTime_t diff)
 	DExecutorMgr.update(diff);
 }
 
-bool db_server::connect_game_manager(const char * ip, TPort_t port)
+bool db_server::connect_server(const char * ip, TPort_t port)
 {
-	return DNetMgr.start_connect<game_manager_handler>(ip, port);
+	return DNetMgr.start_connect<db_packet_handler>(ip, port);
 }

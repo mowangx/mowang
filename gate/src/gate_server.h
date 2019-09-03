@@ -7,8 +7,6 @@
 #include "dynamic_array.h"
 #include "game_struct.h"
 
-class game_server_handler;
-
 class gate_server : public ws_service, public singleton<gate_server>
 {
 	typedef ws_service TBaseType_t;
@@ -22,18 +20,15 @@ public:
 	virtual bool init(TProcessID_t process_id) override;
 private:
 	virtual void init_ws_process_func() override;
-private:
-	virtual void work_run() override;
 
 private:
 	virtual void do_loop(TGameTime_t diff) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;
-
-private:
-	virtual bool connect_game_manager(const char* ip, TPort_t port) override;
+public:
+	virtual bool connect_server(const char* ip, TPort_t port) override;
 
 public:
-	void on_register_servers(TSocketIndex_t socket_index, TServerID_t server_id, TProcessType_t process_type, const dynamic_array<game_server_info>& servers);
+	virtual void add_process(const game_server_info& server_info) override;
 	void login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const account_info& account);
 	void logout_server(TSocketIndex_t socket_index);
 	void transfer_server(TSocketIndex_t socket_index, packet_base* packet);
