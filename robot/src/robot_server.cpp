@@ -1,7 +1,7 @@
 
 
 #include "robot_server.h"
-#include "gate_handler.h"
+#include "robot_packet_handler.h"
 #include "rpc_client.h"
 #include "rpc_proxy.h"
 #include "rpc_wrapper.h"
@@ -24,8 +24,11 @@ bool robot_server::init(TProcessID_t process_id)
 		return false;
 	}
 
-	gate_handler::Setup();
+	robot_packet_handler::Setup();
 
+	DRegisterServerRpc(this, robot_server, register_server, 2);
+	DRegisterServerRpc(this, robot_server, on_register_entities, 5);
+	DRegisterServerRpc(this, robot_server, on_unregister_process, 4);
 	DRegisterClientRpc(this, robot_server, logout, 2);
 
 	return true;
@@ -44,7 +47,9 @@ void robot_server::net_run()
 		//DNetMgr.test_kick();
 
 		if (DNetMgr.socket_num() < 2) {
-			if (!DNetMgr.start_connect<gate_handler>("127.0.0.1", DGameRandom.get_rand<int>(10010, 10012))) {
+			TPort_t port = DGameRandom.get_rand<TPort_t>(0, 2);
+			port = port * 10 + 10100;
+			if (!DNetMgr.start_connect<robot_packet_handler>("127.0.0.1", port)) {
 				log_info("connect server failed");
 				return false;
 			}

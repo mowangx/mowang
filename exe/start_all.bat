@@ -1,10 +1,4 @@
-cd game_manager
-for /l %%i in (1,1,1) do (
-	start game_manager.exe %%i
-	ping 127.0.0.1 -n 1 -w 1000 > nul
-)
-
-cd ../db_manager
+cd db_manager
 for /l %%i in (1,1,2) do (
 	start db_manager.exe %%i
 	ping 127.0.0.1 -n 1 -w 1000 > nul

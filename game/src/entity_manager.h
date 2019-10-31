@@ -7,10 +7,10 @@
 
 #include "singleton.h"
 #include "memory_pool.h"
-
 #include "game_struct.h"
+#include "account.h"
 #include "role.h"
-#include "room.h"
+
 
 class server_entity;
 
@@ -36,7 +36,7 @@ public:
 	void init();
 
 public:
-	server_entity* create_entity(const std::string& entity_name);
+	server_entity* create_entity(const std::string& entity_name, TProcessID_t gate_id = INVALID_PROCESS_ID, TSocketIndex_t client_id = INVALID_SOCKET_INDEX);
 	void destroy_entity(TEntityID_t entity_id);
 
 public:
@@ -44,8 +44,8 @@ public:
 
 private:
 	TEntityID_t m_entity_id;
+	obj_memory_pool<account, 1024> m_account_pool;
 	obj_memory_pool<role, 1024> m_role_pool;
-	obj_memory_pool<room, 1024> m_room_pool;
 	std::map<std::string, std::function<server_entity*()>> m_create_entity_funcs;
 	std::unordered_map<TEntityID_t, entity_info> m_entities;
 };

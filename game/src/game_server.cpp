@@ -7,9 +7,7 @@
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
 #include "tcp_manager.h"
-#include "lbs_stub.h"
 #include "roll_stub.h"
-#include "fight_stub.h"
 #include "timer.h"
 #include "entity_manager.h"
 #include "etcd_manager.h"
@@ -48,7 +46,7 @@ bool game_server::init(TProcessID_t process_id)
 	http_client_handler::Setup();
 
 	DRegisterServerRpc(this, game_server, register_server, 2);
-	DRegisterServerRpc(this, game_server, login_server, 4);
+	DRegisterServerRpc(this, game_server, login_server, 3);
 	DRegisterServerRpc(this, game_server, logout_server, 2);
 	DRegisterServerRpc(this, game_server, create_entity, 2);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
@@ -75,64 +73,6 @@ bool game_server::init(TProcessID_t process_id)
 bool game_server::connect_server(const char * ip, TPort_t port)
 {
 	return DNetMgr.start_connect<game_packet_handler>(ip, port);
-}
-
-resource* game_server::allocate_resource()
-{
-	return m_resource_pool.allocate();
-}
-
-void game_server::deallocate_resource(resource* res)
-{
-	m_resource_pool.deallocate(res);
-}
-
-city* game_server::allocate_city()
-{
-	return m_city_pool.allocate();
-}
-
-void game_server::deallocate_city(city* c)
-{
-	m_city_pool.deallocate(c);
-}
-
-npc* game_server::allocate_npc()
-{
-	return m_npc_pool.allocate();
-}
-
-void game_server::deallocate_npc(npc* p)
-{
-	m_npc_pool.deallocate(p);
-}
-
-farmland * game_server::allocate_farmland()
-{
-	return m_farmland_pool.allocate();
-}
-
-void game_server::deallocate_farmland(farmland * f)
-{
-	m_farmland_pool.deallocate(f);
-}
-
-soldier_training_info * game_server::allocate_soldier_training()
-{
-	return nullptr;
-}
-
-void game_server::deallocate_soldier_training(soldier_training_info * s)
-{
-}
-
-resource_up_info * game_server::allocate_resource_up_info()
-{
-	return nullptr;
-}
-
-void game_server::deallocate_resource_up_info(resource_up_info * r)
-{
 }
 
 void game_server::db_remove(const char* table, const char* query, const std::function<void(bool)>& callback)
@@ -179,22 +119,14 @@ void game_server::db_opt(uint8 opt_type, const char * table, const char * query,
 	}
 }
 
-void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, TPlatformID_t platform_id, const account_info& account)
+void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, const account_info& account_data)
 {
 	// send msg to db manager to query role id from db by platform id and user id
 	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
-	role* p = (role*)DEntityMgr.create_entity("role");
-	p->set_client_id(client_id);
-	p->set_gate_id(gate_id);
-	p->set_role_name(account.role_name);
-	p->set_sex(account.sex);
-	// @TODO just test, should load from db
-	p->set_test_client_id(account.test_client_id);
-	m_client_id_2_role[client_id] = p;
-	p->login(platform_id, account.token);
-
-	log_info("login server, client id %" I64_FMT "u, gate id %u, entity id %" I64_FMT "u, platform id %u, token %s", 
-		client_id, gate_id, p->get_entity_id(), platform_id, account.token.data());
+	account* p = (account*)DEntityMgr.create_entity("account", gate_id, client_id);
+	p->login(account_data);
+	log_info("login server, client id %" I64_FMT "u, gate id %u, entity id %" I64_FMT "u, platform id %u, user id %s", 
+		client_id, gate_id, p->get_entity_id(), account_data.platform_id, account_data.user_id.data());
 }
 
 void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id)

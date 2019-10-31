@@ -3,9 +3,6 @@
 #include "log.h"
 #include "game_server.h"
 #include "roll_stub.h"
-#include "lbs_stub.h"
-#include "fight_stub.h"
-#include "room_stub.h"
 
 entity_manager::entity_manager()
 {
@@ -23,27 +20,18 @@ void entity_manager::init()
 	m_entity_id += DGameServer.get_game_id();
 	m_entity_id <<= 40;
 
-	m_create_entity_funcs["roll_stub"] = [&]() {
-		return new roll_stub();
-	};
-	m_create_entity_funcs["lbs_stub"] = [&]() {
-		return new lbs_stub();
-	};
-	m_create_entity_funcs["fight_stub"] = [&]() {
-		return new fight_stub();
-	};
-	m_create_entity_funcs["room_stub"] = [&]() {
-		return new room_stub();
+	m_create_entity_funcs["account"] = [&]() {
+		return m_account_pool.allocate();
 	};
 	m_create_entity_funcs["role"] = [&]() {
 		return m_role_pool.allocate();
 	};
-	m_create_entity_funcs["room"] = [&]() {
-		return m_room_pool.allocate();
+	m_create_entity_funcs["roll_stub"] = [&]() {
+		return new roll_stub();
 	};
 }
 
-server_entity* entity_manager::create_entity(const std::string& entity_name)
+server_entity* entity_manager::create_entity(const std::string& entity_name, TProcessID_t gate_id, TSocketIndex_t client_id)
 {
 	auto itr = m_create_entity_funcs.find(entity_name);
 	if (itr == m_create_entity_funcs.end()) {
@@ -55,7 +43,7 @@ server_entity* entity_manager::create_entity(const std::string& entity_name)
 	server_entity* e = create_func();
 	if (NULL != e) {
 		++m_entity_id;
-		e->init(m_entity_id);
+		e->init(m_entity_id, gate_id, client_id);
 
 		entity_info info;
 		info.e = e;
@@ -76,11 +64,11 @@ void entity_manager::destroy_entity(TEntityID_t entity_id)
 	}
 
 	entity_info& info = itr->second;
-	if (info.name == "role") {
-		m_role_pool.deallocate((role*)info.e);
+	if (info.name == "account") {
+		m_account_pool.deallocate((account*)info.e);
 	}
-	else if (info.name == "room") {
-		m_room_pool.deallocate((room*)info.e);
+	else if (info.name == "role") {
+		m_role_pool.deallocate((role*)info.e);
 	}
 	else {
 		delete info.e;

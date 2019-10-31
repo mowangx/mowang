@@ -140,57 +140,19 @@ struct stub_role_info
 	}
 };
 
-struct game_pos
-{
-	TPosValue_t x;
-	TPosValue_t y;
-	game_pos() {
-		clean_up();
-	}
-
-	bool operator == (const game_pos& rhs) const {
-		return x == rhs.x && y == rhs.y;
-	}
-
-	bool operator != (const game_pos& rhs) const {
-		return x != rhs.x || y != rhs.y;
-	}
-
-	void clean_up() {
-		x = INVALID_POS_VALUE;
-		y = INVALID_POS_VALUE;
-	}
-};
-
-struct soldier_info
-{
-	TSoldierType_t soldier_type;
-	TSoldierNum_t soldier_num;
-	soldier_info() {
-		clean_up();
-	}
-
-	void clean_up() {
-		soldier_type = INVALID_SOLDIER_TYPE;
-		soldier_num = INVALID_SOLDIER_NUM;
-	}
-};
-
 struct account_info
 {
+	TPlatformID_t platform_id;
+	TUserID_t user_id;
 	TTokenID_t token;
-	TRoleName_t role_name;
-	TSex_t sex;
-	TSocketIndex_t test_client_id;
 	account_info() {
 		clean_up();
 	}
 
 	void clean_up() {
+		platform_id = INVALID_PLATFORM_ID;
+		memset(user_id.data(), 0, USER_ID_LEN);
 		memset(token.data(), 0, TOKEN_LEN);
-		memset(role_name.data(), 0, ROLE_NAME_LEN);
-		sex = INVALID_SEX;
-		test_client_id = INVALID_SOCKET_INDEX;
 	}
 };
 

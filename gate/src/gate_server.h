@@ -29,7 +29,7 @@ public:
 
 public:
 	virtual void add_process(const game_server_info& server_info) override;
-	void login_server(TSocketIndex_t socket_index, TPlatformID_t platform_id, TServerID_t server_id, const account_info& account);
+	void login_server(TSocketIndex_t socket_index, TServerID_t server_id, const account_info& account_data);
 	void logout_server(TSocketIndex_t socket_index);
 	void transfer_server(TSocketIndex_t socket_index, packet_base* packet);
 	void update_process_info(TSocketIndex_t socket_index, TSocketIndex_t client_id, const game_process_info& process_info);

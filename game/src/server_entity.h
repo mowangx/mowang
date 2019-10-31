@@ -13,7 +13,7 @@ public:
 	virtual ~server_entity();
 
 public:
-	virtual bool init(TEntityID_t entity_id);
+	virtual bool init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t client_id);
 
 public:
 	void call_client(const std::string& func_name) {
@@ -30,8 +30,7 @@ public:
 	}
 
 public:
-	void set_gate_id(TProcessID_t gate_id);
-	void set_client_id(TSocketIndex_t client_id);
+	void update_proxy(const proxy_info& proxy);
 
 public:
 	TProcessID_t get_gate_id() const;

@@ -23,12 +23,6 @@ static const uint32 MAX_WEB_SOCKET_OUTPUT_BUFFER_SIZE = 655360; // 10 * 65536, w
 
 static const uint32 MAX_ATTR_NUM = 6;	// 属性数量
 
-static const uint32 MAX_RESOURCE_TYPE_NUM = 5;	// 资源类型总数
-
-static const uint32 MAX_SOLDIER_TYPE_NUM = 16;	// 兵种数量
-
-static const uint32 MAX_TECHNOLOGY_NUM = 20;	// 科技类型数量
-
 static const uint32 USER_ID_LEN = 64;	// 用户ID长度
 
 static const uint32 ROLE_NAME_LEN = 64; // 角色名长度
@@ -46,8 +40,6 @@ static const uint32 MAX_INI_VALUE = 1024;
 static const uint32 DELAY_KICK_SOCKET_TIME = 1; // 延迟清理socket的时间
 
 static const uint32 ENTITY_NAME_LEN = 32;	// entity长度
-
-static const uint64 MAX_RESOURCE_INDEX = 64; // 建筑索引
 
 static const uint32 TAG_NAME_LEN = 32;	// tag长度
 
@@ -95,47 +87,11 @@ const TAttrType_t INVALID_ATTR_TYPE = 0;
 typedef sint16 TAttrValue_t;			// 属性值
 const TAttrValue_t INVALID_ATTR_VALUE = 0;
 
-typedef uint8 TResourceType_t;			// 资源类型
-const TResourceType_t INVALID_RESOURCE_TYPE = 0;
-
-typedef uint8 TResourceIndex_t;			// 资源索引
-const TResourceIndex_t INVALID_RESOURCE_INDEX = INVALID_UINT8_NUM;
-
-typedef sint32 TResourceNum_t;			// 资源数量
-const TResourceNum_t INVALID_RESOURCE_NUM = 0;
-
 typedef sint8 TLevel_t;					// 等级
 const TLevel_t INVALID_LEVEL = 0;
 
 typedef uint32 TGameTime_t;				// 游戏时间
 const TGameTime_t INVALID_GAME_TIME = 0;
-
-typedef uint16 TCityIndex_t;			// 城市索引
-const TCityIndex_t INVALID_CITY_INDEX = 0;
-
-typedef uint16 TNpcIndex_t;				// npc索引
-const TNpcIndex_t INVALID_NPC_INDEX = 0;
-
-typedef sint16 TPosValue_t;				// 坐标
-const TPosValue_t INVALID_POS_VALUE = 0;
-
-typedef uint8 TSoldierType_t;			// 兵类型
-const TSoldierType_t INVALID_SOLDIER_TYPE = 0;
-
-typedef sint32 TSoldierNum_t;			// 兵数量
-const TSoldierNum_t INVALID_SOLDIER_NUM = 0;
-
-typedef uint8 TConsumeType_t;			// 消耗类型
-const TConsumeType_t INVALID_CONSUME_TYPE = 0;
-
-typedef uint8 TTechnologyType_t;		// 科技类型
-const TTechnologyType_t INVALID_TECHNOLOGY_TYPE = 0;
-
-typedef sint32 TRmbNum_t;				// 元宝数量
-const TRmbNum_t INVALID_RMB_NUM = 0;
-
-typedef sint32 THonorNum_t;				// 声望
-const THonorNum_t INVALID_HONOR_NUM = 0;
 
 typedef uint8 TPlatformID_t;			// 平台ID
 const TPlatformID_t INVALID_PLATFORM_ID = 0;
@@ -155,6 +111,9 @@ const TEntityID_t INVALID_ENTITY_ID = 0;
 
 typedef std::array<char, TAG_NAME_LEN> TTagName_t;
 
+typedef uint64 TAccountID_t;				// 账号ID
+const TAccountID_t INVALID_ACCOUNT_ID = 0;
+
 typedef uint64 TRoleID_t;				// 角色id
 const TRoleID_t INVALID_ROLE_ID = 0;
 
@@ -172,12 +131,6 @@ const TTimerID_t INVALID_TIMER_ID = 0;
 
 typedef uint8 TDbVersion_t;				// 数据库版本号
 const TDbVersion_t INVALID_DB_VERSION = 0;
-
-typedef uint16 TRoomID_t;				// 房间编号
-const TRoomID_t INVALID_ROOM_ID = 0;
-
-typedef uint8 TCardIndex_t;				// 牌索引
-const TCardIndex_t INVALID_CARD_INDEX = 0;
 
 typedef uint32 TWaitIndex_t;			// etcd索引
 const TWaitIndex_t INVALID_WAIT_INDEX = 0;

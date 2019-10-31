@@ -14,91 +14,78 @@ roll_stub::~roll_stub()
 	clean_up();
 }
 
-bool roll_stub::init(TEntityID_t entity_id)
+bool roll_stub::init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t client_id)
 {
 	log_info("roll stub init");
-	if (!TBaseType_t::init(entity_id)) {
+	if (!TBaseType_t::init(entity_id, gate_id, client_id)) {
 		return false;
 	}
-	DRegisterEntityRpc(get_entity_id(), this, roll_stub, register_account, 5);
-	DRegisterEntityRpc(get_entity_id(), this, roll_stub, unregister_account, 2);
-	DRegisterEntityRpc(get_entity_id(), this, roll_stub, register_role, 6);
-	DRegisterEntityRpc(get_entity_id(), this, roll_stub, unregister_role, 1);
+	DRegisterEntityRpc(get_entity_id(), this, roll_stub, register_account, 2);
+	DRegisterEntityRpc(get_entity_id(), this, roll_stub, unregister_account, 1);
+	DRegisterEntityRpc(get_entity_id(), this, roll_stub, register_role, 3);
+	DRegisterEntityRpc(get_entity_id(), this, roll_stub, unregister_role, 2);
 	return true;
 }
 
-void roll_stub::register_account(TPlatformID_t platform_id, TUserID_t user_id, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)
+void roll_stub::register_account(TAccountID_t account_id, const mailbox_info& mailbox)
 {
-	std::string key_id = gx_to_string("%u#!#!", platform_id) + user_id.data();
-	auto itr = m_user_id_2_role_info.find(key_id);
-	if (itr == m_user_id_2_role_info.end()) {
-		stub_role_info role_info;
-		role_info.proxy = proxy;
-		role_info.mailbox = mailbox;
-		m_user_id_2_role_info[key_id] = role_info;
-		DRpcWrapper.call_entity(role_info.mailbox, "on_register_account", true, proxy, mailbox, test_client_id);
-		log_info("register account success! platform id %u, user id %s, client id %" I64_FMT "u", platform_id, user_id.data(), proxy.client_id);
+	auto itr = m_account_2_mailbox.find(account_id);
+	if (itr == m_account_2_mailbox.end()) {
+		m_account_2_mailbox[account_id] = mailbox;
+		DRpcWrapper.call_entity(mailbox, "on_register_account", true, mailbox);
+		log_info("register account success! account id %" I64_FMT "u", account_id);
 	}
 	else {
-		stub_role_info& role_info = itr->second;
-		DRpcWrapper.call_entity(role_info.mailbox, "on_register_account", false, proxy, mailbox, test_client_id);
-		log_info("register account success, but has registered, platform id %u, user id %s, cur client id %" I64_FMT "u, old client id %" I64_FMT "u",
-			platform_id, user_id.data(), proxy.client_id, role_info.proxy.client_id);
-
-		role_info.proxy = proxy;
+		DRpcWrapper.call_entity(mailbox, "on_register_account", false, itr->second);
+		log_info("register account success, but has registered, account id %" I64_FMT "u", account_id);
 	}
 }
 
-void roll_stub::unregister_account(TPlatformID_t platform_id, TUserID_t user_id)
+void roll_stub::unregister_account(TAccountID_t account_id)
 {
-	std::string key_id = gx_to_string("%u#!#!", platform_id) + user_id.data();
-	auto itr = m_user_id_2_role_info.find(key_id);
-	if (itr != m_user_id_2_role_info.end()) {
-		const stub_role_info& role_info = itr->second;
-		log_info("unregister account success! platform id %u, user id %s, client id %" I64_FMT "u", platform_id, user_id.data(), role_info.proxy.client_id);
-		m_user_id_2_role_info.erase(itr);
+	auto itr = m_account_2_mailbox.find(account_id);
+	if (itr != m_account_2_mailbox.end()) {
+		log_info("unregister account success! account id %" I64_FMT "u", account_id);
+		m_account_2_mailbox.erase(itr);
 	}
 	else {
-		log_error("unregister account failed for not find user id! platform id %u, user id %s", platform_id, user_id.data());
+		log_error("unregister account failed for not find account id %" I64_FMT "u", account_id);
 	}
 }
 
-void roll_stub::register_role(TPlatformID_t platform_id, TUserID_t user_id, TRoleID_t role_id, const proxy_info& proxy, const mailbox_info& mailbox, TSocketIndex_t test_client_id)
+void roll_stub::register_role(TAccountID_t account_id, TRoleID_t role_id, const mailbox_info& mailbox)
 {
-	auto itr = m_role_id_2_role_info.find(role_id);
-	if (itr == m_role_id_2_role_info.end()) {
-		std::string key_id = gx_to_string("%u#!#!", platform_id) + user_id.data();
-		stub_role_info role_info;
-		role_info.proxy = proxy;
-		role_info.mailbox = mailbox;
-		m_user_id_2_role_info[key_id] = role_info;
-		m_role_id_2_role_info[role_id] = role_info;
-		DRpcWrapper.call_entity(mailbox, "on_register_role", true, proxy, mailbox, test_client_id);
-		log_info("register role success! client id %" I64_FMT "u, role id %" I64_FMT "u", proxy.client_id, role_id);
+	bool success = false;
+	if (m_account_2_mailbox.find(account_id) == m_account_2_mailbox.end()) {
+		log_info("register role failed for account not register! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+	}
+	else if (m_role_2_mailbox.find(role_id) == m_role_2_mailbox.end()) {
+		log_info("register role failed for role has registered! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
 	}
 	else {
-		stub_role_info& role_info = itr->second;
-		DRpcWrapper.call_entity(role_info.mailbox, "on_register_role", false, proxy, mailbox, test_client_id);
-		log_info("register role success, but role has registered! client id %" I64_FMT "u, role id %" I64_FMT "u", role_info.proxy.client_id, role_id);
-
-		role_info.proxy = proxy;
+		log_info("register role success! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+		success = true;
+		m_account_2_mailbox[account_id] = mailbox;
+		m_role_2_mailbox[role_id] = mailbox;
 	}
+	DRpcWrapper.call_entity(mailbox, "on_register_role", success);
 }
 
-void roll_stub::unregister_role(TRoleID_t role_id)
+void roll_stub::unregister_role(TAccountID_t account_id, TRoleID_t role_id)
 {
-	auto itr = m_role_id_2_role_info.find(role_id);
-	if (itr != m_role_id_2_role_info.end()) {
-		m_role_id_2_role_info.erase(itr);
-		log_info("unregister role sucess! role id %" I64_FMT "u", role_id);
+	auto account_itr = m_account_2_mailbox.find(account_id);
+	if (account_itr != m_account_2_mailbox.end()) {
+		m_account_2_mailbox.erase(account_itr);
 	}
-	else {
-		log_error("unregister role failed for not find role id! role id %" I64_FMT "u", role_id);
+	auto role_itr = m_role_2_mailbox.find(role_id);
+	if (role_itr != m_role_2_mailbox.end()) {
+		m_role_2_mailbox.erase(role_itr);
 	}
+	log_info("unregister role sucess! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
 }
 
 void roll_stub::clean_up()
 {
-	m_user_id_2_role_info.clear();
-	m_role_id_2_role_info.clear();
+	m_account_2_mailbox.clear();
+	m_role_2_mailbox.clear();
 }

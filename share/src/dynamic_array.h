@@ -337,7 +337,7 @@ private:
 	T** m_data;
 };
 
-typedef dynamic_array<char> binary_data;
+typedef dynamic_string binary_data;
 typedef dynamic_array2<dynamic_string> dynamic_string_array;
 typedef dynamic_array2<dynamic_string_array> dynamic_string_array2;
 
