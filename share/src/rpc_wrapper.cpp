@@ -71,6 +71,11 @@ void rpc_wrapper::update_handler_info(TSocketIndex_t socket_index, const game_se
 
 void rpc_wrapper::unregister_handler_info(TSocketIndex_t socket_index)
 {
+	log_info("unregster handler info! socket index %" I64_FMT "u", socket_index);
+	auto itr = m_socket_index_2_client.find(socket_index);
+	if (itr != m_socket_index_2_client.end()) {
+		m_socket_index_2_client.erase(itr);
+	}
 	for (auto itr = m_directly_games.begin(); itr != m_directly_games.end(); ++itr) {
 		rpc_client_wrapper_info* rpc_wrapper = itr->second;
 		rpc_client* rpc = rpc_wrapper->rpc;

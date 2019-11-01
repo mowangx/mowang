@@ -8,6 +8,7 @@
 
 account::account()
 {
+	m_destroy = false;
 }
 
 account::~account()
@@ -65,6 +66,7 @@ void account::create_role(TSex_t sex, const TRoleName_t& role_name)
 void account::on_register_account(bool status, const mailbox_info& mailbox)
 {
 	if (status) {
+		log_info("on register account success! entity id %" I64_FMT "u", get_entity_id());
 		on_load_role();
 	}
 	else {
@@ -75,6 +77,7 @@ void account::on_register_account(bool status, const mailbox_info& mailbox)
 
 void account::on_relay_ready(const mailbox_info& mailbox)
 {
+	log_info("account on relay ready! %" I64_FMT "u", get_entity_id());
 	DRpcWrapper.call_entity(mailbox, "on_relay_login");
 	std::string msg = gx_to_string("{\"cmd\": \"kick\"}");
 	DRpcWrapper.call_ws_client(get_proxy(), msg);
@@ -83,11 +86,13 @@ void account::on_relay_ready(const mailbox_info& mailbox)
 
 void account::on_relay_login()
 {
+	log_info("account on relay login! %" I64_FMT "u", get_entity_id());
 	on_load_role();
 }
 
 void account::on_wait_login(const mailbox_info& mailbox)
 {
+	log_info("account on wait login! %" I64_FMT "u", get_entity_id());
 	DRpcWrapper.call_entity(mailbox, "on_relay_login", get_proxy());
 }
 
@@ -109,7 +114,6 @@ void account::on_load_account_callback(bool status, const binary_data& result)
 
 void account::on_load_role()
 {
-	log_info("on register account success! entity id %" I64_FMT "u", get_entity_id());
 	DGameServer.db_query(
 		"role",
 		"*",
@@ -120,8 +124,12 @@ void account::on_load_role()
 
 void account::on_load_role_callback(bool status, const binary_data& result)
 {
+	if (m_destroy) {
+		log_info("account has destroy! entity id %" I64_FMT "u", get_entity_id());
+		return;
+	}
 	if (!status) {
-		log_error("load from db failed! client id %" I64_FMT "u", get_client_id());
+		log_error("load from db failed! entity id %" I64_FMT "u", get_entity_id());
 		return;
 	}
 	if (result.empty()) {
@@ -146,18 +154,18 @@ void account::create_account()
 		gx_to_string("platform_id %u, user_id %s, account id %" I64_FMT "u, role_id %" I64_FMT "u", m_platform_id, m_user_id.data(), m_account_id, m_role_id).c_str(),
 		[&](bool status) {
 			if (status) {
-				log_info("save account success! client id %" I64_FMT "u", get_client_id());
+				log_info("save account success! entity id %" I64_FMT "u", get_entity_id());
 				register_account();
 			}
 			else {
-				log_error("save account failed for save failed! client id %" I64_FMT "u", get_client_id());
+				log_error("save account failed for save failed! entity id %" I64_FMT "u", get_entity_id());
 			}
 	});
 }
 
 void account::register_account()
 {
-	log_info("on account login success! account id %" I64_FMT "u", m_account_id);
+	log_info("start register account! account id %" I64_FMT "u, entity id %" I64_FMT "u", m_account_id, get_entity_id());
 	DRpcWrapper.call_stub("roll_stub", "register_account", m_account_id, get_mailbox());
 }
 
@@ -174,4 +182,5 @@ role* account::on_login_success()
 
 void account::destroy()
 {
+	m_destroy = true;
 }

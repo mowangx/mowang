@@ -151,6 +151,7 @@ public:
 		for (auto packet : m_cache_packets) {
 			m_handler->send_packet(&packet);
 		}
+		m_cache_packets.clear();
 	}
 
 private:

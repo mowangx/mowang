@@ -32,11 +32,11 @@ bool role::init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t clie
 void role::on_register_role(bool status)
 {
 	if (status) {
-		log_info("role register success! %" I64_FMT "u ", m_role_id);
+		log_info("role register success! entity id %" I64_FMT "u ", get_entity_id());
 	}
 	else {
 		logout();
-		log_info("role register failed! %" I64_FMT "u ", m_role_id);
+		log_info("role register failed! entity id %" I64_FMT "u ", get_entity_id());
 	}
 }
 
@@ -45,13 +45,13 @@ void role::on_relay_ready(const mailbox_info& mailbox)
 	DRpcWrapper.call_entity(mailbox, "on_wait_login");
 	std::string msg = gx_to_string("{\"cmd\": \"kick\"}");
 	DRpcWrapper.call_ws_client(get_proxy(), msg);
-	log_info("role on relay ready! %" I64_FMT "u", m_role_id);
+	log_info("role on relay ready! entity id %" I64_FMT "u", get_entity_id());
 }
 
 void role::on_relay_login(const proxy_info & proxy)
 {
 	update_proxy(proxy);
-	log_info("role on relay login success! %" I64_FMT "u", m_role_id);
+	log_info("role on relay login success! entity id %" I64_FMT "u", get_entity_id());
 }
 
 void role::register_role()

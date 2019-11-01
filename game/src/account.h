@@ -36,6 +36,7 @@ private:
 	void destroy();
 
 private:
+	bool m_destroy;
 	TPlatformID_t m_platform_id;
 	TUserID_t m_user_id;
 	TAccountID_t m_account_id;

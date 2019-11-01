@@ -33,11 +33,13 @@ void roll_stub::register_account(TAccountID_t account_id, const mailbox_info& ma
 	if (itr == m_account_2_mailbox.end()) {
 		m_account_2_mailbox[account_id] = mailbox;
 		DRpcWrapper.call_entity(mailbox, "on_register_account", true, mailbox);
-		log_info("register account success! account id %" I64_FMT "u", account_id);
+		log_info("register account success! account id %" I64_FMT "u, entity id %" I64_FMT "u", account_id, mailbox.entity_id);
 	}
 	else {
-		DRpcWrapper.call_entity(mailbox, "on_register_account", false, itr->second);
-		log_info("register account success, but has registered, account id %" I64_FMT "u", account_id);
+		const mailbox_info& old_mailbox = itr->second;
+		m_account_2_mailbox[account_id] = mailbox;
+		DRpcWrapper.call_entity(mailbox, "on_register_account", false, old_mailbox);
+		log_info("register account success, but has registered, account id %" I64_FMT "u, entity id %" I64_FMT "u", account_id, mailbox.entity_id);
 	}
 }
 
@@ -57,13 +59,13 @@ void roll_stub::register_role(TAccountID_t account_id, TRoleID_t role_id, const 
 {
 	bool success = false;
 	if (m_account_2_mailbox.find(account_id) == m_account_2_mailbox.end()) {
-		log_info("register role failed for account not register! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+		log_error("register role failed for account not register! account id %" I64_FMT "u, entity id %" I64_FMT "u", account_id, mailbox.entity_id);
 	}
-	else if (m_role_2_mailbox.find(role_id) == m_role_2_mailbox.end()) {
-		log_info("register role failed for role has registered! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+	else if (m_role_2_mailbox.find(role_id) != m_role_2_mailbox.end()) {
+		log_error("register role failed for role has registered! account id %" I64_FMT "u, entity id %" I64_FMT "u", account_id, mailbox.entity_id);
 	}
 	else {
-		log_info("register role success! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+		log_info("register role success! account id %" I64_FMT "u, entity id %" I64_FMT "u", account_id, mailbox.entity_id);
 		success = true;
 		m_account_2_mailbox[account_id] = mailbox;
 		m_role_2_mailbox[role_id] = mailbox;
