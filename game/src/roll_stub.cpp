@@ -37,9 +37,10 @@ void roll_stub::register_account(TAccountID_t account_id, const mailbox_info& ma
 	}
 	else {
 		const mailbox_info& old_mailbox = itr->second;
-		m_account_2_mailbox[account_id] = mailbox;
 		DRpcWrapper.call_entity(mailbox, "on_register_account", false, old_mailbox);
-		log_info("register account success, but has registered, account id %" I64_FMT "u, entity id %" I64_FMT "u", account_id, mailbox.entity_id);
+		log_info("register account success, but has registered, account id %" I64_FMT "u, entity id %" I64_FMT "u, old entity id %" I64_FMT "u", 
+			account_id, mailbox.entity_id, old_mailbox.entity_id);
+		m_account_2_mailbox[account_id] = mailbox;
 	}
 }
 
