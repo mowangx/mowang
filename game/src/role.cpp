@@ -35,7 +35,7 @@ void role::on_register_role(bool status)
 		log_info("role register success! entity id %" I64_FMT "u ", get_entity_id());
 	}
 	else {
-		logout();
+		logout(false);
 		log_info("role register failed! entity id %" I64_FMT "u ", get_entity_id());
 	}
 }
@@ -57,15 +57,17 @@ void role::on_relay_login(const proxy_info & proxy)
 void role::register_role()
 {
 	log_info("register role, entity id %" I64_FMT "u", get_entity_id());
-	DRpcWrapper.call_stub("roll_stub", "register_role", get_role_id(), get_mailbox());
+	DRpcWrapper.call_stub("roll_stub", "register_role", get_account_id(), get_role_id(), get_mailbox());
 }
 
-void role::logout()
+void role::logout(bool need_unregister)
 {
 	log_info("role logout, entity id %" I64_FMT "u", get_entity_id());
 	destroy();
 	save();
-	DRpcWrapper.call_stub("roll_stub", "unregister_role", get_account_id(), get_role_id());
+	if (need_unregister) {
+		DRpcWrapper.call_stub("roll_stub", "unregister_role", get_account_id(), get_role_id());
+	}
 	log_info("role logout %" I64_FMT "u", m_role_id);
 }
 

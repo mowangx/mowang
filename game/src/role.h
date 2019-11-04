@@ -27,7 +27,7 @@ public:
 
 public:
 	void register_role();
-	void logout();
+	void logout(bool need_unregister);
 
 public:
 	void set_destroy_flag(bool destroy_flag);

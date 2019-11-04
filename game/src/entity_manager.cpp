@@ -15,10 +15,12 @@ entity_manager::~entity_manager()
 
 void entity_manager::init()
 {
-	m_entity_id = DGameServer.get_server_id();
+	//m_entity_id = DGameServer.get_server_id();
+	//m_entity_id <<= 8;
+	//m_entity_id += DGameServer.get_game_id();
+	//m_entity_id <<= 40;
+	m_entity_id = DGameServer.get_game_id();
 	m_entity_id <<= 8;
-	m_entity_id += DGameServer.get_game_id();
-	m_entity_id <<= 40;
 
 	m_create_entity_funcs["account"] = [&]() {
 		return m_account_pool.allocate();

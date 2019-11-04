@@ -176,7 +176,7 @@ void account::relay_login(const mailbox_info& mailbox)
 
 role* account::on_login_success()
 {
-	role* p = (role*)DEntityMgr.create_entity("role");
+	role* p = (role*)DEntityMgr.create_entity("role", get_gate_id(), get_client_id());
 	return p;
 }
 
