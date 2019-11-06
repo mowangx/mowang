@@ -3,7 +3,7 @@
 #define _SEQUENCE_H_
 
 #include "singleton.h"
-#include "game_enum.h"
+#include "server_enum.h"
 #include "base_util.h"
 #include "dynamic_array.h"
 

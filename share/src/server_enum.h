@@ -1,6 +1,6 @@
 
-#ifndef _GAME_ENUM_H_
-#define _GAME_ENUM_H_
+#ifndef _SERVER_ENUM_H_
+#define _SERVER_ENUM_H_
 
 enum tls_mode {
 	MOZILLA_INTERMEDIATE = 1,
@@ -13,7 +13,6 @@ enum game_process_type
 	PROCESS_GATE = 1,
 	PROCESS_GAME,
 	PROCESS_DB,
-	PROCESS_GAME_MANAGER,
 	PROCESS_HTTP_CLIENT,
 	PROCESS_ROBOT,
 };
@@ -42,4 +41,4 @@ enum entity_type
 	ENTITY_ROLL_STUB = 1,
 };
 
-#endif // !_GAME_ENUM_H_
+#endif // !_SERVER_ENUM_H_

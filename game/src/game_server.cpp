@@ -2,7 +2,6 @@
 #include "game_server.h"
 #include "tbl_test.h"
 #include "game_packet_handler.h"
-#include "http_client_handler.h"
 #include "rpc_proxy.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
@@ -17,7 +16,6 @@
 
 game_server::game_server() :service(PROCESS_GAME)
 {
-	m_entity_id = INVALID_ENTITY_ID;
 	for (int i = 0; i < MAX_PROCESS_TYPE_NUM; ++i) {
 		m_process_num[i] = 0;
 	}
@@ -40,22 +38,15 @@ bool game_server::init(TProcessID_t process_id)
 	//}
 	//log_info("load config success");
 
-	m_entity_id = ((TEntityID_t)m_server_info.process_info.server_id << 48) + ((TEntityID_t)m_server_info.process_info.process_id << 40);
-
 	game_packet_handler::Setup();
-	http_client_handler::Setup();
 
 	DRegisterServerRpc(this, game_server, register_server, 2);
 	DRegisterServerRpc(this, game_server, login_server, 3);
 	DRegisterServerRpc(this, game_server, logout_server, 2);
-	DRegisterServerRpc(this, game_server, create_entity, 2);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_result, 4);
-	DRegisterServerRpc(this, game_server, destroy_entity, 1);
 	DRegisterServerRpc(this, game_server, on_register_entities, 5);
 	DRegisterServerRpc(this, game_server, on_unregister_process, 4);
-
-	DRegisterStubRpc(this, game_server, remove_entity, 1);
 
 	if (!DNetMgr.start_listen<game_packet_handler>(m_server_info.port)) {
 		log_info("init socket manager failed");
@@ -75,14 +66,20 @@ bool game_server::connect_server(const char * ip, TPort_t port)
 	return DNetMgr.start_connect<game_packet_handler>(ip, port);
 }
 
+void game_server::do_loop(TGameTime_t diff)
+{
+	DEntityMgr.update();
+	TBaseType_t::do_loop(diff);
+}
+
 void game_server::db_remove(const char* table, const char* query, const std::function<void(bool)>& callback)
 {
 	db_opt_with_status(DB_OPT_DELETE, table, query, NULL, callback);
 }
 
-void game_server::db_insert(const char* table, const char* fields, const std::function<void(bool)>& callback)
+void game_server::db_insert(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)
 {
-	db_opt_with_status(DB_OPT_INSERT, table, NULL, fields, callback);
+	db_opt_with_status(DB_OPT_INSERT, table, query, fields, callback);
 }
 
 void game_server::db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)
@@ -132,7 +129,7 @@ void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t clien
 void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id)
 {
 	log_info("logout server, client id %" I64_FMT "u", client_id);
-	remove_entity_core(client_id);
+	DEntityMgr.disconnect_client(client_id);
 }
 
 void game_server::add_process(const game_server_info& server_info)
@@ -156,18 +153,6 @@ void game_server::register_server(TSocketIndex_t socket_index, const game_server
 		if (m_process_num[PROCESS_DB] >= m_config.get_desire_process_num(PROCESS_DB)) {
 			on_game_start();
 		}
-	}
-}
-
-void game_server::create_entity(TSocketIndex_t socket_index, const TEntityName_t& entity_name)
-{
-	//create_entity_locally(entity_name.data());
-}
-
-void game_server::remove_entity(TSocketIndex_t client_id)
-{
-	if (!remove_entity_core(client_id)) {
-		log_error("remove entity failed for not find client id, client id %" I64_FMT "u", client_id);
 	}
 }
 
@@ -207,24 +192,6 @@ void game_server::on_connect(TSocketIndex_t socket_index)
 void game_server::on_disconnect(TSocketIndex_t socket_index)
 {
 	
-}
-
-bool game_server::remove_entity_core(TSocketIndex_t client_id)
-{
-	auto itr = m_client_id_2_role.find(client_id);
-	if (itr != m_client_id_2_role.end()) {
-		log_info("remove entity success! client id %" I64_FMT "u", client_id);
-		role* p = itr->second;
-		m_client_id_2_role.erase(itr);
-
-		DTimer.add_timer(10, false, p, [](void* param, TTimerID_t timer_id) {
-			role* r = (role*)param;
-			DEntityMgr.destroy_entity(r->get_entity_id());
-		});
-
-		return true;
-	}
-	return false;
 }
 
 void game_server::on_game_start()
@@ -268,38 +235,4 @@ entity* game_server::create_entity_locally(const std::string& tag, const std::st
 	memcpy(global_entity_name.data(), entity_name.c_str(), entity_name.length());
 	DEtcdMgr.register_entity(name, global_tag, e->get_entity_id(), global_entity_name);
 	return e;
-}
-
-void game_server::destroy_entity(TEntityID_t entity_id)
-{
-	DEntityMgr.destroy_entity(entity_id);
-}
-
-role* game_server::get_role_by_client_id(TSocketIndex_t client_id) const
-{
-	auto itr = m_client_id_2_role.find(client_id);
-	return itr != m_client_id_2_role.end() ? itr->second : NULL;
-}
-
-void game_server::update_role_proxy_info(const proxy_info& old_proxy_info, const proxy_info& new_proxy_info)
-{
-	auto itr = m_client_id_2_role.find(old_proxy_info.client_id);
-	if (itr != m_client_id_2_role.end()) {
-		role* p = itr->second;
-		m_client_id_2_role.erase(itr);
-		m_client_id_2_role[new_proxy_info.client_id] = p;
-	}
-	else {
-		log_error("update role process info failed for not find client id! old client id = %" I64_FMT "u, new client id = %" I64_FMT "u",
-			old_proxy_info.client_id, new_proxy_info.client_id);
-	}
-}
-
-TEntityID_t game_server::get_entity_id_by_client_id(TSocketIndex_t client_id) const
-{
-	auto itr = m_client_id_2_role.find(client_id);
-	if (itr != m_client_id_2_role.end()) {
-		return (itr->second)->get_entity_id();
-	}
-	return INVALID_ENTITY_ID;
 }

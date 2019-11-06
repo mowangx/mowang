@@ -7,7 +7,7 @@
 
 #include "singleton.h"
 #include "memory_pool.h"
-#include "game_struct.h"
+#include "server_struct.h"
 
 class timer : public singleton<timer>
 {

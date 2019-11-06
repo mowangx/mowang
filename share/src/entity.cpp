@@ -15,6 +15,7 @@ bool entity::initialize(TEntityID_t entity_id, const TIP_t& ip, TPort_t port)
 	m_mailbox.entity_id = entity_id;
 	m_mailbox.ip = ip;
 	m_mailbox.port = port;
+	log_info("create entity! %" I64_FMT "u", entity_id);
 	return true;
 }
 

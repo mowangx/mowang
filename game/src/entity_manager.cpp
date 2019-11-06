@@ -6,6 +6,7 @@
 
 entity_manager::entity_manager()
 {
+	m_last_time = INVALID_GAME_TIME;
 	m_entity_id = INVALID_ENTITY_ID;
 }
 
@@ -33,6 +34,21 @@ void entity_manager::init()
 	};
 }
 
+void entity_manager::update()
+{
+	if ((m_last_time + 10) > DTimeMgr.now_sys_time()) {
+		return;
+	}
+
+	m_last_time = DTimeMgr.now_sys_time();
+	for (auto entity_id : m_destroy_ids) {
+		destroy_entity_core(entity_id);
+	}
+	m_destroy_ids.clear();
+	m_destroy_ids.insert(m_destroy_ids.begin(), m_delay_destroy_ids.begin(), m_delay_destroy_ids.end());
+	m_delay_destroy_ids.clear();
+}
+
 server_entity* entity_manager::create_entity(const std::string& entity_name, TProcessID_t gate_id, TSocketIndex_t client_id)
 {
 	auto itr = m_create_entity_funcs.find(entity_name);
@@ -51,6 +67,7 @@ server_entity* entity_manager::create_entity(const std::string& entity_name, TPr
 		info.e = e;
 		info.name = entity_name;
 		m_entities[m_entity_id] = info;
+		m_client_2_entity[client_id] = e->get_entity_id();
 	}
 	else {
 		log_error("create entity failed for new failed! entity name: %s", entity_name.c_str());
@@ -60,11 +77,17 @@ server_entity* entity_manager::create_entity(const std::string& entity_name, TPr
 
 void entity_manager::destroy_entity(TEntityID_t entity_id)
 {
+	m_delay_destroy_ids.push_back(entity_id);
+}
+
+void entity_manager::destroy_entity_core(TEntityID_t entity_id)
+{
 	auto itr = m_entities.find(entity_id);
 	if (itr == m_entities.end()) {
 		return;
 	}
 
+	log_info("destroy entity! %" I64_FMT "u", entity_id);
 	entity_info& info = itr->second;
 	if (info.name == "account") {
 		m_account_pool.deallocate((account*)info.e);
@@ -76,6 +99,33 @@ void entity_manager::destroy_entity(TEntityID_t entity_id)
 		delete info.e;
 	}
 	m_entities.erase(itr);
+}
+
+void entity_manager::disconnect_client(TSocketIndex_t client_id)
+{
+	auto itr = m_client_2_entity.find(client_id);
+	if (itr == m_client_2_entity.end()) {
+		log_error("client disconnect but not find entity id! client id %" I64_FMT "u", client_id);
+		return;
+	}
+	TEntityID_t entity_id = itr->second;
+	m_client_2_entity.erase(itr);
+	server_entity* e = get_entity(entity_id);
+	if (nullptr == e) {
+		log_info("client disconnect but not find entity! client id %" I64_FMT "u, entity id %" I64_FMT "u", client_id, entity_id);
+		return;
+	}
+	e->on_disconnect();
+}
+
+TEntityID_t entity_manager::get_entity_id_by_client_id(TSocketIndex_t client_id) const
+{
+	auto itr = m_client_2_entity.find(client_id);
+	if (itr != m_client_2_entity.end()) {
+		return itr->second;
+	}
+
+	return INVALID_ENTITY_ID;
 }
 
 server_entity* entity_manager::get_entity(TEntityID_t entity_id)

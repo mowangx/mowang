@@ -111,7 +111,7 @@ void http_client::register_process_entities(TSocketIndex_t socket_index, const d
 				entities[i].entity_id, entities[i].entity_name.data(), entities[i].tag.data());
 		}
 		body += "]}";
-		dynamic_string params = gx_to_string("value=%s&ttl=300", body.c_str()).c_str();
+		dynamic_string params = gx_to_string("value=%s&ttl=30", body.c_str()).c_str();
 		http_proxy_base* c = m_http_pools.allocate(m_io_service);
 		c->set_port(3000);
 		log_info("register process entities! %s, %s, %s", url.data(), name.data(), params.data());
@@ -175,17 +175,19 @@ void http_client::request_one(TSocketIndex_t socket_index, const dynamic_string&
 			m_wait_release_proxy.push_back(c);
 			rpc_client* rpc = DRpcWrapper.get_client_by_socket_index(socket_index);
 			if (NULL == rpc) {
+				log_error("request one success but can not find socket index! socket index %" I64_FMT "u", socket_index);
 				return;
 			}
 			boost::property_tree::ptree body_json;
 			if (!parse_json(body_json, body.data())) {
+				log_error("request one success but parse json failed! socket index %" I64_FMT "u", socket_index);
 				return;
 			}
 			std::string action = body_json.get<std::string>("action");
 			if (action == "set" || action == "create" || action == "delete" || action == "expire") {
 				boost::property_tree::ptree node_info = body_json.get_child("node");
 				if (node_info.empty()) {
-					log_error("url: %s, request one node is empty!", url.data());
+					log_error("request one success but node info is empty! url: %s, request one node is empty!", url.data());
 					return;
 				}
 				TWaitIndex_t modify_index = node_info.get<TWaitIndex_t>("modifiedIndex", 0);
@@ -199,12 +201,14 @@ void http_client::request_one(TSocketIndex_t socket_index, const dynamic_string&
 					std::string key = node_info.get<std::string>("key");
 					std::string::size_type idx = key.find_last_of("/");
 					if (idx == std::string::npos) {
+						log_error("request one success but parse key failed!socket index %" I64_FMT "u, key %s", socket_index, key.c_str());
 						return;
 					}
 					game_process_info process_info;
 					uint64 key_id = std::atoll(key.substr(idx + 1).data());
 					parse_etcd_key_id(process_info, key_id);
 					rpc->call_remote_func("on_unregister_process", name, modify_index, process_info);
+					log_info("request one success!socket index %" I64_FMT "u, key %s", socket_index, key.c_str());
 				}
 			}
 			else if (body_json.get<int>("errorCode", 0) == 401) {

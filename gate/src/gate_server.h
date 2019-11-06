@@ -5,7 +5,7 @@
 #include "ws_service.h"
 #include "singleton.h"
 #include "dynamic_array.h"
-#include "game_struct.h"
+#include "server_struct.h"
 
 class gate_server : public ws_service, public singleton<gate_server>
 {
@@ -40,16 +40,12 @@ private:
 private:
 	void process_login(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 	void process_test(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
-	void process_ready_start(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
-	void process_create_room(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
-	void process_enter_room(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
-	void process_pop_cards(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 
 public:
 	TSocketIndex_t get_server_socket_index(TSocketIndex_t socket_index) const;
 
 private:
-	TPort_t m_ws_list_port;
+	TPort_t m_ws_port;
 	std::vector<socket_kick_info> m_delay_kick_sockets;
 	std::unordered_map<TSocketIndex_t, game_process_info> m_client_2_process;
 };

@@ -108,7 +108,7 @@ struct db_param_parse {
 	static void parse_param(T1& value, const char* buffer, int& buffer_index) {
 		char* bstr = (char*)(buffer + buffer_index);
 		bstr_2_flat_struct(value, bstr);
-		buffer_index += (strlen(bstr) + 1);
+		buffer_index += (int)(strlen(bstr) + 1);
 	}
 };
 

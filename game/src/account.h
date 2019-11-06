@@ -16,6 +16,7 @@ public:
 
 public:
 	virtual bool init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t client_id) override;
+	virtual void on_disconnect() override;
 
 public:
 	void login(const account_info& account_data);
@@ -31,12 +32,11 @@ private:
 	void on_load_role_callback(bool status, const binary_data& result);
 	void create_account();
 	void register_account();
+	void unregister_account();
 	void relay_login(const mailbox_info& mailbox);
 	role* on_login_success();
-	void destroy();
 
 private:
-	bool m_destroy;
 	TPlatformID_t m_platform_id;
 	TUserID_t m_user_id;
 	TAccountID_t m_account_id;

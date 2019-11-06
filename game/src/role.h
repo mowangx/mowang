@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "server_entity.h"
-#include "game_struct.h"
+#include "server_struct.h"
 #include "packet_struct.h"
 #include "dynamic_array.h"
 
@@ -19,6 +19,7 @@ public:
 
 public:
 	virtual bool init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t client_id) override;
+	virtual void on_disconnect() override;
 
 public:
 	void on_register_role(bool status);
@@ -30,10 +31,8 @@ public:
 	void logout(bool need_unregister);
 
 public:
-	void set_destroy_flag(bool destroy_flag);
-	bool get_destroy_flag() const;
-
 	TLevel_t get_level() const;
+	void set_level(TLevel_t lvl);
 	void add_level(TLevel_t lvl);
 
 	TSex_t get_sex() const;
@@ -53,11 +52,10 @@ private:
 	void save();
 
 private:
-	void destroy();
 	void clean_up();
 
 public:
-	bool m_destroy_flag;
+	uint8 m_status;
 	TAccountID_t m_account_id;
 	TRoleID_t m_role_id;
 	TLevel_t m_level;

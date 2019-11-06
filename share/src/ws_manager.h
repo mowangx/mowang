@@ -9,7 +9,7 @@
 #include "singleton.h"
 #include "socket_manager.hpp"
 #include "ws_wrapper.hpp"
-#include "game_enum.h"
+#include "server_enum.h"
 
 class web_socket_manager : public socket_manager<web_socket_wrapper_base, ws_packet_recv_info>, public singleton<web_socket_manager>
 {

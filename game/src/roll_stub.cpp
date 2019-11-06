@@ -84,7 +84,7 @@ void roll_stub::unregister_role(TAccountID_t account_id, TRoleID_t role_id)
 	if (role_itr != m_role_2_mailbox.end()) {
 		m_role_2_mailbox.erase(role_itr);
 	}
-	log_info("unregister role sucess! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+	log_info("unregister role success! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
 }
 
 void roll_stub::clean_up()

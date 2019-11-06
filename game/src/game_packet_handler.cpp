@@ -1,10 +1,11 @@
 
 #include "game_packet_handler.h"
 #include "log.h"
-#include "game_server.h"
 #include "rpc_proxy.h"
 #include "rpc_client.h"
 #include "rpc_wrapper.h"
+#include "game_server.h"
+#include "entity_manager.h"
 
 game_packet_handler::game_packet_handler() : packet_handler<game_packet_handler>()
 {
@@ -35,7 +36,7 @@ bool game_packet_handler::handle_transfer_client(packet_base * packet)
 	log_info("transfer client, gate id %u, client id %" I64_FMT "u, packet id %u", gate_id, client_id, packet_id);
 	if (packet_id == PACKET_ID_RPC_BY_NAME) {
 		rpc_by_name_packet* rpc_info = (rpc_by_name_packet*)packet;
-		TEntityID_t entity_id = DGameServer.get_entity_id_by_client_id(client_id);
+		TEntityID_t entity_id = DEntityMgr.get_entity_id_by_client_id(client_id);
 		DRpcEntity.call(entity_id, rpc_info->m_rpc_name, rpc_info->m_buffer);
 	}
 	else {

@@ -32,6 +32,7 @@ void rpc_wrapper::register_handler_info(game_handler* handler)
 	else {
 		client = itr->second->rpc;
 		client->set_handler(handler);
+		client->process_cache_packets();
 	}
 	m_socket_index_2_client[handler->get_socket_index()] = client;
 }
@@ -40,7 +41,7 @@ void rpc_wrapper::update_handler_info(TSocketIndex_t socket_index, const game_se
 {
 	auto itr = m_socket_index_2_client.find(socket_index);
 	if (itr == m_socket_index_2_client.end()) {
-		log_error("update handler info failed! %" I64_FMT "u", socket_index);
+		log_error("update handler info failed for not find socket index! %" I64_FMT "u", socket_index);
 		return;
 	}
 	rpc_client* client = itr->second;
@@ -59,7 +60,6 @@ void rpc_wrapper::update_handler_info(TSocketIndex_t socket_index, const game_se
 			}
 			else {
 				rpc_wrapper = game_itr->second;
-				rpc_wrapper->rpc->process_cache_packets();
 			}
 			rpc_wrapper->send_time = DTimeMgr.now_sys_time();
 		}
@@ -72,27 +72,27 @@ void rpc_wrapper::update_handler_info(TSocketIndex_t socket_index, const game_se
 void rpc_wrapper::unregister_handler_info(TSocketIndex_t socket_index)
 {
 	log_info("unregster handler info! socket index %" I64_FMT "u", socket_index);
-	auto itr = m_socket_index_2_client.find(socket_index);
-	if (itr != m_socket_index_2_client.end()) {
-		m_socket_index_2_client.erase(itr);
-	}
 	for (auto itr = m_directly_games.begin(); itr != m_directly_games.end(); ++itr) {
 		rpc_client_wrapper_info* rpc_wrapper = itr->second;
 		rpc_client* rpc = rpc_wrapper->rpc;
 		if (NULL != rpc && NULL != rpc->get_handler() && rpc->get_handler()->get_socket_index() == socket_index) {
-			delete rpc;
 			delete rpc_wrapper;
 			m_directly_games.erase(itr);
-			return;
+			break;
 		}
 	}
 	for (auto itr = m_process_id_2_client.begin(); itr != m_process_id_2_client.end(); ++itr) {
 		rpc_client* rpc = itr->second;
 		if (NULL != rpc && NULL != rpc->get_handler() && rpc->get_handler()->get_socket_index() == socket_index) {
-			delete rpc;
 			m_process_id_2_client.erase(itr);
-			return;
+			break;
 		}
+	}
+	auto itr = m_socket_index_2_client.find(socket_index);
+	if (itr != m_socket_index_2_client.end()) {
+		rpc_client* rpc = itr->second;
+		delete rpc;
+		m_socket_index_2_client.erase(itr);
 	}
 }
 

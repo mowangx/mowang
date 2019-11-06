@@ -102,6 +102,7 @@ void etcd_listener::on_register_entities(TWaitIndex_t wait_index, const dynamic_
 
 void etcd_listener::on_unregister_process(TWaitIndex_t wait_index, const game_process_info& process_info)
 {
+	log_info("on unregister process! server id: %u, process type: %d, process id: %u", process_info.server_id, process_info.process_type, process_info.process_id);
 	DMailboxMgr.del_entity(process_info);
 	if (wait_index > 0) {
 		m_wait_index = wait_index;

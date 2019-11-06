@@ -14,7 +14,19 @@ struct db_opt_info
 	std::string table_name;
 	std::string condition; // need split by or and ?
 	std::string fields;
-	std::map<std::string, std::string> key_2_value;
+	//std::map<std::string, std::string> key_2_value;
+	db_opt_info() {
+		clean_up();
+	}
+
+	void clean_up() {
+		opt_type = 0;
+		opt_id = INVALID_OPT_ID;
+		socket_index = INVALID_SOCKET_INDEX;
+		table_name = "";
+		condition = "";
+		fields = "";
+	}
 };
 
 #endif // !_DB_STRUCT_H_

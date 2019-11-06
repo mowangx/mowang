@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 #include "service_interface.h"
-#include "game_enum.h"
+#include "server_enum.h"
 #include "memory_pool.h"
 #include "dynamic_array.h"
 #include "service_config.h"

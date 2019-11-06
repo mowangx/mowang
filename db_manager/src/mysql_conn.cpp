@@ -56,7 +56,7 @@ bool mysql_conn::remove(const char* table, const char* query)
 	return true;
 }
 
-bool mysql_conn::insert(const char* table, const char* fields)
+bool mysql_conn::insert(const char* table, const char* fields, const char* values)
 {
 	if (NULL == fields || strlen(fields) < 1) {
 		return false;
@@ -64,7 +64,7 @@ bool mysql_conn::insert(const char* table, const char* fields)
 
 	char sql[2048];
 	memset(sql, 0, 2048);
-	sprintf(sql, "insert into %s %s", table, fields);
+	sprintf(sql, "insert into %s %s values %s", table, fields, values);
 	return true;
 }
 

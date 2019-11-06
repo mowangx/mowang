@@ -178,7 +178,6 @@
     <ClCompile Include="src\account.cpp" />
     <ClCompile Include="src\entity_manager.cpp" />
     <ClCompile Include="src\game_packet_handler.cpp" />
-    <ClCompile Include="src\http_client_handler.cpp" />
     <ClCompile Include="src\db_manager_handler.cpp" />
     <ClCompile Include="src\game_server.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -191,13 +190,14 @@
     <ClInclude Include="src\account.h" />
     <ClInclude Include="src\entity_manager.h" />
     <ClInclude Include="src\game_packet_handler.h" />
-    <ClInclude Include="src\http_client_handler.h" />
     <ClInclude Include="src\db_manager_handler.h" />
     <ClInclude Include="src\game_server.h" />
     <ClInclude Include="src\role.h" />
     <ClInclude Include="src\roll_stub.h" />
     <ClInclude Include="src\sequence.h" />
     <ClInclude Include="src\server_entity.h" />
+    <ClInclude Include="src\game_enum.h" />
+    <ClInclude Include="src\sql_utils.h" />
     <ClInclude Include="src\tbl_test.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

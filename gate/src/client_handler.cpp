@@ -4,7 +4,7 @@
 #include "gate_server.h"
 #include "rpc_proxy.h"
 #include "rpc_client.h"
-#include "game_enum.h"
+#include "server_enum.h"
 
 client_handler::client_handler() : packet_handler<client_handler>()
 {

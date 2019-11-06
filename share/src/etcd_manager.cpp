@@ -16,9 +16,9 @@ etcd_manager::~etcd_manager()
 bool etcd_manager::init(service* s)
 {
 	m_service = s;
-	//DTimer.add_timer(5, true, NULL, [&](void* param, TTimerID_t timer_id) {
-	//	refresh_ttl();
-	//});
+	DTimer.add_timer(5, true, NULL, [&](void* param, TTimerID_t timer_id) {
+		refresh_ttl();
+	});
 	DTimer.add_timer(10, false, NULL, [&](void* param, TTimerID_t timer_id) {
 		init_entities();
 	});

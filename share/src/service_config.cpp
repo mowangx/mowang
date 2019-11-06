@@ -1,7 +1,7 @@
 
 #include "service_config.h"
 #include "log.h"
-#include "game_enum.h"
+#include "server_enum.h"
 
 service_config::service_config()
 {

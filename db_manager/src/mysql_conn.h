@@ -16,7 +16,7 @@ public:
 	virtual bool init(const char* ip, uint16 port, const char* user, const char* pwd, const char* db_name) override;
 
 	virtual bool remove(const char* table, const char* query) override;
-	virtual bool insert(const char* table, const char* fields) override;
+	virtual bool insert(const char* table, const char* fields, const char* values) override;
 	virtual bool update(const char* table, const char* query, const char* fields) override;
 	virtual bool query(const char* table, const char* query, const char* fields, char* result, int& len) override;
 

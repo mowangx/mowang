@@ -8,7 +8,7 @@
 #include "packet_struct.h"
 #include "server_manager.h"
 #include "rpc_client.h"
-#include "game_enum.h"
+#include "server_enum.h"
 #include "mailbox_manager.h"
 
 class service;

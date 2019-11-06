@@ -1,6 +1,6 @@
 
-#ifndef _GAME_STRUCT_H_
-#define _GAME_STRUCT_H_
+#ifndef _SERVER_STRUCT_H_
+#define _SERVER_STRUCT_H_
 
 #include <functional>
 
@@ -50,4 +50,4 @@ struct socket_kick_info
 	}
 };
 
-#endif // !_GAME_STRUCT_H_
+#endif // !_SERVER_STRUCT_H_

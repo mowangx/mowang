@@ -22,10 +22,12 @@ public:
 	virtual bool init(TProcessID_t process_id) override;
 public:
 	virtual bool connect_server(const char* ip, TPort_t port) override;
+private:
+	virtual void do_loop(TGameTime_t diff) override;
 
 public:
 	void db_remove(const char* table, const char* query, const std::function<void(bool)>& callback);
-	void db_insert(const char* table, const char* fields, const std::function<void(bool)>& callback);
+	void db_insert(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback);
 	void db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback);
 	void db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const binary_data&)>& callback);
 private:
@@ -38,31 +40,20 @@ public:
 	void logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 	virtual void add_process(const game_server_info& server_info) override;
 	virtual void register_server(TSocketIndex_t socket_index, const game_server_info& server_info) override;
-	void create_entity(TSocketIndex_t socket_index, const TEntityName_t& entity_name);
-	void remove_entity(TSocketIndex_t client_id);
 	void on_opt_db_with_status(TSocketIndex_t socket_index, TOptID_t opt_id, bool status);
 	void on_opt_db_with_result(TSocketIndex_t socket_index, TOptID_t opt_id, bool status, const binary_data& result);
 private:
 	virtual void on_connect(TSocketIndex_t socket_index) override;
 	virtual void on_disconnect(TSocketIndex_t socket_index) override;
-	bool remove_entity_core(TSocketIndex_t client_id);
 	void on_game_start();
 
 public:
 	void create_entity_globally(const std::string& entity_name, bool check_repeat = false);
 	entity* create_entity_locally(const std::string& tag, const std::string& entity_name);
-	void destroy_entity(TEntityID_t entity_id);
-
-public:
-	role* get_role_by_client_id(TSocketIndex_t client_id) const;
-	void update_role_proxy_info(const proxy_info& old_proxy_info, const proxy_info& new_proxy_info);
-	TEntityID_t get_entity_id_by_client_id(TSocketIndex_t client_id) const;
 
 private:
-	TEntityID_t m_entity_id;
 	std::unordered_map<TOptID_t, std::function<void(bool, const binary_data&)>> m_db_result_callbacks;
 	std::unordered_map<TOptID_t, std::function<void(bool)>> m_db_status_callbacks;
-	std::unordered_map<TSocketIndex_t, role*> m_client_id_2_role;
 	TProcessNum_t m_process_num[MAX_PROCESS_TYPE_NUM];
 };
 
