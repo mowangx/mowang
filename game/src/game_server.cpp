@@ -38,11 +38,7 @@ bool game_server::init(TProcessID_t process_id)
 	//}
 	//log_info("load config success");
 
-	game_packet_handler::Setup();
-
 	DRegisterServerRpc(this, game_server, register_server, 2);
-	DRegisterServerRpc(this, game_server, login_server, 3);
-	DRegisterServerRpc(this, game_server, logout_server, 2);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_result, 4);
 	DRegisterServerRpc(this, game_server, on_register_entities, 5);
@@ -114,22 +110,6 @@ void game_server::db_opt(uint8 opt_type, const char * table, const char * query,
 		dynamic_string tmp_fields(fields);
 		rpc->call_remote_func("add_executor", opt_type, m_opt_id, tmp_table, tmp_query, tmp_fields);
 	}
-}
-
-void game_server::login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, const account_info& account_data)
-{
-	// send msg to db manager to query role id from db by platform id and user id
-	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
-	account* p = (account*)DEntityMgr.create_entity("account", gate_id, client_id);
-	p->login(account_data);
-	log_info("login server, client id %" I64_FMT "u, gate id %u, entity id %" I64_FMT "u, platform id %u, user id %s", 
-		client_id, gate_id, p->get_entity_id(), account_data.platform_id, account_data.user_id.data());
-}
-
-void game_server::logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id)
-{
-	log_info("logout server, client id %" I64_FMT "u", client_id);
-	DEntityMgr.disconnect_client(client_id);
 }
 
 void game_server::add_process(const game_server_info& server_info)

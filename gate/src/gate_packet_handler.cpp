@@ -14,11 +14,11 @@ gate_packet_handler::~gate_packet_handler()
 {
 }
 
-void gate_packet_handler::Setup()
+void gate_packet_handler::setup_handlers()
 {
-	TBaseType_t::Setup();
+	TBaseType_t::setup_handlers();
 	register_handler((TPacketID_t)PACKET_ID_TRANSFER_CLIENT, (packet_handler_func)&gate_packet_handler::handle_transfer_client);
-	register_handler((TPacketID_t)PACKET_ID_TRANSFER_WS_CLIENT, (packet_handler_func)&gate_packet_handler::handle_transfer_ws_client);
+	register_handler((TPacketID_t)PACKET_ID_WS_CLIENT, (packet_handler_func)&gate_packet_handler::handle_transfer_ws_client);
 }
 
 service_interface * gate_packet_handler::get_service() const
@@ -43,7 +43,7 @@ bool gate_packet_handler::handle_transfer_client(packet_base * packet)
 
 bool gate_packet_handler::handle_transfer_ws_client(packet_base * packet)
 {
-	transfer_client_ws_packet* client_packet = (transfer_client_ws_packet*)packet;
+	ws_client_packet* client_packet = (ws_client_packet*)packet;
 	int len = client_packet->get_packet_len() - sizeof(packet_base) - sizeof(client_packet->m_client_id);
 	std::string msg(client_packet->m_buffer, len);
 	DGateServer.push_ws_write_packets(client_packet->m_client_id, msg);

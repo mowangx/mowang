@@ -8,6 +8,7 @@
 #include "entity_manager.h"
 #include "game_enum.h"
 #include "timer.h"
+#include "error_code.h"
 
 role::role() : server_entity()
 {
@@ -27,27 +28,8 @@ bool role::init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t clie
 	DRegisterEntityRpc(get_entity_id(), this, role, on_register_role, 1);
 	DRegisterEntityRpc(get_entity_id(), this, role, on_relay_ready, 1);
 	DRegisterEntityRpc(get_entity_id(), this, role, on_relay_login, 1);
+	DRegisterEntityRpc(get_entity_id(), this, role, disconnect_client, 0);
 	return true;
-}
-
-void role::on_disconnect()
-{
-	log_info("role disconnect! role id %" I64_FMT "u, entity id %" I64_FMT "u", get_role_id(), get_entity_id());
-	if (is_destroy()) {
-		return;
-	}
-	if (m_status == ROLE_STATUS_NORMAL) {
-		logout(true);
-	}
-	else {
-		m_status = ROLE_STATUS_DISCONNECT;
-		DTimer.add_timer(5, false, nullptr, [&](void* param, TTimerID_t timer_id) {
-			if (m_status != ROLE_STATUS_NORMAL) {
-				logout(true);
-			}
-			log_info("role relay timeout! role id %" I64_FMT "u, entity id %" I64_FMT "u", get_role_id(), get_entity_id());
-		});
-	}
 }
 
 void role::on_register_role(bool status)
@@ -59,9 +41,14 @@ void role::on_register_role(bool status)
 		}
 		else {
 			m_status = ROLE_STATUS_NORMAL;
+			std::string msg = gx_to_string("{\"cmd\": \"login\", \"ret_code\": %d, \"account_id\": %" I64_FMT "u, \"role_id\": %" I64_FMT "u, \"level\": %d, \"sex\": %d, \"role_name\": \"%s\"}", 
+				ERR_SUCCESS, m_account_id, m_role_id, m_level, m_sex, m_role_name.data());
+			DRpcWrapper.call_ws_client(get_proxy(), msg);
 		}
 	}
 	else {
+		std::string msg = gx_to_string("{\"cmd\": \"login\", \"ret_code\": %d}", ERR_LOGIN_FAILED_BY_RELAY);
+		DRpcWrapper.call_ws_client(get_proxy(), msg);
 		logout(false);
 		log_info("role register failed! entity id %" I64_FMT "u ", get_entity_id());
 	}
@@ -83,6 +70,26 @@ void role::on_relay_login(const proxy_info& proxy)
 	log_info("role on relay login success! entity id %" I64_FMT "u", get_entity_id());
 }
 
+void role::disconnect_client()
+{
+	log_info("role disconnect! role id %" I64_FMT "u, entity id %" I64_FMT "u", get_role_id(), get_entity_id());
+	if (is_destroy()) {
+		return;
+	}
+	if (m_status == ROLE_STATUS_NORMAL) {
+		logout(true);
+	}
+	else {
+		m_status = ROLE_STATUS_DISCONNECT;
+		DTimer.add_timer(5, false, nullptr, [&](void* param, TTimerID_t timer_id) {
+			if (m_status != ROLE_STATUS_NORMAL) {
+				logout(true);
+			}
+			log_info("role relay timeout! role id %" I64_FMT "u, entity id %" I64_FMT "u", get_role_id(), get_entity_id());
+		});
+	}
+}
+
 void role::register_role()
 {
 	log_info("register role, entity id %" I64_FMT "u", get_entity_id());
@@ -91,13 +98,12 @@ void role::register_role()
 
 void role::logout(bool need_unregister)
 {
-	log_info("role logout, entity id %" I64_FMT "u", get_entity_id());
+	log_info("role logout, role id %" I64_FMT "u, entity id %" I64_FMT "u", m_role_id, get_entity_id());
 	if (need_unregister) {
 		save();
 		DRpcWrapper.call_stub("roll_stub", "unregister_role", get_account_id(), get_role_id());
 	}
 	destroy();
-	log_info("role logout %" I64_FMT "u", m_role_id);
 }
 
 TLevel_t role::get_level() const

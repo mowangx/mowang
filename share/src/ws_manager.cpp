@@ -298,6 +298,12 @@ void web_socket_manager::on_accept(websocketpp::connection_hdl hdl)
 	web_socket_server::connection_ptr con = m_server.get_con_from_hdl(hdl);
 	web_socket_server_wrapper* socket = new web_socket_server_wrapper(gen_socket_index(), &m_server, hdl);
 	con->set_message_handler(std::bind(&web_socket_server_wrapper::on_message, socket, std::placeholders::_1, std::placeholders::_2));
+	con->set_close_handler(websocketpp::lib::bind(
+		&web_socket_manager::on_client_close,
+		this,
+		socket,
+		websocketpp::lib::placeholders::_1
+	));
 	m_new_sockets.push_back(socket);
 	std::cout << "have client connected" << std::endl;
 }
@@ -321,8 +327,9 @@ void web_socket_manager::on_client_fail(web_socket_wrapper_base* socket, websock
 
 void web_socket_manager::on_client_close(web_socket_wrapper_base* socket, websocketpp::connection_hdl hdl)
 {
-	socket->set_active(false);
 	log_info("on client close! socket index %" I64_FMT "u", socket->get_socket_index());
+	socket->set_active(false);
+	TBaseType_t::del_socket(socket);
 }
 
 void web_socket_manager::unpack_packets(std::vector<ws_packet_recv_info*>& packets, web_socket_wrapper_base* socket)

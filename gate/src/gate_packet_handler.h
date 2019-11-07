@@ -11,10 +11,8 @@ public:
 	gate_packet_handler();
 	virtual ~gate_packet_handler() override;
 
-public:
-	static void Setup();
-
 private:
+	virtual void setup_handlers() override;
 	virtual service_interface* get_service() const override;
 
 public:

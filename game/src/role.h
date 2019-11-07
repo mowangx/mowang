@@ -19,12 +19,12 @@ public:
 
 public:
 	virtual bool init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t client_id) override;
-	virtual void on_disconnect() override;
 
 public:
 	void on_register_role(bool status);
 	void on_relay_ready(const mailbox_info& mailbox);
 	void on_relay_login(const proxy_info& proxy);
+	void disconnect_client();
 
 public:
 	void register_role();

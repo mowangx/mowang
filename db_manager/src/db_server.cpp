@@ -34,8 +34,6 @@ bool db_server::init(TProcessID_t process_id)
 		return false;
 	}
 
-	db_packet_handler::Setup();
-
 	DRegisterServerRpc(this, db_server, register_server, 2);
 	DRegisterServerRpc(this, db_server, on_register_entities, 5);
 	DRegisterServerRpc(this, db_server, on_unregister_process, 4);

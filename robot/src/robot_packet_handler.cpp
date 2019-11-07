@@ -30,14 +30,10 @@ void robot_packet_handler::handle_init()
 		if (NULL == rpc) {
 			return;
 		}
-		TServerID_t server_id = 100;
-		account_info account_data;
-		account_data.platform_id = 99;
-		memset(account_data.user_id.data(), 0, USER_ID_LEN);
-		memcpy(account_data.user_id.data(), "xiedi", 5);
-		memset(account_data.token.data(), 0, TOKEN_LEN);
-		memcpy(account_data.user_id.data(), "token test", 10);
-		rpc->call_remote_func("login_server", server_id, account_data);
+		TPlatformID_t platform_id = 99;
+		dynamic_string user_id("xiedi");
+		dynamic_string token("token123");
+		rpc->call_remote_func("login", platform_id, user_id, token);
 	});
 	
 }

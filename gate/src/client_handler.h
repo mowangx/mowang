@@ -14,16 +14,15 @@ public:
 	client_handler();
 	virtual ~client_handler() override;
 
-public:
-	static void Setup();
-
 private:
+	virtual void setup_handlers() override;
 	virtual service_interface* get_service() const override;
 	virtual bool need_register_server() const override {
 		return false;
 	}
 
 public:
+	virtual void handle_init() override;
 	virtual void handle_close() override;
 
 	bool handle_transfer_server_by_index(packet_base* packet);

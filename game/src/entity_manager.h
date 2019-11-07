@@ -43,9 +43,6 @@ private:
 	void destroy_entity_core(TEntityID_t entity_id);
 
 public:
-	void disconnect_client(TSocketIndex_t client_id);
-
-public:
 	TEntityID_t get_entity_id_by_client_id(TSocketIndex_t client_id) const;
 	server_entity* get_entity(TEntityID_t entity_id);
 

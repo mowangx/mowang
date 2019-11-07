@@ -30,9 +30,11 @@ private:
 	virtual void process_ws_init_sockets(std::vector<web_socket_wrapper_base*>& sockets) override;
 private:
 	void process_login(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
-	void process_response(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_logout(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_create_role(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 
 public:
+	void create_role(TSocketIndex_t socket_index);
 	void logout(uint8 reason, TSocketIndex_t client_id);
 };
 

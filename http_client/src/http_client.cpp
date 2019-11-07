@@ -22,8 +22,6 @@ bool http_client::init(TProcessID_t process_id)
 		return false;
 	}
 
-	http_packet_handler::Setup();
-
 	DRegisterServerRpc(this, http_client, register_server, 2);
 	DRegisterServerRpc(this, http_client, http_request, 6);
 	DRegisterServerRpc(this, http_client, register_process_entities, 4);

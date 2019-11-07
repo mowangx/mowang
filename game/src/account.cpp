@@ -6,6 +6,7 @@
 #include "entity_manager.h"
 #include "rpc_proxy.h"
 #include "sql_utils.h"
+#include "error_code.h"
 
 account::account()
 {
@@ -21,7 +22,8 @@ bool account::init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t c
 	if (!TBaseType_t::init(entity_id, gate_id, client_id)) {
 		return false;
 	}
-	DRegisterEntityRpc(get_entity_id(), this, account, login, 1);
+	DRegisterEntityRpc(get_entity_id(), this, account, login, 3);
+	DRegisterEntityRpc(get_entity_id(), this, account, disconnect_client, 0);
 	DRegisterEntityRpc(get_entity_id(), this, account, create_role, 2);
 	DRegisterEntityRpc(get_entity_id(), this, account, on_register_account, 2);
 	DRegisterEntityRpc(get_entity_id(), this, account, on_relay_ready, 1);
@@ -30,17 +32,11 @@ bool account::init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t c
 	return true;
 }
 
-void account::on_disconnect()
+void account::login(TPlatformID_t platform_id, const dynamic_string& user_id, const dynamic_string& token)
 {
-	log_info("account disconnect! %" I64_FMT "u", get_entity_id());
-	unregister_account();
-}
-
-void account::login(const account_info& account_data)
-{
-	log_info("account login! platform id %d, user id %s", account_data.platform_id, account_data.user_id.data());
-	m_platform_id = account_data.platform_id;
-	memcpy(m_user_id.data(), account_data.user_id.data(), USER_ID_LEN);
+	log_info("account login! platform id %d, user id %s", platform_id, user_id.data());
+	m_platform_id = platform_id;
+	memcpy(m_user_id.data(), user_id.data(), user_id.size());
 	DGameServer.db_query(
 		"account",
 		"account_id, role_id",
@@ -49,20 +45,32 @@ void account::login(const account_info& account_data)
 	);
 }
 
-void account::create_role(TSex_t sex, const TRoleName_t& role_name)
+void account::disconnect_client()
 {
+	log_info("account disconnect! %" I64_FMT "u", get_entity_id());
+	if (is_destroy()) {
+		return;
+	}
+	unregister_account();
+}
+
+void account::create_role(TSex_t sex, const dynamic_string& role_name)
+{
+	m_sex = sex;
+	memset(m_role_name.data(), 0, ROLE_NAME_LEN);
+	memcpy(m_role_name.data(), role_name.data(), role_name.size());
 	DGameServer.db_insert(
 		"role",
 		gx_to_string("(role_id, sex, level, role_name)").c_str(),
-		gx_to_string("(%" I64_FMT "u, %d, %d, %s)", m_role_id, sex, 1, role_name.data()).c_str(),
+		gx_to_string("(%" I64_FMT "u, %d, %d, %s)", m_role_id, m_sex, 1, m_role_name.data()).c_str(),
 		[&](bool status) {
 		if (status) {
 			log_info("save role success! client id %" I64_FMT "u, entity id %" I64_FMT "u", get_client_id(), get_entity_id());
 			role* role = on_login_success();
 			role->set_account_id(m_account_id);
 			role->set_role_id(m_role_id);
-			role->set_sex(sex);
-			role->set_role_name(role_name);
+			role->set_sex(m_sex);
+			role->set_role_name(m_role_name);
 			role->register_role();
 			destroy();
 		}
@@ -89,7 +97,7 @@ void account::on_relay_ready(const mailbox_info& mailbox)
 {
 	log_info("account on relay ready! %" I64_FMT "u", get_entity_id());
 	DRpcWrapper.call_entity(mailbox, "on_relay_login");
-	std::string msg = gx_to_string("{\"cmd\": \"kick\"}");
+	std::string msg = gx_to_string("{\"cmd\": \"login\", \"ret_code\": %d}", ERR_LOGIN_FAILED_BY_RELAY);
 	DRpcWrapper.call_ws_client(get_proxy(), msg);
 	destroy();
 }
@@ -151,7 +159,8 @@ void account::on_load_role_callback(bool status, const binary_data& result)
 	}
 	if (result.empty()) {
 		std::string msg = gx_to_string("{\"cmd\": \"create_role\"}");
-		DRpcWrapper.call_ws_client(get_proxy(), msg);
+		call_ws_client(msg);
+		call_client("create_role");
 	}
 	else {
 		role* role = on_login_success();

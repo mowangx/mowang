@@ -178,7 +178,6 @@
     <ClCompile Include="src\account.cpp" />
     <ClCompile Include="src\entity_manager.cpp" />
     <ClCompile Include="src\game_packet_handler.cpp" />
-    <ClCompile Include="src\db_manager_handler.cpp" />
     <ClCompile Include="src\game_server.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\role.cpp" />
@@ -189,8 +188,8 @@
   <ItemGroup>
     <ClInclude Include="src\account.h" />
     <ClInclude Include="src\entity_manager.h" />
+    <ClInclude Include="src\error_code.h" />
     <ClInclude Include="src\game_packet_handler.h" />
-    <ClInclude Include="src\db_manager_handler.h" />
     <ClInclude Include="src\game_server.h" />
     <ClInclude Include="src\role.h" />
     <ClInclude Include="src\roll_stub.h" />

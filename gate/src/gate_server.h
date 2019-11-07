@@ -7,6 +7,8 @@
 #include "dynamic_array.h"
 #include "server_struct.h"
 
+class rpc_client;
+
 class gate_server : public ws_service, public singleton<gate_server>
 {
 	typedef ws_service TBaseType_t;
@@ -29,20 +31,18 @@ public:
 
 public:
 	virtual void add_process(const game_server_info& server_info) override;
-	void login_server(TSocketIndex_t socket_index, TServerID_t server_id, const account_info& account_data);
-	void logout_server(TSocketIndex_t socket_index);
-	void transfer_server(TSocketIndex_t socket_index, packet_base* packet);
-	void update_process_info(TSocketIndex_t socket_index, TSocketIndex_t client_id, const game_process_info& process_info);
+	void on_client_connect(TSocketIndex_t socket_index);
+	void on_client_disconnect(TSocketIndex_t socket_index);
 	void kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 
 private:
 	virtual void process_ws_close_sockets(std::vector<web_socket_wrapper_base*>& sockets);
 private:
 	void process_login(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
-	void process_test(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_create_role(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 
 public:
-	TSocketIndex_t get_server_socket_index(TSocketIndex_t socket_index) const;
+	TProcessID_t get_process_id_by_client_id(TSocketIndex_t client_id) const;
 
 private:
 	TPort_t m_ws_port;

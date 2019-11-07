@@ -101,23 +101,6 @@ void entity_manager::destroy_entity_core(TEntityID_t entity_id)
 	m_entities.erase(itr);
 }
 
-void entity_manager::disconnect_client(TSocketIndex_t client_id)
-{
-	auto itr = m_client_2_entity.find(client_id);
-	if (itr == m_client_2_entity.end()) {
-		log_error("client disconnect but not find entity id! client id %" I64_FMT "u", client_id);
-		return;
-	}
-	TEntityID_t entity_id = itr->second;
-	m_client_2_entity.erase(itr);
-	server_entity* e = get_entity(entity_id);
-	if (nullptr == e) {
-		log_info("client disconnect but not find entity! client id %" I64_FMT "u, entity id %" I64_FMT "u", client_id, entity_id);
-		return;
-	}
-	e->on_disconnect();
-}
-
 TEntityID_t entity_manager::get_entity_id_by_client_id(TSocketIndex_t client_id) const
 {
 	auto itr = m_client_2_entity.find(client_id);

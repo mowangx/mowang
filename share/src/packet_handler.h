@@ -32,6 +32,7 @@ public:
 	virtual bool handle_entity_rpc_by_name(packet_base* packet) const;
 
 protected:
+	virtual void setup_handlers() = 0;
 	virtual service_interface* get_service() const = 0;
 
 	virtual bool need_register_server() const {
@@ -103,23 +104,23 @@ public:
 		}
 	}
 
-	static void register_handler(TPacketID_t id, packet_handler_func handler) {
-		m_handlers.insert(packet_handler_map::value_type(id, handler));
-	}
-
-	static void Setup() {
+protected:
+	virtual void setup_handlers() override {
 		register_handler((TPacketID_t)PACKET_ID_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_rpc_by_index);
 		register_handler((TPacketID_t)PACKET_ID_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_rpc_by_name);
 		register_handler((TPacketID_t)PACKET_ID_ENTITY_RPC_BY_INDEX, (packet_handler_func)&packet_handler<T>::handle_entity_rpc_by_index);
 		register_handler((TPacketID_t)PACKET_ID_ENTITY_RPC_BY_NAME, (packet_handler_func)&packet_handler<T>::handle_entity_rpc_by_name);
 	}
 
+	void register_handler(TPacketID_t id, packet_handler_func handler) {
+		m_handlers[id] = handler;
+	}
+
 private:
-	static packet_handler_map m_handlers;
+	packet_handler_map m_handlers;
 };
 
-template <class T>
-packet_handler_map packet_handler<T>::m_handlers;
+//template <class T>
+//packet_handler_map packet_handler<T>::m_handlers;
 
 #endif // !_PACKET_HANDLER_H_
-

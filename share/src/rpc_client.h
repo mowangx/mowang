@@ -50,21 +50,30 @@ public:
 	// game call client function, will transfer by gate
 	void call_client(TSocketIndex_t client_id, const std::string& func_name) {
 		DRpcCreateClientPacket;
-		send_packet(&packet, &transfer_packet, buffer_index);
+		send_transfer_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class... Args>
 	void call_client(TSocketIndex_t client_id, const std::string& func_name, const Args&... args) {
 		DRpcCreateClientPacket;
 		fill_packet(packet.m_buffer, buffer_index, args...);
-		send_packet(&packet, &transfer_packet, buffer_index);
+		send_transfer_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	void call_ws_client(TSocketIndex_t client_id, const std::string& msg) {
-		transfer_client_ws_packet transfer_packet;
+		ws_client_packet packet;
+		packet.m_client_id = client_id;
+		memcpy(packet.m_buffer, msg.c_str(), msg.length());
+		send_packet(&packet, (int)msg.length());
+	}
+
+public:
+	template <class T>
+	void call_server(TSocketIndex_t client_id, T* packet) {
+		transfer_client_packet transfer_packet;
 		transfer_packet.m_client_id = client_id;
-		memcpy(transfer_packet.m_buffer, msg.c_str(), msg.length());
-		send_packet(&transfer_packet, (int)msg.length());
+		int buffer_index = int(sizeof(packet->m_buffer) + packet->get_packet_len() - sizeof(T));
+		send_transfer_packet(packet, &transfer_packet, buffer_index);
 	}
 
 public:
@@ -104,8 +113,8 @@ private:
 	}
 
 	template <class T1, class T2>
-	void send_packet(T1* packet, T2* transfer_packet, int len) {
-		packet->m_len = TPacketLen_t(sizeof(T1) - sizeof(transfer_packet->m_buffer) + len);
+	void send_transfer_packet(T1* packet, T2* transfer_packet, int len) {
+		packet->m_len = TPacketLen_t(sizeof(T1) - sizeof(packet->m_buffer) + len);
 		memcpy(transfer_packet->m_buffer, packet, packet->get_packet_len());
 		transfer_packet->m_len = TPacketLen_t(sizeof(T2) - sizeof(transfer_packet->m_buffer) + packet->get_packet_len());
 		m_handler->send_packet(transfer_packet);

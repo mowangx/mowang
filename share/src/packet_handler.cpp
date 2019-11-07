@@ -24,6 +24,7 @@ void game_handler::kick() const
 void game_handler::handle_init()
 {
 	log_info("connect success, handle init, socket index %" I64_FMT "u", m_socket_index);
+	setup_handlers();
 	get_service()->register_handler(this);
 	rpc_client* rpc = DRpcWrapper.get_client_by_socket_index(m_socket_index);
 	if (need_register_server() && NULL != rpc) {

@@ -36,8 +36,6 @@ private:
 	void db_opt(uint8 opt_type, const char* table, const char* query, const char* fields);
 
 public:
-	void login_server(TSocketIndex_t socket_index, TSocketIndex_t client_id, const account_info& account_data);
-	void logout_server(TSocketIndex_t socket_index, TSocketIndex_t client_id);
 	virtual void add_process(const game_server_info& server_info) override;
 	virtual void register_server(TSocketIndex_t socket_index, const game_server_info& server_info) override;
 	void on_opt_db_with_status(TSocketIndex_t socket_index, TOptID_t opt_id, bool status);

@@ -59,6 +59,32 @@ public:
 	}
 
 public:
+	// gate transfer client websocket packet to game, gate will parse websocket json packet to byte stream
+	void call_server(TProcessID_t process_id, TSocketIndex_t client_id, const std::string& func_name) {
+		rpc_client* rpc = get_client_by_process_id(PROCESS_GAME, process_id);
+		if (NULL != rpc) {
+			rpc->call_client(client_id, func_name);
+		}
+	}
+
+	template <class... Args>
+	void call_server(TProcessID_t process_id, TSocketIndex_t client_id, const std::string& func_name, const Args&... args) {
+		rpc_client* rpc = get_client_by_process_id(PROCESS_GAME, process_id);
+		if (NULL != rpc) {
+			rpc->call_client(client_id, func_name, args...);
+		}
+	}
+
+	// gate transfer client tcp packet to game
+	template <class T>
+	void transfer_server(TProcessID_t process_id, TSocketIndex_t client_id, T* packet) {
+		rpc_client* rpc = get_client_by_process_id(PROCESS_GAME, process_id);
+		if (NULL != rpc) {
+			rpc->call_server(client_id, packet);
+		}
+	}
+
+public:
 	void call_entity(const mailbox_info& mailbox, const std::string& func_name) {
 		rpc_client* rpc = get_client_by_address(mailbox.ip, mailbox.port);
 		if (NULL != rpc) {

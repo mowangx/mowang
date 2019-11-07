@@ -140,22 +140,6 @@ struct stub_role_info
 	}
 };
 
-struct account_info
-{
-	TPlatformID_t platform_id;
-	TUserID_t user_id;
-	TTokenID_t token;
-	account_info() {
-		clean_up();
-	}
-
-	void clean_up() {
-		platform_id = INVALID_PLATFORM_ID;
-		memset(user_id.data(), 0, USER_ID_LEN);
-		memset(token.data(), 0, TOKEN_LEN);
-	}
-};
-
 #pragma pack(pop)
 
 #endif // !_PACKET_STRUCT_H_

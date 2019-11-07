@@ -25,7 +25,7 @@ enum packet_id_type
 	PACKET_ID_TRANSFER_ENTITY = 0x85,
 	PACKET_ID_TRANSFER_STUB = 0x86,
 	PACKET_ID_TRANSFER_CLIENT = 0x87,
-	PACKET_ID_TRANSFER_WS_CLIENT = 0x88,
+	PACKET_ID_WS_CLIENT = 0x88,
 	PACKET_ID_TRANSFER_SERVER_BY_INDEX = 0x89,
 	PACKET_ID_TRANSFER_SERVER_BY_NAME = 0x8a,
 };
@@ -148,10 +148,10 @@ public:
 	char m_buffer[65000];
 };
 
-class transfer_client_ws_packet : public packet_base
+class ws_client_packet : public packet_base
 {
 public:
-	transfer_client_ws_packet() : packet_base(PACKET_ID_TRANSFER_WS_CLIENT) {
+	ws_client_packet() : packet_base(PACKET_ID_WS_CLIENT) {
 		m_client_id = INVALID_SOCKET_INDEX;
 		memset(m_buffer, 0, 65000);
 	}

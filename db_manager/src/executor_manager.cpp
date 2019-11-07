@@ -64,16 +64,16 @@ void executor_manager::executor(db_opt_info* opt_info)
 		memset(db_result, 0, 65000);
 		int len = 0;
 		//bool status = m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str(), db_result, len);
-		if (opt_info->table_name == "account") {
-			rpc_param_fill<uint64, uint64>::fill_param(0x123456, db_result, len);
-			rpc_param_fill<uint64, uint64>::fill_param(0x321789, db_result, len);
-		}
-		else {
-			rpc_param_fill<uint8, uint8>::fill_param(0x33, db_result, len);
-			rpc_param_fill<uint8, uint8>::fill_param(0x22, db_result, len);
-			dynamic_string name = "test role name";
-			rpc_param_fill<dynamic_string, dynamic_string>::fill_param(name, db_result, len);
-		}
+		//if (opt_info->table_name == "account") {
+		//	rpc_param_fill<uint64, uint64>::fill_param(0x123456, db_result, len);
+		//	rpc_param_fill<uint64, uint64>::fill_param(0x321789, db_result, len);
+		//}
+		//else {
+		//	rpc_param_fill<uint8, uint8>::fill_param(0x33, db_result, len);
+		//	rpc_param_fill<uint8, uint8>::fill_param(0x22, db_result, len);
+		//	dynamic_string name = "test role name";
+		//	rpc_param_fill<dynamic_string, dynamic_string>::fill_param(name, db_result, len);
+		//}
 		binary_data result(db_result, len);
 		rpc->call_remote_func("on_opt_db_with_result", opt_info->opt_id, true, result);
 	}
