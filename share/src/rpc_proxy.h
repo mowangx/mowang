@@ -137,17 +137,17 @@ private:
 	DRpcStub.register_func<args_count>(#func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
-// call directly without transfer send, such game ---> game_manager or gate --->game, callback first param is socket index
+// call singleton mgr, such as game_server, gate_server, the first param of the callback is socket index
 #define DRegisterServerRpc(obj, class_name, func_name, args_count) { \
 	DRpcStub.register_func_with_index<args_count>(#func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
-// call with transfer send, such as game ---> gate ---> game, every stub will has only one in same server
+// call stub by stub name, such as roll_stub, every stub will has only one in same server
 #define DRegisterStubRpc(obj, class_name, func_name, args_count) { \
 	DRpcStub.register_func<args_count>(append_string(#class_name, #func_name), &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }
 
-// call with transfer send, such as game ---> gate ---> game, callback will call by entity id
+// call entity by entity id, such as account, role
 #define DRegisterEntityRpc(entity_id, obj, class_name, func_name, args_count) { \
 	DRpcEntity.register_func<args_count>(entity_id, #func_name, &class_name::func_name, std::bind(&class_name::func_name, DRpcBindFunc_##args_count(obj))); \
 }

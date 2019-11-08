@@ -16,7 +16,7 @@ private:
 	virtual service_interface* get_service() const override;
 
 public:
-	bool handle_transfer_client(packet_base* packet);
+	bool handle_transfer_packet(packet_base* packet);
 	bool handle_transfer_ws_client(packet_base* packet);
 };
 

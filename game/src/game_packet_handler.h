@@ -17,7 +17,7 @@ private:
 
 public:
 	// gate ---> game packet
-	bool handle_transfer_client(packet_base* packet);
+	bool handle_transfer_packet(packet_base* packet);
 };
 
 

@@ -137,7 +137,7 @@ rpc_client* rpc_wrapper::get_client_by_process_type(TProcessType_t process_type)
 		log_error("rpc wrapper get client failed! process type = %u", process_type);
 		return nullptr;
 	}
-	int idx = DGameRandom.get_rand<int>(0, (int)(clients.size() - 1));
+	int idx = DGameRandom.rand_range(0, int(clients.size() - 1));
 	return clients[idx];
 }
 
@@ -184,7 +184,7 @@ TProcessID_t rpc_wrapper::get_random_process_id(TProcessType_t process_type) con
 	if (process_ids.empty()) {
 		return INVALID_PROCESS_ID;
 	}
-	int idx = DGameRandom.get_rand<int>(0, (int)(process_ids.size() - 1));
+	int idx = DGameRandom.rand_range(0, int(process_ids.size() - 1));
 	return process_ids[idx];
 }
 

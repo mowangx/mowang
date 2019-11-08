@@ -13,8 +13,6 @@ class web_socket_wrapper_base;
 
 enum packet_id_type
 {
-	PACKET_ID_LOGIN = 0x1,
-
 	PACKET_ID_RPC_BY_INDEX = 0x65,
 	PACKET_ID_RPC_BY_NAME = 0x66,
 	PACKET_ID_STUB_RPC_BY_INDEX = 0x67,
@@ -22,12 +20,8 @@ enum packet_id_type
 	PACKET_ID_ENTITY_RPC_BY_INDEX = 0x6e,
 	PACKET_ID_ENTITY_RPC_BY_NAME = 0x6f,
 
-	PACKET_ID_TRANSFER_ENTITY = 0x85,
-	PACKET_ID_TRANSFER_STUB = 0x86,
-	PACKET_ID_TRANSFER_CLIENT = 0x87,
+	PACKET_ID_TRANSFER_PAKCET = 0x86,
 	PACKET_ID_WS_CLIENT = 0x88,
-	PACKET_ID_TRANSFER_SERVER_BY_INDEX = 0x89,
-	PACKET_ID_TRANSFER_SERVER_BY_NAME = 0x8a,
 };
 
 class packet_base
@@ -62,21 +56,6 @@ public:
 	TPacketLen_t m_len;
 	TPacketID_t m_id;
 	uint32 m_check;
-};
-
-class login_packet : public packet_base
-{
-public:
-	login_packet() : packet_base(PACKET_ID_LOGIN) {
-		m_platform_id = INVALID_PLATFORM_ID;
-		m_server_id = INVALID_SERVER_ID;
-		memset(m_user_id.data(), 0, USER_ID_LEN);
-	}
-
-public:
-	TPlatformID_t m_platform_id;
-	TServerID_t m_server_id;
-	TUserID_t m_user_id;
 };
 
 class rpc_by_index_packet : public packet_base
@@ -135,10 +114,10 @@ public:
 	char m_buffer[65000];
 };
 
-class transfer_client_packet : public packet_base
+class transfer_entity_packet : public packet_base
 {
 public:
-	transfer_client_packet() : packet_base(PACKET_ID_TRANSFER_CLIENT) {
+	transfer_entity_packet() : packet_base(PACKET_ID_TRANSFER_PAKCET) {
 		m_client_id = INVALID_SOCKET_INDEX;
 		memset(m_buffer, 0, 65000);
 	}

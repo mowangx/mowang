@@ -39,7 +39,7 @@ public:
 	void call_client(const proxy_info& proxy, const std::string& func_name) {
 		rpc_client* rpc = get_client_by_process_id(PROCESS_GATE, proxy.gate_id);
 		if (NULL != rpc) {
-			rpc->call_client(proxy.client_id, func_name);
+			rpc->call_transfer_func(proxy.client_id, func_name);
 		}
 	}
 
@@ -47,7 +47,7 @@ public:
 	void call_client(const proxy_info& proxy, const std::string& func_name, const Args&... args) {
 		rpc_client* rpc = get_client_by_process_id(PROCESS_GATE, proxy.gate_id);
 		if (NULL != rpc) {
-			rpc->call_client(proxy.client_id, func_name, args...);
+			rpc->call_transfer_func(proxy.client_id, func_name, args...);
 		}
 	}
 
@@ -63,7 +63,7 @@ public:
 	void call_server(TProcessID_t process_id, TSocketIndex_t client_id, const std::string& func_name) {
 		rpc_client* rpc = get_client_by_process_id(PROCESS_GAME, process_id);
 		if (NULL != rpc) {
-			rpc->call_client(client_id, func_name);
+			rpc->call_transfer_func(client_id, func_name);
 		}
 	}
 
@@ -71,7 +71,7 @@ public:
 	void call_server(TProcessID_t process_id, TSocketIndex_t client_id, const std::string& func_name, const Args&... args) {
 		rpc_client* rpc = get_client_by_process_id(PROCESS_GAME, process_id);
 		if (NULL != rpc) {
-			rpc->call_client(client_id, func_name, args...);
+			rpc->call_transfer_func(client_id, func_name, args...);
 		}
 	}
 
@@ -80,7 +80,7 @@ public:
 	void transfer_server(TProcessID_t process_id, TSocketIndex_t client_id, T* packet) {
 		rpc_client* rpc = get_client_by_process_id(PROCESS_GAME, process_id);
 		if (NULL != rpc) {
-			rpc->call_server(client_id, packet);
+			rpc->call_transfer_packet(client_id, packet);
 		}
 	}
 

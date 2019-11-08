@@ -150,7 +150,7 @@ void game_manager::create_entity(TSocketIndex_t socket_index, TServerID_t server
 		return;
 	}
 
-	TProcessID_t random_process_id = DGameRandom.get_rand<int>(0, (int)(game_servers.size() - 1));
+	TProcessID_t random_process_id = DGameRandom.rand_range(0, (game_servers.size() - 1));
 	if (check_repeat) {
 		std::string stub_name = entity_name.data();
 		auto itr = m_stub_name_2_process_id.find(stub_name);

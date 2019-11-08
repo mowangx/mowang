@@ -47,7 +47,7 @@ void robot_server::net_run()
 		//DNetMgr.test_kick();
 
 		if (DNetMgr.socket_num() < 2) {
-			TPort_t port = DGameRandom.get_rand<TPort_t>(0, 2);
+			TPort_t port = DGameRandom.rand_range(0, 2);
 			port = 10100;
 			if (!DNetMgr.start_connect<robot_packet_handler>("127.0.0.1", port)) {
 				log_info("connect server failed");
@@ -60,8 +60,8 @@ void robot_server::net_run()
 
 void robot_server::ws_run()
 {
-	//TPort_t port = 10101 + DGameRandom.get_rand<int>(0, 2) * 10;
-	//DWSNetMgr.start_connect("localhost", 10101);
+	TPort_t port = 10101 + DGameRandom.rand_range(0, 2) * 10;
+	DWSNetMgr.start_connect("localhost", 10101);
 	log_info("init websocket manager success");
 
 	loop_run([this](TGameTime_t diff) -> bool {

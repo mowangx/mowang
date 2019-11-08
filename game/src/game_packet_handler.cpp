@@ -18,7 +18,7 @@ game_packet_handler::~game_packet_handler()
 void game_packet_handler::setup_handlers()
 {
 	TBaseType_t::setup_handlers();
-	register_handler((TPacketID_t)PACKET_ID_TRANSFER_CLIENT, (packet_handler_func)&game_packet_handler::handle_transfer_client);
+	register_handler((TPacketID_t)PACKET_ID_TRANSFER_PAKCET, (packet_handler_func)&game_packet_handler::handle_transfer_packet);
 }
 
 service_interface * game_packet_handler::get_service() const
@@ -26,9 +26,9 @@ service_interface * game_packet_handler::get_service() const
 	return singleton<game_server>::get_instance_ptr();
 }
 
-bool game_packet_handler::handle_transfer_client(packet_base * packet)
+bool game_packet_handler::handle_transfer_packet(packet_base * packet)
 {
-	transfer_client_packet* transfer_info = (transfer_client_packet*)packet;
+	transfer_entity_packet* transfer_info = (transfer_entity_packet*)packet;
 	TSocketIndex_t client_id = transfer_info->m_client_id;
 	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
 	packet_base* transfer_packet = (packet_base*)transfer_info->m_buffer;

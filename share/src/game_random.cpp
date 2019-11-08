@@ -1,9 +1,8 @@
 
 #include "game_random.h"
 
-game_random::game_random(TSeedType_t seed)
+game_random::game_random()
 {
-	reset(seed);
 }
 
 void game_random::reset(TSeedType_t seed)
@@ -47,4 +46,12 @@ bool game_random::rand_bool()
 bool game_random::rand_odds(uint32 base_num, uint32 rate_num)
 {
 	return (rand_uint() % (base_num + 1)) <= rate_num;
+}
+
+int game_random::rand_range(int start, int end)
+{
+	if (start > end) {
+		std::swap(start, end);
+	}
+	return rand_uint() % (end - start + 1) + start;
 }

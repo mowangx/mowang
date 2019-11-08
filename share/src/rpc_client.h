@@ -10,11 +10,11 @@ rpc_by_name_packet packet; \
 int buffer_index = 0; \
 init_packet(packet, func_name);
 
-#define DRpcCreateClientPacket \
-transfer_client_packet transfer_packet; \
+#define DRpcCreateTransferPacket \
+transfer_entity_packet transfer_packet; \
 rpc_by_name_packet packet; \
 int buffer_index = 0; \
-init_client_packet(transfer_packet, packet, client_id, func_name);
+init_transfer_packet(transfer_packet, packet, client_id, func_name);
 
 #define DRpcCreateEntityPacket \
 entity_rpc_by_name_packet packet; \
@@ -47,15 +47,15 @@ public:
 	}
 
 public:
-	// game call client function, will transfer by gate
-	void call_client(TSocketIndex_t client_id, const std::string& func_name) {
-		DRpcCreateClientPacket;
+	// game and client call func each other, transfer by gate
+	void call_transfer_func(TSocketIndex_t client_id, const std::string& func_name) {
+		DRpcCreateTransferPacket;
 		send_transfer_packet(&packet, &transfer_packet, buffer_index);
 	}
 
 	template <class... Args>
-	void call_client(TSocketIndex_t client_id, const std::string& func_name, const Args&... args) {
-		DRpcCreateClientPacket;
+	void call_transfer_func(TSocketIndex_t client_id, const std::string& func_name, const Args&... args) {
+		DRpcCreateTransferPacket;
 		fill_packet(packet.m_buffer, buffer_index, args...);
 		send_transfer_packet(&packet, &transfer_packet, buffer_index);
 	}
@@ -69,8 +69,8 @@ public:
 
 public:
 	template <class T>
-	void call_server(TSocketIndex_t client_id, T* packet) {
-		transfer_client_packet transfer_packet;
+	void call_transfer_packet(TSocketIndex_t client_id, T* packet) {
+		transfer_entity_packet transfer_packet;
 		transfer_packet.m_client_id = client_id;
 		int buffer_index = int(sizeof(packet->m_buffer) + packet->get_packet_len() - sizeof(T));
 		send_transfer_packet(packet, &transfer_packet, buffer_index);
@@ -96,7 +96,7 @@ private:
 		memcpy(packet.m_rpc_name, func_name.c_str(), func_name.length());
 	}
 
-	void init_client_packet(transfer_client_packet& transfer_packet, rpc_by_name_packet& packet, TSocketIndex_t client_id, const std::string& func_name) {
+	void init_transfer_packet(transfer_entity_packet& transfer_packet, rpc_by_name_packet& packet, TSocketIndex_t client_id, const std::string& func_name) {
 		transfer_packet.m_client_id = client_id;
 		init_packet(packet, func_name);
 	}

@@ -62,7 +62,8 @@ bool service::load_config(ini_file& ini, const std::string& module_name)
 
 bool service::init(TProcessID_t process_id)
 {
-	DGameRandom.reset(process_id);
+	TGameTime_t now_time = DTimeMgr.now_app_time();
+	DGameRandom.reset(now_time);
 
 	m_server_info.process_info.server_id = m_config.get_server_id();;
 	m_server_info.process_info.process_id = process_id;

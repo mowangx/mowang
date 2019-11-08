@@ -17,7 +17,7 @@ gate_packet_handler::~gate_packet_handler()
 void gate_packet_handler::setup_handlers()
 {
 	TBaseType_t::setup_handlers();
-	register_handler((TPacketID_t)PACKET_ID_TRANSFER_CLIENT, (packet_handler_func)&gate_packet_handler::handle_transfer_client);
+	register_handler((TPacketID_t)PACKET_ID_TRANSFER_PAKCET, (packet_handler_func)&gate_packet_handler::handle_transfer_packet);
 	register_handler((TPacketID_t)PACKET_ID_WS_CLIENT, (packet_handler_func)&gate_packet_handler::handle_transfer_ws_client);
 }
 
@@ -26,9 +26,9 @@ service_interface * gate_packet_handler::get_service() const
 	return singleton<gate_server>::get_instance_ptr();
 }
 
-bool gate_packet_handler::handle_transfer_client(packet_base * packet)
+bool gate_packet_handler::handle_transfer_packet(packet_base * packet)
 {
-	transfer_client_packet* client_packet = (transfer_client_packet*)packet;
+	transfer_entity_packet* client_packet = (transfer_entity_packet*)packet;
 	packet_base* rpc_packet = (packet_base*)client_packet->m_buffer;
 	packet_send_info* packet_info = DGateServer.allocate_packet_info();
 	packet_info->socket_index = client_packet->m_client_id;

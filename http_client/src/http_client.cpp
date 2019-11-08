@@ -8,6 +8,8 @@
 
 http_client::http_client() : service(PROCESS_HTTP_CLIENT)
 {
+	m_etcd_host = "127.0.0.1";
+	m_etcd_port = 2379;
 	m_io_timer = new boost::asio::deadline_timer(m_io_service);
 	m_wait_release_proxy.clear();
 }
@@ -58,8 +60,8 @@ void http_client::do_loop(TGameTime_t diff)
 
 	if (false) {
 		http_proxy_base* c = m_http_pools.allocate(m_io_service);
-		c->set_port(3000);
-		c->start_request("GET", "10.246.52.120", "/v2/keys/mw/100", "wait=true&recursive=true&waitIndex=408", [=](int status, const dynamic_string& header, const dynamic_string& body) {
+		c->set_port(m_etcd_port);
+		c->start_request("GET", m_etcd_host, "/v2/keys/mw/100", "wait=true&recursive=true&waitIndex=408", [=](int status, const dynamic_string& header, const dynamic_string& body) {
 			log_info("aaaaaaaaaaa! %d, %s", status, body.data());
 		});
 	}
@@ -79,7 +81,7 @@ void http_client::http_request(TSocketIndex_t socket_index, TOptID_t opt_id, con
 			c = m_http_pools.allocate(m_io_service);
 		}
 		log_info("http request test!!!! %s, %s, %s", host.data(), url.data(), params.data());
-		c->start_request("POST", host, url, params, [=](int status, const dynamic_string& header, const dynamic_string& result) {
+		c->start_request("POST", m_etcd_host, url, params, [=](int status, const dynamic_string& header, const dynamic_string& result) {
 			m_wait_release_proxy.push_back(c);
 			rpc_client* rpc = DRpcWrapper.get_client_by_socket_index(socket_index);
 			if (NULL == rpc) {
@@ -96,7 +98,6 @@ void http_client::http_request(TSocketIndex_t socket_index, TOptID_t opt_id, con
 void http_client::register_process_entities(TSocketIndex_t socket_index, const dynamic_string& name, const game_server_info& server_info, const dynamic_array<etcd_entity_info>& entities)
 {
 	try {
-		dynamic_string host = "10.246.52.120";
 		uint64 key_id = get_etcd_key_id(server_info.process_info);
 		dynamic_string url = gx_to_string("/v2/keys/mw/%s/%" I64_FMT "u", name.data(), key_id).c_str();
 		std::string body = gx_to_string("{\"ip\":\"%s\",\"port\":%d,\"server_id\":%d,\"process_type\":%d,\"process_id\":%d,\"entities\":[",
@@ -111,9 +112,9 @@ void http_client::register_process_entities(TSocketIndex_t socket_index, const d
 		body += "]}";
 		dynamic_string params = gx_to_string("value=%s&ttl=30", body.c_str()).c_str();
 		http_proxy_base* c = m_http_pools.allocate(m_io_service);
-		c->set_port(3000);
+		c->set_port(m_etcd_port);
 		log_info("register process entities! %s, %s, %s", url.data(), name.data(), params.data());
-		c->start_request("PUT", host, url, params, [=](int status, const dynamic_string& header, const dynamic_string& body) {
+		c->start_request("PUT", m_etcd_host, url, params, [=](int status, const dynamic_string& header, const dynamic_string& body) {
 			log_info("register entities response! status: %d, body: %s", status, body.data());
 			m_wait_release_proxy.push_back(c);
 		});
@@ -126,13 +127,12 @@ void http_client::register_process_entities(TSocketIndex_t socket_index, const d
 void http_client::refresh_ttl(TSocketIndex_t socket_index, const dynamic_string& name, const game_process_info& process_info)
 {
 	try {
-		dynamic_string host = "10.246.52.120";
 		uint64 key_id = get_etcd_key_id(process_info);
 		dynamic_string url = gx_to_string("/v2/keys/mw/%s/%" I64_FMT "u", name.data(), key_id).c_str();
 		dynamic_string params = "ttl=60&refresh=true";
 		http_proxy_base* c = m_http_pools.allocate(m_io_service);
-		c->set_port(3000);
-		c->start_request("PUT", host, url, params, [=](int status, const dynamic_string& header, const dynamic_string& body) {
+		c->set_port(m_etcd_port);
+		c->start_request("PUT", m_etcd_host, url, params, [=](int status, const dynamic_string& header, const dynamic_string& body) {
 			log_info("refresh ttl response! status: %d, body: %s", status, body.data());
 			m_wait_release_proxy.push_back(c);
 		});
@@ -145,12 +145,11 @@ void http_client::refresh_ttl(TSocketIndex_t socket_index, const dynamic_string&
 void http_client::request_all(TSocketIndex_t socket_index, const dynamic_string& name)
 {
 	try {
-		dynamic_string host = "10.246.52.120";
 		dynamic_string url = gx_to_string("/v2/keys/mw/%s", name.data()).c_str();
 		dynamic_string params = "recursive=true";
 		http_proxy_base* c = m_http_pools.allocate(m_io_service);
-		c->set_port(3000);
-		c->start_request("GET", host, url, params, [=](int status, const dynamic_string& header, const dynamic_string& body) {
+		c->set_port(m_etcd_port);
+		c->start_request("GET", m_etcd_host, url, params, [=](int status, const dynamic_string& header, const dynamic_string& body) {
 			log_info("request all response! stauts: %d, body: %s", status, body.data());
 			m_wait_release_proxy.push_back(c);
 			parse_nodes(socket_index, name, header, body);
@@ -164,11 +163,10 @@ void http_client::request_all(TSocketIndex_t socket_index, const dynamic_string&
 void http_client::request_one(TSocketIndex_t socket_index, const dynamic_string& name, TWaitIndex_t wait_index)
 {
 	try {
-		dynamic_string host = "10.246.52.120";
 		dynamic_string url = gx_to_string("/v2/keys/mw/%s/?wait=true&recursive=true&waitIndex=%u", name.data(), wait_index + 1).c_str();
 		http_proxy_base* c = m_http_pools.allocate(m_io_service);
-		c->set_port(3000);
-		c->start_request("GET", host, url, "", [=](int status, const dynamic_string& header, const dynamic_string& body) {
+		c->set_port(m_etcd_port);
+		c->start_request("GET", m_etcd_host, url, "", [=](int status, const dynamic_string& header, const dynamic_string& body) {
 			log_info("request one response! status: %d, body: %s", status, body.data());
 			m_wait_release_proxy.push_back(c);
 			rpc_client* rpc = DRpcWrapper.get_client_by_socket_index(socket_index);
@@ -226,6 +224,15 @@ void http_client::parse_nodes(TSocketIndex_t socket_index, const dynamic_string&
 {
 	rpc_client* rpc = DRpcWrapper.get_client_by_socket_index(socket_index);
 	if (NULL == rpc) {
+		log_error("parse nodes failed for not find client by socket index! socket index %" I64_FMT "u", socket_index);
+		return;
+	}
+	if (header.size() == 0) {
+		log_error("parse nodes failed for header is empty!");
+		return;
+	}
+	if (body.size() == 0) {
+		log_error("parse nodes failed for body is empty!");
 		return;
 	}
 	//boost::property_tree::ptree header_json;

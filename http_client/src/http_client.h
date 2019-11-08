@@ -42,6 +42,8 @@ private:
 	void parse_etcd_key_id(game_process_info& process_info, uint64 key_id) const;
 
 private:
+	std::string m_etcd_host;
+	TPort_t m_etcd_port;
 	boost::asio::io_service m_io_service;
 	boost::asio::deadline_timer* m_io_timer;
 	obj_memory_pool<http_proxy, 100> m_http_pools;

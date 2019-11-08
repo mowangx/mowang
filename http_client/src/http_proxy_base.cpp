@@ -19,7 +19,7 @@ http_proxy_base::~http_proxy_base()
 
 }
 
-void http_proxy_base::start_request(const dynamic_string& opt_type, const dynamic_string& host, const dynamic_string& url, const dynamic_string& body, std::function<void(int, const dynamic_string&, const dynamic_string&)> callback)
+void http_proxy_base::start_request(const std::string& opt_type, const std::string& host, const dynamic_string& url, const dynamic_string& body, std::function<void(int, const dynamic_string&, const dynamic_string&)> callback)
 {
 	m_opt = opt_type;
 	m_host = host;

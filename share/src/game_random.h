@@ -7,11 +7,11 @@
 class game_random : public singleton<game_random>
 {
 public:
-	game_random(TSeedType_t seed = 0);
+	game_random();
 
 public:
 	//ReSeed the random number generator
-	void reset(TSeedType_t seed = 0);
+	void reset(TSeedType_t seed);
 
 	//Returns an unsigned integer from 0..RandomMax
 	uint32 rand_uint(void);
@@ -23,13 +23,7 @@ public:
 
 	bool rand_odds(uint32 base_num, uint32 rate_num);
 
-	template<class T>
-	T get_rand(T start, T end) {
-		if (start > end) {
-			std::swap(start, end);
-		}
-		return rand_uint() % (end - start + 1) + start;
-	}
+	int rand_range(int start, int end);
 
 private:
 	TSeedType_t m_seed[3];

@@ -177,18 +177,10 @@ void gate_server::process_login(TSocketIndex_t socket_index, boost::property_tre
 	std::string cur_user_id = json->get<std::string>("user_id", "");
 	dynamic_string user_id(cur_user_id.c_str());
 	TPlatformID_t platform_id = json->get<TPlatformID_t>("platform_id", 1);
-
-	log_debug("parse login!!! socket index %" I64_FMT "u,  platform id %d, server_id %d", socket_index, platform_id, server_id);
 	on_client_connect(socket_index);
 	TProcessID_t process_id = get_process_id_by_client_id(socket_index);
-	log_info("login, client id %" I64_FMT "u, user id %s, game id %u", socket_index, user_id.data(), process_id);
-	rpc_client* rpc = DRpcWrapper.get_client_by_process_id(PROCESS_GAME, process_id);
-	if (NULL != rpc) {
-		rpc->call_remote_func("login_server", socket_index, platform_id, user_id, token);
-	}
-	else {
-		log_error("login failed for rpc is NULL! server id %u, process id %u, client id %" I64_FMT "u", get_server_id(), process_id, socket_index);
-	}
+	log_info("login, socket index %" I64_FMT "u, user id %s, game id %u", socket_index, user_id.data(), process_id);
+	DRpcWrapper.call_server(process_id, socket_index, "login", platform_id, user_id, token);
 }
 
 void gate_server::process_create_role(TSocketIndex_t socket_index, boost::property_tree::ptree* json)
