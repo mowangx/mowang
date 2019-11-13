@@ -94,7 +94,7 @@ void etcd_listener::on_register_entities(TWaitIndex_t wait_index, const dynamic_
 		log_info("on register entity success! entity id: %" I64_FMT "u, entity name: %s, tag: %s, server id: %u, process type: %d, process id: %u, ip: %s, port: %u",
 			entity_info.entity_info.entity_id, entity_info.entity_info.entity_name.data(), entity_info.entity_info.tag.data(),
 			entity_info.server_info.process_info.server_id, entity_info.server_info.process_info.process_type, entity_info.server_info.process_info.process_id,
-			entity_info.server_info.ip, entity_info.server_info.port);
+			entity_info.server_info.ip.data(), entity_info.server_info.port);
 	}
 	if (wait_index > 0) {
 		m_wait_index = wait_index;

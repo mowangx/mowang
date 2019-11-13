@@ -53,18 +53,10 @@ void http_client::do_loop(TGameTime_t diff)
 		}
 	}
 	m_wait_release_proxy.clear();
-
 	m_io_service.poll_one();
+	m_io_service.reset();
 	
 	TBaseType_t::do_loop(diff);
-
-	if (false) {
-		http_proxy_base* c = m_http_pools.allocate(m_io_service);
-		c->set_port(m_etcd_port);
-		c->start_request("GET", m_etcd_host, "/v2/keys/mw/100", "wait=true&recursive=true&waitIndex=408", [=](int status, const dynamic_string& header, const dynamic_string& body) {
-			log_info("aaaaaaaaaaa! %d, %s", status, body.data());
-		});
-	}
 }
 
 void http_client::http_request(TSocketIndex_t socket_index, TOptID_t opt_id, const dynamic_string& host, const dynamic_string& url, const dynamic_string& params, bool usessl)
