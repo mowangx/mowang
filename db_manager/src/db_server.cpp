@@ -1,11 +1,11 @@
-
-#include <bsoncxx/builder/stream/document.hpp>
-#include <bsoncxx/json.hpp>
-#include <mongocxx/client.hpp>
-#include <mongocxx/instance.hpp>
-#include <mongocxx/stdx.hpp>
-#include <mongocxx/uri.hpp>
-#include <mongocxx/exception/bulk_write_exception.hpp>
+//
+//#include <bsoncxx/builder/stream/document.hpp>
+//#include <bsoncxx/json.hpp>
+//#include <mongocxx/client.hpp>
+//#include <mongocxx/instance.hpp>
+//#include <mongocxx/stdx.hpp>
+//#include <mongocxx/uri.hpp>
+//#include <mongocxx/exception/bulk_write_exception.hpp>
 
 #include "db_server.h"
 

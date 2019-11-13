@@ -109,7 +109,7 @@ void service::work_run()
 void service::net_run()
 {
 	loop_run([this](TGameTime_t diff) -> bool {
-		DNetMgr.update(diff);
+		net_loop(diff);
 		return true;
 	});
 }
@@ -158,6 +158,11 @@ void service::do_loop(TGameTime_t diff)
 	m_wait_kick_sockets.clear();
 
 	try_reconnect_server();
+}
+
+void service::net_loop(TGameTime_t diff)
+{
+	DNetMgr.update(diff);
 }
 
 void service::loop_run(const std::function<bool(TGameTime_t)>& callback)

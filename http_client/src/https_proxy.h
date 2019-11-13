@@ -2,6 +2,7 @@
 #ifndef _HTTPS_PROXY_H_
 #define _HTTPS_PROXY_H_
 
+#include <boost/asio/ssl.hpp>
 #include "http_proxy_base.h"
 
 class https_proxy : public http_proxy_base

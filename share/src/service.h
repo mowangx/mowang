@@ -33,6 +33,7 @@ public:
 
 protected:
 	virtual void do_loop(TGameTime_t diff);
+	virtual void net_loop(TGameTime_t diff);
 	void loop_run(const std::function<bool(TGameTime_t)>& callback);
 
 public:

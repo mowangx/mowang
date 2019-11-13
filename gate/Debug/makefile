@@ -8,7 +8,7 @@ CC=g++
 #编译目标
 #编译后
 #=============所有的编译目标(请不要随便移动此行的位置)=============
-all: start http_client http_clientexe finish				
+all: start gate gateexe finish				
 
 WORKSPACE=..
 #=============包含(inc/src/lib)目录=============
@@ -24,6 +24,10 @@ MYSQL_INC="/usr/include/mysql/"
 TINYXPATH_INC=${SHARE_INC}/tinyxpath/
 #boost
 BOOST_INC=${SHARE_INC}/boost/
+#websocketpp
+WEBSOCKET_INC=${SHARE_INC}/websocketpp/
+#openssl
+OPENSSL_INC=${SHARE_INC}/openssl/
 
 #源码目录
 SRC_DIR=${WORKSPACE}/
@@ -37,20 +41,20 @@ MYSQL_LIB_DIR=/usr/local/lib/
 #obj目录
 OBJ_DIR=obj
 DEP_DIR=dep
-EXE_DIR=${WORKSPACE}/../exe/http_client/
+EXE_DIR=${WORKSPACE}/../exe/gate/
 DEST_LIB_DIR=
-EXE_NAME=http_client
+EXE_NAME=gate
 #THIRD_LIB=${MYSQLPP_LIB_DIR}/*.so*
 
 #=============编译选项=============
 #编译包含的头文件
-CC_INC=-I"${SRC_DIR}" -I"${SRC_DIR}/src/" -I${EVENT_INC} -I${MYSQL_INC}	-I${TINYXPATH_INC} -I${SHARE_INC}
+CC_INC=-I"${SRC_DIR}" -I"${SRC_DIR}/src/" -I${EVENT_INC} -I${MYSQL_INC}	-I${TINYXPATH_INC} -I${SHARE_INC} -I${WEBSOCKET_INC} -I${OPENSSL_INC}
 #编译优化
 CC_OPT=-O
 #编译忽略的警告
 CC_IGO=-Wno-deprecated -Wno-unused-function
 #编译的标记
-CC_FLAG=-g3 -Wall -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++11 -ldl
+CC_FLAG=-g3 -Wall -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++11
 #编译依赖关系
 CC_DEP=-MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 #编译obj选项
@@ -61,9 +65,9 @@ CC_DEF=-DLIB_DEBUG -DSERVER_DEBUG
 
 #=============链接选项=============
 # 系统库
-LK_SYS_LIB=-Wl,-Bdynamic,-lrt
+LK_SYS_LIB=-Wl,-Bdynamic,-lrt -Wl,-Bdynamic,-lpthread -Wl,-Bdynamic,-ldl
 # 第三方库
-LK_DEP_LIB=-L. -L${THIRD_LIB_DIR} -Wl,-Bdynamic,-ldl,-Bdynamic,-lpthread,-Bstatic,-ltinyxpath -Wl,-Bstatic,-lshare_d -Wl,-Bstatic,-levent -Wl,-Bstatic,-lcoredumper -Wl,-Bstatic,-lboost_system -Wl,-Bstatic,-lboost_date_time -Wl,-Bstatic,-lssl -Wl,-Bstatic,-lcrypto
+LK_DEP_LIB=-L. -L${THIRD_LIB_DIR} -Wl,-Bstatic,-ltinyxpath -Wl,-Bstatic,-lshare_d -Wl,-Bstatic,-levent -Wl,-Bstatic,-lcoredumper -Wl,-Bstatic,-lssl -Wl,-Bstatic,-lcrypto -Wl,-Bstatic,-lboost_system  
 
 # 内部库
 LK_USER_LIB=
@@ -116,9 +120,9 @@ finish:
 	@echo "compiler finish!"
 
 # =============生成的lib目标=============
-http_client: ${OBJS}
+gate: ${OBJS}
 
-http_clientexe:
+gateexe:
 	@echo 'Building target: $@'
 	@echo 'Invoking: gnu C++ Linker'
 	${CC} -g3 -o ${EXE_NAME} ${OBJS} ${LK_DEP_LIB} ${LK_SYS_LIB}

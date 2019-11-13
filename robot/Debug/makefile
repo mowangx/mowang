@@ -8,7 +8,7 @@ CC=g++
 #编译目标
 #编译后
 #=============所有的编译目标(请不要随便移动此行的位置)=============
-all: start http_client http_clientexe finish				
+all: start robot robotexe finish				
 
 WORKSPACE=..
 #=============包含(inc/src/lib)目录=============
@@ -37,9 +37,9 @@ MYSQL_LIB_DIR=/usr/local/lib/
 #obj目录
 OBJ_DIR=obj
 DEP_DIR=dep
-EXE_DIR=${WORKSPACE}/../exe/http_client/
+EXE_DIR=${WORKSPACE}/../exe/robot/
 DEST_LIB_DIR=
-EXE_NAME=http_client
+EXE_NAME=robot
 #THIRD_LIB=${MYSQLPP_LIB_DIR}/*.so*
 
 #=============编译选项=============
@@ -50,7 +50,7 @@ CC_OPT=-O
 #编译忽略的警告
 CC_IGO=-Wno-deprecated -Wno-unused-function
 #编译的标记
-CC_FLAG=-g3 -Wall -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++11 -ldl
+CC_FLAG=-g3 -Wall -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++11
 #编译依赖关系
 CC_DEP=-MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 #编译obj选项
@@ -61,9 +61,9 @@ CC_DEF=-DLIB_DEBUG -DSERVER_DEBUG
 
 #=============链接选项=============
 # 系统库
-LK_SYS_LIB=-Wl,-Bdynamic,-lrt
+LK_SYS_LIB=-Wl,-Bdynamic,-lrt -Wl,-Bdynamic,-lpthread -Wl,-Bdynamic,-ldl
 # 第三方库
-LK_DEP_LIB=-L. -L${THIRD_LIB_DIR} -Wl,-Bdynamic,-ldl,-Bdynamic,-lpthread,-Bstatic,-ltinyxpath -Wl,-Bstatic,-lshare_d -Wl,-Bstatic,-levent -Wl,-Bstatic,-lcoredumper -Wl,-Bstatic,-lboost_system -Wl,-Bstatic,-lboost_date_time -Wl,-Bstatic,-lssl -Wl,-Bstatic,-lcrypto
+LK_DEP_LIB=-L. -L${THIRD_LIB_DIR} -Wl,-Bstatic,-ltinyxpath -Wl,-Bstatic,-lshare_d -Wl,-Bstatic,-levent -Wl,-Bstatic,-lcoredumper -Wl,-Bstatic,-lboost_system -Wl,-Bstatic,-lssl -Wl,-Bstatic,-lcrypto
 
 # 内部库
 LK_USER_LIB=
@@ -116,9 +116,9 @@ finish:
 	@echo "compiler finish!"
 
 # =============生成的lib目标=============
-http_client: ${OBJS}
+robot: ${OBJS}
 
-http_clientexe:
+robotexe:
 	@echo 'Building target: $@'
 	@echo 'Invoking: gnu C++ Linker'
 	${CC} -g3 -o ${EXE_NAME} ${OBJS} ${LK_DEP_LIB} ${LK_SYS_LIB}

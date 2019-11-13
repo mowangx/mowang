@@ -19,11 +19,11 @@ http_proxy_base::~http_proxy_base()
 
 }
 
-void http_proxy_base::start_request(const std::string& opt_type, const std::string& host, const dynamic_string& url, const dynamic_string& body, std::function<void(int, const dynamic_string&, const dynamic_string&)> callback)
+void http_proxy_base::start_request(const std::string& opt_type, const std::string& host, const dynamic_string& path, const dynamic_string& body, std::function<void(int, const dynamic_string&, const dynamic_string&)> callback)
 {
 	m_opt = opt_type;
 	m_host = host;
-	m_url = url;
+	m_path = path;
 	m_body = body;
 	m_callback = callback;
 	bind_connect();
@@ -180,7 +180,7 @@ void http_proxy_base::handle_read_body(const boost::system::error_code& error)
 void http_proxy_base::write_request()
 {
 	std::ostream request_stream(&m_request);
-	std::string s1 = gx_to_string("%s %s HTTP/1.1\r\n", m_opt.data(), m_url.data());
+	std::string s1 = gx_to_string("%s %s HTTP/1.1\r\n", m_opt.data(), m_path.data());
 	request_stream << s1;
 	std::string s2 = gx_to_string("Host: %s:%d\r\n", m_host.data(), m_port);
 	request_stream << s2;
@@ -190,7 +190,7 @@ void http_proxy_base::write_request()
 	request_stream << "Connection: close\r\n\r\n";
 	request_stream << m_body.data();
 	bind_write();
-	log_info("send http request!!!! host: %s, port: %d, url: %s, %s", m_host.data(), m_port, m_url.data(), m_body.data());
+	log_info("send http request!!!! host: %s, port: %d, path: %s, %s", m_host.data(), m_port, m_path.data(), m_body.data());
 }
 
 void http_proxy_base::url_encode(std::string& output, const std::string& input)

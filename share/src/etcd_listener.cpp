@@ -1,5 +1,6 @@
 
 #include "etcd_listener.h"
+#include <algorithm>
 #include "timer.h"
 #include "rpc_wrapper.h"
 #include "mailbox_manager.h"

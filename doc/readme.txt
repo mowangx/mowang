@@ -36,5 +36,16 @@
 9. pip
 	9.1 安装epel扩展源: yum -y install epel-release
 	9.2 安装pip： yum -y install python-pip
+	
+10. etcd
+	10.1 api: https://github.com/etcd-io/etcd/blob/master/Documentation/v2/api.md
+	10.2 使用共享内存启动： ./etcd --data-dir ./run/shm/ --listen-client-urls http://0.0.0.0:3000 --advertise-client-urls http://0.0.0.0:3000
+
+11. mysql connector:
+	11.1 下载源码（1.1.13）： https://dev.mysql.com/downloads/connector/cpp/
+	11.2 缺省mysql.h： yum install mysql-devel
+	12.3 缺省libmysqlclient.so： yum install mysql-server && mysql install mysql && ln -s /usr/lib64/mysql/libmysqlclient.so.18 /usr/lib/libmysqlclient.so
+	12.4 编译:cmake. && make clean && make && make install
+	12.5 cp /usr/include/mysql.*.h share/src/mysql && cp -a /usr/include/cppconn share/src/mysql/
 
 	

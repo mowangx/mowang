@@ -8,7 +8,7 @@ CC=g++
 #编译目标
 #编译后
 #=============所有的编译目标(请不要随便移动此行的位置)=============
-all: start http_client http_clientexe finish				
+all: start db_manager db_managerexe finish				
 
 WORKSPACE=..
 #=============包含(inc/src/lib)目录=============
@@ -17,9 +17,9 @@ SHARE_DIR=${WORKSPACE}/../share/
 SHARE_INC=${SHARE_DIR}/src/
 #libevent目录
 EVENT_INC=${SHARE_INC}/libevent/
-#mysqlpp目录
-#MYSQLPP_INC=${SHARE_INC}/mysqlpp/
-MYSQL_INC="/usr/include/mysql/"
+#mysql目录
+MYSQL_INC=${SHARE_INC}/mysql/
+#MYSQL_INC="/usr/include/mysql/"
 #tinyxml
 TINYXPATH_INC=${SHARE_INC}/tinyxpath/
 #boost
@@ -31,15 +31,15 @@ SRC_DIR=${WORKSPACE}/
 #库目录
 THIRD_LIB_DIR=${WORKSPACE}/../lib/
 #MYSQLPP_LIB_DIR=${THIRD_LIB_DIR}
-MYSQL_LIB_DIR=/usr/local/lib/
+MYSQL_LIB_DIR=${THIRD_LIB_DIR}/mysql_lib/
 
 #=============编译后(obj/exe/lib)目录=============
 #obj目录
 OBJ_DIR=obj
 DEP_DIR=dep
-EXE_DIR=${WORKSPACE}/../exe/http_client/
+EXE_DIR=${WORKSPACE}/../exe/db_manager/
 DEST_LIB_DIR=
-EXE_NAME=http_client
+EXE_NAME=db_manager
 #THIRD_LIB=${MYSQLPP_LIB_DIR}/*.so*
 
 #=============编译选项=============
@@ -50,7 +50,7 @@ CC_OPT=-O
 #编译忽略的警告
 CC_IGO=-Wno-deprecated -Wno-unused-function
 #编译的标记
-CC_FLAG=-g3 -Wall -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++11 -ldl
+CC_FLAG=-g3 -Wall -c -fmessage-length=0 -MMD -MP -fstack-protector-all -std=c++11
 #编译依赖关系
 CC_DEP=-MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 #编译obj选项
@@ -61,9 +61,9 @@ CC_DEF=-DLIB_DEBUG -DSERVER_DEBUG
 
 #=============链接选项=============
 # 系统库
-LK_SYS_LIB=-Wl,-Bdynamic,-lrt
+LK_SYS_LIB=-Wl,-Bdynamic,-lrt -Wl,-Bdynamic,-lpthread -Wl,-Bdynamic,-ldl -Wl,-Bdynamic,-lcrypto -Wl,-Bdynamic,-lssl -Wl,-Bdynamic,-lmysqlcppconn
 # 第三方库
-LK_DEP_LIB=-L. -L${THIRD_LIB_DIR} -Wl,-Bdynamic,-ldl,-Bdynamic,-lpthread,-Bstatic,-ltinyxpath -Wl,-Bstatic,-lshare_d -Wl,-Bstatic,-levent -Wl,-Bstatic,-lcoredumper -Wl,-Bstatic,-lboost_system -Wl,-Bstatic,-lboost_date_time -Wl,-Bstatic,-lssl -Wl,-Bstatic,-lcrypto
+LK_DEP_LIB=-L. -L${THIRD_LIB_DIR} -Wl,-Bstatic,-ltinyxpath -Wl,-Bstatic,-lshare_d -Wl,-Bstatic,-levent -Wl,-Bstatic,-lcoredumper
 
 # 内部库
 LK_USER_LIB=
@@ -116,9 +116,9 @@ finish:
 	@echo "compiler finish!"
 
 # =============生成的lib目标=============
-http_client: ${OBJS}
+db_manager: ${OBJS}
 
-http_clientexe:
+db_managerexe:
 	@echo 'Building target: $@'
 	@echo 'Invoking: gnu C++ Linker'
 	${CC} -g3 -o ${EXE_NAME} ${OBJS} ${LK_DEP_LIB} ${LK_SYS_LIB}

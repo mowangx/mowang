@@ -2,9 +2,8 @@
 #ifndef _HTTP_PROXY_BASE_H_
 #define _HTTP_PROXY_BASE_H_
 
-#include <boost/bind.hpp>
 #include <boost/asio.hpp>
-#include <boost/asio/ssl.hpp>
+#include <boost/bind.hpp>
 
 #include "dynamic_array.h"
 
@@ -15,7 +14,7 @@ public:
 	virtual ~http_proxy_base();
 
 public:
-	void start_request(const std::string& opt_type, const std::string& host, const dynamic_string& url, const dynamic_string& body, std::function<void(int, const dynamic_string&, const dynamic_string&)> callback);
+	void start_request(const std::string& opt_type, const std::string& host, const dynamic_string& path, const dynamic_string& body, std::function<void(int, const dynamic_string&, const dynamic_string&)> callback);
 	bool usessl() const;
 
 public:
@@ -52,7 +51,7 @@ protected:
 	int m_port;
 	std::string m_opt;
 	std::string m_host;
-	dynamic_string m_url;
+	dynamic_string m_path;
 	dynamic_string m_body;
 	dynamic_string m_response_header;
 	dynamic_string m_response_body;
