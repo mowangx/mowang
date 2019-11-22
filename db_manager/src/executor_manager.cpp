@@ -27,11 +27,11 @@ bool executor_manager::init()
 		return false;
 	}
 
-	//bool status = m_db->init("127.0.0.1", 3306, "mwrootdb", "a23A5678!", "test");
-	//if (!status) {
-	//	log_error("connect db failed!");
-	//	return false;
-	//}
+	bool status = m_db->init("127.0.0.1", 3306, "root", "Test168!", "test");
+	if (!status) {
+		log_error("connect db failed!");
+		return false;
+	}
 
 	//char result[65500];
 	//int len = 0;
@@ -63,7 +63,7 @@ void executor_manager::executor(db_opt_info* opt_info)
 		char db_result[65000];
 		memset(db_result, 0, 65000);
 		int len = 0;
-		//bool status = m_db->query(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str(), db_result, len);
+		bool status = m_db->query(opt_info->table_name.c_str(), opt_info->fields.c_str(), opt_info->condition.c_str(), db_result, len);
 		//if (opt_info->table_name == "account") {
 		//	rpc_param_fill<uint64, uint64>::fill_param(0x123456, db_result, len);
 		//	rpc_param_fill<uint64, uint64>::fill_param(0x321789, db_result, len);
@@ -79,20 +79,20 @@ void executor_manager::executor(db_opt_info* opt_info)
 	}
 	else {
 		if (opt_info->opt_type == DB_OPT_UPDATE) {
-			//m_db->update(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
+			m_db->update(opt_info->table_name.c_str(), opt_info->fields.c_str(), opt_info->condition.c_str());
 		}
 		else if (opt_info->opt_type == DB_OPT_INSERT) {
-			//m_db->insert(opt_info->table_name.c_str(), opt_info->condition.c_str(), opt_info->fields.c_str());
+			m_db->insert(opt_info->table_name.c_str(), opt_info->fields.c_str(), opt_info->condition.c_str());
 		}
 		else if (opt_info->opt_type == DB_OPT_DELETE) {
-			//m_db->remove(opt_info->table_name.c_str(), opt_info->condition.c_str());
+			m_db->remove(opt_info->table_name.c_str(), opt_info->condition.c_str());
 		}
 		rpc->call_remote_func("on_opt_db_with_status", opt_info->opt_id, true);
 	}
 	m_mem_pool.deallocate(opt_info);
 }
 
-void executor_manager::add_executor(TSocketIndex_t socket_index, uint8 opt_type, uint64 opt_id, const dynamic_string& table_name, const dynamic_string& query, const dynamic_string& fields)
+void executor_manager::add_executor(TSocketIndex_t socket_index, uint8 opt_type, uint64 opt_id, const dynamic_string& table_name, const dynamic_string& fields, const dynamic_string& query)
 {
 	log_info("add executor, opt type %u, opt id %" I64_FMT "u, table name %s", opt_type, opt_id, table_name.data());
 	db_opt_info* opt_info = m_mem_pool.allocate();

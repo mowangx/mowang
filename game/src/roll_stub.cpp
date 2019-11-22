@@ -16,7 +16,7 @@ roll_stub::~roll_stub()
 
 bool roll_stub::init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t client_id)
 {
-	log_info("roll stub init");
+	log_info("init roll stub");
 	if (!TBaseType_t::init(entity_id, gate_id, client_id)) {
 		return false;
 	}
@@ -24,6 +24,7 @@ bool roll_stub::init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t
 	DRegisterEntityRpc(get_entity_id(), this, roll_stub, unregister_account, 1);
 	DRegisterEntityRpc(get_entity_id(), this, roll_stub, register_role, 3);
 	DRegisterEntityRpc(get_entity_id(), this, roll_stub, unregister_role, 2);
+	DRegisterEntityRpc(get_entity_id(), this, roll_stub, update_by_relay, 3);
 	return true;
 }
 
@@ -84,7 +85,29 @@ void roll_stub::unregister_role(TAccountID_t account_id, TRoleID_t role_id)
 	if (role_itr != m_role_2_mailbox.end()) {
 		m_role_2_mailbox.erase(role_itr);
 	}
-	log_info("unregister role success! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+	log_info("unregister all success! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+}
+
+void roll_stub::update_by_relay(TAccountID_t account_id, TRoleID_t role_id, const mailbox_info& mailbox)
+{
+	auto itr = m_role_2_mailbox.find(role_id);
+	if (itr == m_role_2_mailbox.end()) {
+		log_error("update by relay failed for role not register, start kick role! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+		DRpcWrapper.call_entity(mailbox, "kick_role");
+	}
+	else {
+		const mailbox_info& current_mailbox = itr->second;
+		if (current_mailbox.port != mailbox.port || current_mailbox.entity_id != mailbox.entity_id) {
+			log_error("update by relay failed for mailbox is not equal, start kick role! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+			DRpcWrapper.call_entity(mailbox, "kick_role");
+			DRpcWrapper.call_entity(current_mailbox, "kick_role");
+		}
+		else {
+			log_info("update by relay success! account id %" I64_FMT "u, role id %" I64_FMT "u", account_id, role_id);
+			m_account_2_mailbox[account_id] = current_mailbox;
+		}
+	}
+
 }
 
 void roll_stub::clean_up()

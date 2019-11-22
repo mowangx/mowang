@@ -53,6 +53,14 @@ bool mysql_conn::remove(const char* table, const char* query)
 	else {
 		sprintf(sql, "delete from %s where %s", table, query);
 	}
+	try {
+		sql::PreparedStatement* pstmt = m_conn->prepareStatement(sql);
+		pstmt->execute();
+		delete pstmt;
+	}
+	catch (sql::SQLException &e) {
+		log_error("mysql delete failed! error code = %d, error msg = %s, state = %s, sql = %s", e.getErrorCode(), e.what(), e.getSQLState().c_str(), sql);
+	}
 	return true;
 }
 
@@ -65,10 +73,18 @@ bool mysql_conn::insert(const char* table, const char* fields, const char* value
 	char sql[2048];
 	memset(sql, 0, 2048);
 	sprintf(sql, "insert into %s %s values %s", table, fields, values);
+	try {
+		sql::PreparedStatement* pstmt = m_conn->prepareStatement(sql);
+		pstmt->execute();
+		delete pstmt;
+	}
+	catch (sql::SQLException &e) {
+		log_error("mysql insert failed! error code = %d, error msg = %s, state = %s, sql = %s", e.getErrorCode(), e.what(), e.getSQLState().c_str(), sql);
+	}
 	return true;
 }
 
-bool mysql_conn::update(const char* table, const char* query, const char* fields)
+bool mysql_conn::update(const char* table, const char* fields, const char* query)
 {
 	char sql[2048];
 	memset(sql, 0, 2048);
@@ -78,10 +94,17 @@ bool mysql_conn::update(const char* table, const char* query, const char* fields
 	else {
 		sprintf(sql, "update %s %s where %s", table, fields, query);
 	}
-	return true;
+	try {
+		sql::PreparedStatement* pstmt = m_conn->prepareStatement(sql);
+		pstmt->execute();
+	}
+	catch (sql::SQLException &e) {
+		log_error("mysql update failed! error code = %d, error msg = %s, state = %s, sql = %s", e.getErrorCode(), e.what(), e.getSQLState().c_str(), sql);
+	}
+	return false;
 }
 
-bool mysql_conn::query(const char* table, const char* query, const char* fields, char* result, int& len)
+bool mysql_conn::query(const char* table, const char* fields, const char* query, char* result, int& len)
 {
 	char sql[2048];
 	memset(sql, 0, 2048);
@@ -105,6 +128,10 @@ bool mysql_conn::query(const char* table, const char* query, const char* fields,
 	try {
 		sql::PreparedStatement* pstmt = m_conn->prepareStatement(sql);
 		sql::ResultSet* res = pstmt->executeQuery();
+		if (res->rowsCount() == 0) {
+			log_info("load from db success but empty! sql: %s", sql);
+			return true;
+		}
 		rpc_param_fill<uint16, uint16>::fill_param(res->rowsCount(), result, len);
 		res->beforeFirst();
 		while (res->next()) {
@@ -114,7 +141,6 @@ bool mysql_conn::query(const char* table, const char* query, const char* fields,
 				int column_type = res_meta->getColumnType(i);
 				const sql::SQLString& column_name = res_meta->getColumnTypeName(i);
 				fill_result(res, i, column_type, result, len);
-				log_info("load from db, column type %d, column name %s", column_type, column_name.c_str());
 			}
 			//log_info("load from db, %d, %s, %d", res->getInt("id"), res->getString("name").c_str(), res->getInt("sex"));
 		}
@@ -142,13 +168,15 @@ void mysql_conn::fill_result(sql::ResultSet * res, uint32 column_index, int colu
 	else if (column_type == sql::DataType::BIGINT) {
 		rpc_param_fill<uint64, uint64>::fill_param(res->getInt64(column_index), result, len);
 	}
-	else if (column_type == sql::DataType::VARCHAR || column_type == sql::DataType::LONGVARCHAR) {
+	else if (column_type == sql::DataType::CHAR || column_type == sql::DataType::VARCHAR || column_type == sql::DataType::LONGVARCHAR) {
 		dynamic_string s;
 		const sql::SQLString& r = res->getString(column_index);
 		for (int i = 0; i < r.length(); ++i) {
 			s.push_back(r[i]);
 		}
 		rpc_param_fill<dynamic_string, dynamic_string>::fill_param(s, result, len);
-		log_info("load from db, column type %d, %s", column_type, r.c_str());
+	}
+	else {
+		log_error("load from db unknow column type %d", column_type);
 	}
 }

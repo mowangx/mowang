@@ -14,13 +14,13 @@ public:
 	~sequence();
 
 public:
-	void init(const dynamic_array<TSequenceID_t>& data);
+	void init();
 
 public:
 	TSequenceID_t gen_sequence_id(sequence_type sequence_type);
 
 public:
-	void save();
+	void save(sequence_type sequence_type);
 	void clean_up();
 
 private:

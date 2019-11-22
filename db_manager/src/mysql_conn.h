@@ -17,8 +17,8 @@ public:
 
 	virtual bool remove(const char* table, const char* query) override;
 	virtual bool insert(const char* table, const char* fields, const char* values) override;
-	virtual bool update(const char* table, const char* query, const char* fields) override;
-	virtual bool query(const char* table, const char* query, const char* fields, char* result, int& len) override;
+	virtual bool update(const char* table, const char* fields, const char* query) override;
+	virtual bool query(const char* table, const char* fields, const char* query, char* result, int& len) override;
 
 private:
 	void fill_result(sql::ResultSet* res, uint32 column_index, int column_type, char* result, int& len);

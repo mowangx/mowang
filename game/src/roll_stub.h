@@ -23,6 +23,7 @@ public:
 	void unregister_account(TAccountID_t account_id);
 	void register_role(TAccountID_t account_id, TRoleID_t role_id, const mailbox_info& mailbox);
 	void unregister_role(TAccountID_t account_id, TRoleID_t role_id);
+	void update_by_relay(TAccountID_t account_id, TRoleID_t role_id, const mailbox_info& mailbox);
 
 private:
 	void clean_up();

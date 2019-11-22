@@ -28,18 +28,26 @@ bool role::init(TEntityID_t entity_id, TProcessID_t gate_id, TSocketIndex_t clie
 	DRegisterEntityRpc(get_entity_id(), this, role, on_register_role, 1);
 	DRegisterEntityRpc(get_entity_id(), this, role, on_relay_ready, 1);
 	DRegisterEntityRpc(get_entity_id(), this, role, on_relay_login, 1);
+	DRegisterEntityRpc(get_entity_id(), this, role, kick_role, 0);
 	DRegisterEntityRpc(get_entity_id(), this, role, disconnect_client, 0);
 	return true;
+}
+
+void role::register_role()
+{
+	log_info("role login success, start register role! role id %" I64_FMT "u", get_role_id());
+	DRpcWrapper.call_stub("roll_stub", "register_role", get_account_id(), get_role_id(), get_mailbox());
 }
 
 void role::on_register_role(bool status)
 {
 	if (status) {
-		log_info("role register success! entity id %" I64_FMT "u ", get_entity_id());
 		if (m_status == ROLE_STATUS_DISCONNECT) {
+			log_info("on register role success, but disconnect client, start logout! role id %" I64_FMT "u ", get_role_id());
 			logout(true);
 		}
 		else {
+			log_info("on register role success! role id %" I64_FMT "u ", get_role_id());
 			m_status = ROLE_STATUS_NORMAL;
 			std::string msg = gx_to_string("{\"cmd\": \"login\", \"ret_code\": %d, \"account_id\": %" I64_FMT "u, \"role_id\": %" I64_FMT "u, \"level\": %d, \"sex\": %d, \"role_name\": \"%s\"}", 
 				ERR_SUCCESS, m_account_id, m_role_id, m_level, m_sex, m_role_name.data());
@@ -47,32 +55,41 @@ void role::on_register_role(bool status)
 		}
 	}
 	else {
+		log_info("on register role failed, kick current role! role id %" I64_FMT "u ", get_role_id());
 		std::string msg = gx_to_string("{\"cmd\": \"login\", \"ret_code\": %d}", ERR_LOGIN_FAILED_BY_RELAY);
 		DRpcWrapper.call_ws_client(get_proxy(), msg);
 		logout(false);
-		log_info("role register failed! entity id %" I64_FMT "u ", get_entity_id());
 	}
 }
 
 void role::on_relay_ready(const mailbox_info& mailbox)
 {
+	log_info("kick current client by relay login! role id %" I64_FMT "u", get_role_id());
 	m_status = ROLE_STATUS_RELAY;
 	DRpcWrapper.call_entity(mailbox, "on_wait_login");
 	std::string msg = gx_to_string("{\"cmd\": \"kick\"}");
 	DRpcWrapper.call_ws_client(get_proxy(), msg);
-	log_info("role on relay ready! entity id %" I64_FMT "u", get_entity_id());
 }
 
 void role::on_relay_login(const proxy_info& proxy)
 {
+	log_info("migrate finish, on relay login success! role id %" I64_FMT "u", get_role_id());
 	m_status = ROLE_STATUS_NORMAL;
 	update_proxy(proxy);
-	log_info("role on relay login success! entity id %" I64_FMT "u", get_entity_id());
+	DRpcWrapper.call_stub("roll_stub", "update_by_relay", get_account_id(), get_role_id(), get_mailbox());
+}
+
+void role::kick_role()
+{
+	log_info("kick role! role id %" I64_FMT "u", get_role_id());
+	std::string msg = gx_to_string("{\"cmd\": \"kick\"}");
+	DRpcWrapper.call_ws_client(get_proxy(), msg);
+	logout(true);
 }
 
 void role::disconnect_client()
 {
-	log_info("role disconnect! role id %" I64_FMT "u, entity id %" I64_FMT "u", get_role_id(), get_entity_id());
+	log_info("role disconnect client! role id %" I64_FMT "u", get_role_id());
 	if (is_destroy()) {
 		return;
 	}
@@ -85,20 +102,14 @@ void role::disconnect_client()
 			if (m_status != ROLE_STATUS_NORMAL) {
 				logout(true);
 			}
-			log_info("role relay timeout! role id %" I64_FMT "u, entity id %" I64_FMT "u", get_role_id(), get_entity_id());
+			log_info("role relay timeout! role id %" I64_FMT "u", get_role_id());
 		});
 	}
 }
 
-void role::register_role()
-{
-	log_info("register role, entity id %" I64_FMT "u", get_entity_id());
-	DRpcWrapper.call_stub("roll_stub", "register_role", get_account_id(), get_role_id(), get_mailbox());
-}
-
 void role::logout(bool need_unregister)
 {
-	log_info("role logout, role id %" I64_FMT "u, entity id %" I64_FMT "u", m_role_id, get_entity_id());
+	log_info("logout role! role id %" I64_FMT "u", m_role_id);
 	if (need_unregister) {
 		save();
 		DRpcWrapper.call_stub("roll_stub", "unregister_role", get_account_id(), get_role_id());

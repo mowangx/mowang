@@ -25,7 +25,7 @@ private:
 	void executor(db_opt_info* opt_info);
 
 public:
-	void add_executor(TSocketIndex_t socket_index, uint8 opt_type, uint64 opt_id, const dynamic_string& table_name, const dynamic_string& query, const dynamic_string& fields);
+	void add_executor(TSocketIndex_t socket_index, uint8 opt_type, uint64 opt_id, const dynamic_string& table_name, const dynamic_string& fields, const dynamic_string& query);
 
 private:
 	void clean_up();

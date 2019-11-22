@@ -27,13 +27,13 @@ private:
 
 public:
 	void db_remove(const char* table, const char* query, const std::function<void(bool)>& callback);
-	void db_insert(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback);
-	void db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback);
-	void db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const binary_data&)>& callback);
+	void db_insert(const char* table, const char* fields, const char* query, const std::function<void(bool)>& callback);
+	void db_update(const char* table, const char* fields, const char* query, const std::function<void(bool)>& callback);
+	void db_query(const char* table, const char* fields, const char* query, const std::function<void(bool, const binary_data&)>& callback);
 private:
-	void db_opt_with_status(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback);
-	void db_opt_with_result(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool, const binary_data&)>& callback);
-	void db_opt(uint8 opt_type, const char* table, const char* query, const char* fields);
+	void db_opt_with_status(uint8 opt_type, const char* table, const char* fields, const char* query, const std::function<void(bool)>& callback);
+	void db_opt_with_result(uint8 opt_type, const char* table, const char* fields, const char* query, const std::function<void(bool, const binary_data&)>& callback);
+	void db_opt(uint8 opt_type, const char* table, const char* fields, const char* query);
 
 public:
 	virtual void add_process(const game_server_info& server_info) override;
@@ -41,8 +41,6 @@ public:
 	void on_opt_db_with_status(TSocketIndex_t socket_index, TOptID_t opt_id, bool status);
 	void on_opt_db_with_result(TSocketIndex_t socket_index, TOptID_t opt_id, bool status, const binary_data& result);
 private:
-	virtual void on_connect(TSocketIndex_t socket_index) override;
-	virtual void on_disconnect(TSocketIndex_t socket_index) override;
 	void on_game_start();
 
 public:

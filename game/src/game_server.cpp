@@ -70,37 +70,37 @@ void game_server::do_loop(TGameTime_t diff)
 
 void game_server::db_remove(const char* table, const char* query, const std::function<void(bool)>& callback)
 {
-	db_opt_with_status(DB_OPT_DELETE, table, query, NULL, callback);
+	db_opt_with_status(DB_OPT_DELETE, table, NULL, query, callback);
 }
 
-void game_server::db_insert(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)
+void game_server::db_insert(const char* table, const char* fields, const char* query, const std::function<void(bool)>& callback)
 {
-	db_opt_with_status(DB_OPT_INSERT, table, query, fields, callback);
+	db_opt_with_status(DB_OPT_INSERT, table, fields, query, callback);
 }
 
-void game_server::db_update(const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)
+void game_server::db_update(const char* table, const char* fields, const char* query, const std::function<void(bool)>& callback)
 {
-	db_opt_with_status(DB_OPT_UPDATE, table, query, fields, callback);
+	db_opt_with_status(DB_OPT_UPDATE, table, fields, query, callback);
 }
 
-void game_server::db_query(const char* table, const char* query, const char* fields, const std::function<void(bool, const binary_data&)>& callback)
+void game_server::db_query(const char* table, const char* fields, const char* query, const std::function<void(bool, const binary_data&)>& callback)
 {
-	db_opt_with_result(DB_OPT_QUERY, table, query, fields, callback);
+	db_opt_with_result(DB_OPT_QUERY, table, fields, query, callback);
 }
 
-void game_server::db_opt_with_status(uint8 opt_type, const char* table, const char* query, const char* fields, const std::function<void(bool)>& callback)
+void game_server::db_opt_with_status(uint8 opt_type, const char* table, const char* fields, const char* query, const std::function<void(bool)>& callback)
 {
-	db_opt(opt_type, table, query, fields);
+	db_opt(opt_type, table, fields, query);
 	m_db_status_callbacks[m_opt_id] = callback;
 }
 
-void game_server::db_opt_with_result(uint8 opt_type, const char * table, const char * query, const char * fields, const std::function<void(bool, const binary_data&)>& callback)
+void game_server::db_opt_with_result(uint8 opt_type, const char * table, const char * fields, const char * query, const std::function<void(bool, const binary_data&)>& callback)
 {
-	db_opt(opt_type, table, query, fields);
+	db_opt(opt_type, table, fields, query);
 	m_db_result_callbacks[m_opt_id] = callback;
 }
 
-void game_server::db_opt(uint8 opt_type, const char * table, const char * query, const char * fields)
+void game_server::db_opt(uint8 opt_type, const char * table, const char * fields, const char * query)
 {
 	m_opt_id += 1;
 	rpc_client* rpc = DRpcWrapper.get_client_by_process_type(PROCESS_DB);
@@ -108,7 +108,7 @@ void game_server::db_opt(uint8 opt_type, const char * table, const char * query,
 		dynamic_string tmp_table(table);
 		dynamic_string tmp_query(query);
 		dynamic_string tmp_fields(fields);
-		rpc->call_remote_func("add_executor", opt_type, m_opt_id, tmp_table, tmp_query, tmp_fields);
+		rpc->call_remote_func("add_executor", opt_type, m_opt_id, tmp_table, tmp_fields, tmp_query);
 	}
 }
 
@@ -156,24 +156,6 @@ void game_server::on_opt_db_with_result(TSocketIndex_t socket_index, TOptID_t op
 	callback(status, result);
 }
 
-void game_server::on_connect(TSocketIndex_t socket_index)
-{
-	TBaseType_t::on_connect(socket_index);
-	//game_process_info process_info;
-	//if (process_info.process_type == PROCESS_DB) {
-	//	DSequence.save();
-	//}
-	//else if (process_info.process_type == PROCESS_HTTP_CLIENT) {
-	//	
-	//	//http_request("localhost", "/sentry/process_trace", "user_name=mowang", false);
-	//}
-}
-
-void game_server::on_disconnect(TSocketIndex_t socket_index)
-{
-	
-}
-
 void game_server::on_game_start()
 {
 	log_info("on_game_start");
@@ -186,6 +168,7 @@ void game_server::on_game_start()
 	if (m_server_info.process_info.process_id == 1) {
 		create_entity_locally("roll_stub_tag", "roll_stub");
 	}
+	DSequence.init();
 }
 
 void game_server::create_entity_globally(const std::string & entity_name, bool check_repeat)
