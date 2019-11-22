@@ -33,7 +33,7 @@ bool game_packet_handler::handle_transfer_packet(packet_base * packet)
 	TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
 	packet_base* transfer_packet = (packet_base*)transfer_info->m_buffer;
 	TPacketID_t packet_id = transfer_packet->get_packet_id();
-	log_info("transfer client, gate id %u, client id %" I64_FMT "u, packet id %u", gate_id, client_id, packet_id);
+	//log_info("transfer client, gate id %u, client id %" I64_FMT "u, packet id %u", gate_id, client_id, packet_id);
 	if (packet_id == PACKET_ID_RPC_BY_NAME) {
 		rpc_by_name_packet* rpc_info = (rpc_by_name_packet*)transfer_packet;
 		TEntityID_t entity_id = DEntityMgr.get_entity_id_by_client_id(client_id);
@@ -54,8 +54,8 @@ bool game_packet_handler::handle_transfer_packet(packet_base * packet)
 				dynamic_string token;
 				rpc_param_parse<dynamic_string, dynamic_string>::parse_param(token, rpc_info->m_buffer, buffer_index);
 				p->login(platform_id, user_id, token);
-				log_info("login server, client id %" I64_FMT "u, gate id %u, entity id %" I64_FMT "u, platform id %u, user id %s, token %s",
-					client_id, gate_id, p->get_entity_id(), platform_id, user_id.data(), token.data());
+				//log_info("login server, client id %" I64_FMT "u, gate id %u, entity id %" I64_FMT "u, platform id %u, user id %s, token %s",
+				//	client_id, gate_id, p->get_entity_id(), platform_id, user_id.data(), token.data());
 			}
 		}
 	}

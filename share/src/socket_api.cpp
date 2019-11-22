@@ -473,7 +473,7 @@ TSocketFD_t SOCKET_API::gx_accept(TSocketFD_t s, struct sockaddr * addr, uint32 
 			case EFAULT:
 			default:
 			{
-				log_error("Socket error! %u", errno);
+				//log_error("Socket error! %u", errno);
 				break;
 			}
 		}//end of switch

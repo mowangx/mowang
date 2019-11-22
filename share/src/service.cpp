@@ -268,14 +268,14 @@ void service::kick_ws_socket(TSocketIndex_t socket_index)
 
 void service::register_handler(game_handler* handler)
 {
-	log_info("register handler, socket index %" I64_FMT "u", handler->get_socket_index());
+	//log_info("register handler, socket index %" I64_FMT "u", handler->get_socket_index());
 	m_handlers[handler->get_socket_index()] = handler;
 	DRpcWrapper.register_handler_info(handler);
 }
 
 void service::unregister_handler(TSocketIndex_t socket_index)
 {
-	log_info("unregister handler, socket index %" I64_FMT "u", socket_index);
+	//log_info("unregister handler, socket index %" I64_FMT "u", socket_index);
 	on_disconnect(socket_index);
 
 	auto itr = m_handlers.find(socket_index);
@@ -292,7 +292,7 @@ void service::add_process(const game_server_info& server_info)
 
 void service::register_server(TSocketIndex_t socket_index, const game_server_info& server_info)
 {
-	log_info("update handler server info, socket index %" I64_FMT "u", socket_index);
+	//log_info("update handler server info, socket index %" I64_FMT "u", socket_index);
 	auto itr = m_handlers.find(socket_index);
 	if (itr != m_handlers.end()) {
 		DRpcWrapper.update_handler_info(socket_index, server_info);

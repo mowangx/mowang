@@ -55,7 +55,7 @@ bool tcp_manager::on_accept(socket_wrapper* listener)
 	// @todo 检测添加的时候会不会影响性能
 	TSocketIndex_t index = gen_socket_index();
 	socket->set_socket_index(index);
-	log_info("accept socket! index %" I64_FMT "u", index);
+	//log_info("accept socket! index %" I64_FMT "u", index);
 
 	socket->set_packet_handler(listener->create_handler());
 	socket->get_packet_handler()->set_socket_index(index);

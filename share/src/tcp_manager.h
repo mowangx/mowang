@@ -121,7 +121,7 @@ bool tcp_manager::start_connect(const char* host, TPort_t port)
 
 	TSocketIndex_t index = gen_socket_index();
 	socket->set_socket_index(index);
-	log_info("connect socket success! index %" I64_FMT "u, host %s, port %u", index, host, port);
+	//log_info("connect socket success! index %" I64_FMT "u, host %s, port %u", index, host, port);
 
 	socket->set_packet_handler(socket->create_handler());
 	socket->get_packet_handler()->set_socket_index(index);
