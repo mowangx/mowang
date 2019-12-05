@@ -232,6 +232,7 @@
     <ClInclude Include="src\socket_wrapper.h" />
     <ClInclude Include="src\stdcore.h" />
     <ClInclude Include="src\string_common.h" />
+    <ClInclude Include="src\string_parse.h" />
     <ClInclude Include="src\tcp_manager.h" />
     <ClInclude Include="src\timer.h" />
     <ClInclude Include="src\time_manager.h" />

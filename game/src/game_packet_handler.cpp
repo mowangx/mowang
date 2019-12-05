@@ -36,7 +36,7 @@ bool game_packet_handler::handle_transfer_packet(packet_base * packet)
 	//log_info("transfer client, gate id %u, client id %" I64_FMT "u, packet id %u", gate_id, client_id, packet_id);
 	if (packet_id == PACKET_ID_RPC_BY_NAME) {
 		rpc_by_name_packet* rpc_info = (rpc_by_name_packet*)transfer_packet;
-		TEntityID_t entity_id = DEntityMgr.get_entity_id_by_client_id(client_id);
+		TEntityID_t entity_id = DGameServer.get_entity_id_by_client_id(client_id);
 		if (entity_id != INVALID_ENTITY_ID) {
 			DRpcEntity.call(entity_id, rpc_info->m_rpc_name, rpc_info->m_buffer);
 		}
@@ -45,6 +45,7 @@ bool game_packet_handler::handle_transfer_packet(packet_base * packet)
 			if (func_name.find("login") != std::string::npos) {
 				TProcessID_t gate_id = (TProcessID_t)((client_id >> 40) & 0xFFFF);
 				account* p = (account*)DEntityMgr.create_entity("account", gate_id, client_id);
+				DGameServer.update_client_entity_id(client_id, p->get_entity_id());
 
 				int buffer_index = 0;
 				TPlatformID_t platform_id = INVALID_PLATFORM_ID;

@@ -75,6 +75,7 @@ protected:
 	virtual void on_disconnect(TSocketIndex_t socket_index);
 
 public:
+	virtual TProcessID_t get_process_id_by_client_id(TSocketIndex_t client_id) const;
 	TServerID_t get_server_id() const;
 	TProcessID_t get_game_id() const;
 

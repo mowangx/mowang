@@ -198,6 +198,9 @@
     <ClInclude Include="src\server_entity.h" />
     <ClInclude Include="src\game_enum.h" />
     <ClInclude Include="src\sql_utils.h" />
+    <ClInclude Include="src\tbl_building.h" />
+    <ClInclude Include="src\tbl_building_upgrade.h" />
+    <ClInclude Include="src\tbl_common.h" />
     <ClInclude Include="src\tbl_test.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

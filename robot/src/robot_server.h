@@ -32,6 +32,11 @@ private:
 	void process_login(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 	void process_logout(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 	void process_create_role(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_income_resource(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_build_building(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_up_building_level(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_update_resource(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_update_building(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 
 public:
 	void create_role(TSocketIndex_t socket_index);

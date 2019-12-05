@@ -44,6 +44,11 @@ private:
 	void on_game_start();
 
 public:
+	TEntityID_t get_entity_id_by_client_id(TSocketIndex_t client_id) const;
+	void update_client_entity_id(TSocketIndex_t client_id, TEntityID_t entity_id);
+	void remove_client_id(TSocketIndex_t client_id);
+
+public:
 	void create_entity_globally(const std::string& entity_name, bool check_repeat = false);
 	entity* create_entity_locally(const std::string& tag, const std::string& entity_name);
 
@@ -51,6 +56,7 @@ private:
 	std::unordered_map<TOptID_t, std::function<void(bool, const binary_data&)>> m_db_result_callbacks;
 	std::unordered_map<TOptID_t, std::function<void(bool)>> m_db_status_callbacks;
 	TProcessNum_t m_process_num[MAX_PROCESS_TYPE_NUM];
+	std::unordered_map<TSocketIndex_t, TEntityID_t> m_client_2_entity;
 };
 
 #define DGameServer singleton<game_server>::get_instance()

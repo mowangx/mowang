@@ -34,15 +34,19 @@ public:
 	void on_client_connect(TSocketIndex_t socket_index);
 	void on_client_disconnect(TSocketIndex_t socket_index);
 	void kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t client_id);
+	void update_client_process_info(TSocketIndex_t socket_index, const game_process_info& process_info);
 
 private:
 	virtual void process_ws_close_sockets(std::vector<web_socket_wrapper_base*>& sockets);
 private:
 	void process_login(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 	void process_create_role(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_income_resource(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_build_building(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
+	void process_up_building_level(TSocketIndex_t socket_index, boost::property_tree::ptree* json);
 
 public:
-	TProcessID_t get_process_id_by_client_id(TSocketIndex_t client_id) const;
+	virtual TProcessID_t get_process_id_by_client_id(TSocketIndex_t client_id) const override;
 
 private:
 	TPort_t m_ws_port;

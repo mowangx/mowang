@@ -72,7 +72,7 @@ inline bool parse_bstr(T& data, int index, uint32 len, const char* bstr)
 }
 
 template<class T>
-inline bool parse_dynamic_bstr(dynamic_array<T>& data, int index, uint32 len, const char* bstr)
+inline bool parse_dynamic_bstr(std::vector<T>& data, int index, uint32 len, const char* bstr)
 {
 	uint16 data_size = 0;
 	if (len < sizeof(data_size)) {

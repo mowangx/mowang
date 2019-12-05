@@ -37,11 +37,12 @@ bool gate_server::init(TProcessID_t process_id)
 	if (!TBaseType_t::init(process_id)) {
 		return false;
 	}
-
+	
 	DRegisterServerRpc(this, gate_server, register_server, 2);
 	DRegisterServerRpc(this, gate_server, kick_socket_delay, 2);
 	DRegisterServerRpc(this, gate_server, on_register_entities, 5);
 	DRegisterServerRpc(this, gate_server, on_unregister_process, 4);
+	DRegisterServerRpc(this, gate_server, update_client_process_info, 2);
 
 	if (!DNetMgr.start_listen<client_handler>(m_server_info.port)) {
 		log_info("init socket manager failed");
@@ -61,6 +62,9 @@ void gate_server::init_ws_process_func()
 {
 	m_cmd_2_parse_func["login"] = std::bind(&gate_server::process_login, this, std::placeholders::_1, std::placeholders::_2);
 	m_cmd_2_parse_func["create_role"] = std::bind(&gate_server::process_create_role, this, std::placeholders::_1, std::placeholders::_2);
+	m_cmd_2_parse_func["income_resource"] = std::bind(&gate_server::process_income_resource, this, std::placeholders::_1, std::placeholders::_2);
+	m_cmd_2_parse_func["build_building"] = std::bind(&gate_server::process_build_building, this, std::placeholders::_1, std::placeholders::_2);
+	m_cmd_2_parse_func["up_building_level"] = std::bind(&gate_server::process_up_building_level, this, std::placeholders::_1, std::placeholders::_2);
 }
 
 void gate_server::do_loop(TGameTime_t diff)
@@ -145,7 +149,7 @@ void gate_server::on_client_disconnect(TSocketIndex_t socket_index)
 {
 	auto itr = m_client_2_process.find(socket_index);
 	if (itr != m_client_2_process.end()) {
-		DRpcWrapper.call_server(itr->second.process_id, socket_index, "disconnect_client");
+		DRpcWrapper.call_server(socket_index, "disconnect_client");
 		m_client_2_process.erase(itr);
 		log_info("on client disconnect remove success, client id %" I64_FMT "u", socket_index);
 	}
@@ -160,6 +164,18 @@ void gate_server::kick_socket_delay(TSocketIndex_t socket_index, TSocketIndex_t 
 	kick_info.socket_index = client_id;
 	kick_info.kick_time = DTimeMgr.now_sys_time() + DELAY_KICK_SOCKET_TIME;
 	m_delay_kick_sockets.push_back(kick_info);
+}
+
+void gate_server::update_client_process_info(TSocketIndex_t socket_index, const game_process_info & process_info)
+{
+	auto itr = m_client_2_process.find(socket_index);
+	if (itr == m_client_2_process.end()) {
+		return;
+	}
+	game_process_info& cur_process_info = itr->second;
+	cur_process_info.server_id = process_info.server_id;
+	cur_process_info.process_type = process_info.process_type;
+	cur_process_info.process_id = process_info.process_id;
 }
 
 void gate_server::process_ws_close_sockets(std::vector<web_socket_wrapper_base*>& sockets)
@@ -180,7 +196,7 @@ void gate_server::process_login(TSocketIndex_t socket_index, boost::property_tre
 	on_client_connect(socket_index);
 	TProcessID_t process_id = get_process_id_by_client_id(socket_index);
 	log_info("login, socket index %" I64_FMT "u, user id %s, game id %u", socket_index, user_id.data(), process_id);
-	DRpcWrapper.call_server(process_id, socket_index, "login", platform_id, user_id, token);
+	DRpcWrapper.call_server(socket_index, "login", platform_id, user_id, token);
 }
 
 void gate_server::process_create_role(TSocketIndex_t socket_index, boost::property_tree::ptree* json)
@@ -188,7 +204,26 @@ void gate_server::process_create_role(TSocketIndex_t socket_index, boost::proper
 	TSex_t sex = json->get<TSex_t>("sex", 1);
 	std::string role_name = json->get<std::string>("role_name", "");
 	dynamic_string name(role_name.c_str());
-	DRpcWrapper.call_server(get_process_id_by_client_id(socket_index), socket_index, "create_role", sex, name);
+	DRpcWrapper.call_server(socket_index, "create_role", sex, name);
+}
+
+void gate_server::process_income_resource(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
+{
+	TBuildingIndex_t building_index = json->get<TBuildingIndex_t>("index", INVALID_BUILDING_INDEX);
+	DRpcWrapper.call_server(socket_index, "income_resource", building_index);
+}
+
+void gate_server::process_build_building(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
+{
+	TBuildingType_t building_type = json->get<TBuildingType_t>("type", INVALID_BUILDING_TYPE);
+	TBuildingIndex_t building_index = json->get<TBuildingIndex_t>("index", INVALID_BUILDING_INDEX);
+	DRpcWrapper.call_server(socket_index, "build_building", building_index, building_type);
+}
+
+void gate_server::process_up_building_level(TSocketIndex_t socket_index, boost::property_tree::ptree * json)
+{
+	TBuildingIndex_t building_index = json->get<TBuildingIndex_t>("index", INVALID_BUILDING_INDEX);
+	DRpcWrapper.call_server(socket_index, "up_building_level", building_index);
 }
 
 TProcessID_t gate_server::get_process_id_by_client_id(TSocketIndex_t client_id) const

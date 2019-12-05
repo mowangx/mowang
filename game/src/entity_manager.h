@@ -43,7 +43,6 @@ private:
 	void destroy_entity_core(TEntityID_t entity_id);
 
 public:
-	TEntityID_t get_entity_id_by_client_id(TSocketIndex_t client_id) const;
 	server_entity* get_entity(TEntityID_t entity_id);
 
 private:
@@ -55,7 +54,6 @@ private:
 	std::vector<TEntityID_t> m_delay_destroy_ids;
 	std::map<std::string, std::function<server_entity*()>> m_create_entity_funcs;
 	std::unordered_map<TEntityID_t, entity_info> m_entities;
-	std::unordered_map<TSocketIndex_t, TEntityID_t> m_client_2_entity;
 };
 
 #define DEntityMgr singleton<entity_manager>::get_instance()

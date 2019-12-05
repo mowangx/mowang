@@ -344,6 +344,11 @@ void service::on_disconnect(TSocketIndex_t socket_index)
 {
 }
 
+TProcessID_t service::get_process_id_by_client_id(TSocketIndex_t client_id) const
+{
+	return INVALID_PROCESS_ID;
+}
+
 TServerID_t service::get_server_id() const
 {
 	return m_server_info.process_info.server_id;

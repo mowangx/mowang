@@ -4,7 +4,6 @@
 
 #include "db_parser.h"
 #include "time_manager.h"
-#include "dynamic_array.h"
 
 struct binary_string_head
 {
@@ -67,7 +66,7 @@ static void flat_struct_2_bstr(char* buffer, const T& data)
 }
 
 template <class T>
-static void dynamic_struct_2_bstr(char* buffer, const dynamic_array<T>& data)
+static void dynamic_struct_2_bstr(char* buffer, const std::vector<T>& data)
 {
 	if (data.empty()) {
 		return ;
@@ -132,7 +131,7 @@ inline bool bstr_2_flat_struct(T& data, const char* bstr)
 
 // 把数据库读到到的字符串转化成相应的结构体数据
 template<class T>
-inline bool bstr_2_dynamic_struct(dynamic_array<T>& data, const char* bstr)
+inline bool bstr_2_dynamic_struct(std::vector<T>& data, const char* bstr)
 {
 	if (strlen(bstr) == 0) {
 		return true;

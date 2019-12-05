@@ -60,16 +60,16 @@ public:
 
 public:
 	// gate transfer client websocket packet to game, gate will parse websocket json packet to byte stream
-	void call_server(TProcessID_t process_id, TSocketIndex_t client_id, const std::string& func_name) {
-		rpc_client* rpc = get_client_by_process_id(PROCESS_GAME, process_id);
+	void call_server(TSocketIndex_t client_id, const std::string& func_name) {
+		rpc_client* rpc = get_client_by_client_id(client_id);
 		if (NULL != rpc) {
 			rpc->call_transfer_func(client_id, func_name);
 		}
 	}
 
 	template <class... Args>
-	void call_server(TProcessID_t process_id, TSocketIndex_t client_id, const std::string& func_name, const Args&... args) {
-		rpc_client* rpc = get_client_by_process_id(PROCESS_GAME, process_id);
+	void call_server(TSocketIndex_t client_id, const std::string& func_name, const Args&... args) {
+		rpc_client* rpc = get_client_by_client_id(client_id);
 		if (NULL != rpc) {
 			rpc->call_transfer_func(client_id, func_name, args...);
 		}
@@ -77,8 +77,8 @@ public:
 
 	// gate transfer client tcp packet to game
 	template <class T>
-	void transfer_server(TProcessID_t process_id, TSocketIndex_t client_id, T* packet) {
-		rpc_client* rpc = get_client_by_process_id(PROCESS_GAME, process_id);
+	void transfer_server(TSocketIndex_t client_id, T* packet) {
+		rpc_client* rpc = get_client_by_client_id(client_id);
 		if (NULL != rpc) {
 			rpc->call_transfer_packet(client_id, packet);
 		}
@@ -129,6 +129,7 @@ public:
 	rpc_client* get_client_by_socket_index(TSocketIndex_t socket_index) const;
 	rpc_client* get_client_by_process_type(TProcessType_t process_type) const;
 	rpc_client* get_client_by_process_id(TProcessType_t process_type, TProcessID_t process_id) const;
+	rpc_client* get_client_by_client_id(TSocketIndex_t client_id) const;
 	rpc_client* get_client_by_address(const TIP_t& ip, TPort_t port);
 	TProcessID_t get_random_process_id(TProcessType_t process_type) const;
 	uint32 get_key_id_by_process_id(TProcessType_t process_type, TProcessID_t process_id) const;

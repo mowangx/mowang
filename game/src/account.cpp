@@ -7,6 +7,8 @@
 #include "rpc_proxy.h"
 #include "sql_utils.h"
 #include "error_code.h"
+#include "binary_string.h"
+#include "tbl_common.h"
 
 account::account()
 {
@@ -70,8 +72,10 @@ void account::create_account()
 {
 	TServerID_t server_id = DGameServer.get_server_id();
 	TProcessID_t process_id = DGameServer.get_server_info().process_info.process_id;
-	m_account_id = ((TAccountID_t)server_id << 48) + ((uint64)process_id << 32) + DSequence.gen_sequence_id(SEQUENCE_ACCOUNT);
-	m_role_id = ((TRoleID_t)server_id << 48) + ((uint64)process_id << 32) + DSequence.gen_sequence_id(SEQUENCE_ROLE);
+	m_account_id = 1;
+	m_role_id = 1;
+	//m_account_id = ((TAccountID_t)server_id << 48) + ((uint64)process_id << 32) + DSequence.gen_sequence_id(SEQUENCE_ACCOUNT);
+	//m_role_id = ((TRoleID_t)server_id << 48) + ((uint64)process_id << 32) + DSequence.gen_sequence_id(SEQUENCE_ROLE);
 	DGameServer.db_insert(
 		"account",
 		"(platform_id, server_id, user_id, account_id, role_id)",
@@ -169,6 +173,12 @@ void account::on_load_role_callback(bool status, const binary_data& result)
 		dynamic_string name;
 		rpc_param_parse<dynamic_string, dynamic_string>::parse_param(name, result.data(), buffer_index);
 		memcpy(role_data.role_name.data(), name.data(), name.size());
+		dynamic_string buildings;
+		rpc_param_parse<dynamic_string, dynamic_string>::parse_param(buildings, result.data(), buffer_index);
+		bstr_2_dynamic_struct<building_info>(role_data.buildings, buildings.data());
+		dynamic_string resources;
+		rpc_param_parse<dynamic_string, dynamic_string>::parse_param(resources, result.data(), buffer_index);
+		bstr_2_dynamic_struct<resource_info>(role_data.resources, resources.data());
 		on_login_success(role_data);
 		log_info("on load role callback success! entity id %" I64_FMT "u", get_entity_id());
 	}
@@ -176,13 +186,28 @@ void account::on_load_role_callback(bool status, const binary_data& result)
 
 void account::create_role(TSex_t sex, const dynamic_string& role_name)
 {
+	int ret_code = ERR_SUCCESS;
+	std::string msg = gx_to_string("{\"cmd\": \"create_role\", \"ret_code\": %d, \"role_name\": %s, \"sex\": %d}", ret_code, sex, role_name.data());
+	call_ws_client(msg);
+	std::vector<building_info> buildings;
+	for (int i = 0; i < 5; ++i) {
+		building_info building_data;
+		building_data.building_type = i + 1;
+		building_data.building_index = i * 10 + 2;
+		buildings.push_back(building_data);
+	}
 	m_sex = sex;
 	memset(m_role_name.data(), 0, ROLE_NAME_LEN);
 	memcpy(m_role_name.data(), role_name.data(), role_name.size());
+
+	uint16 building_size = sizeof(building_info) * buildings.size();
+	dynamic_string* building = allocate_binary_string(building_size);
+	dynamic_struct_2_bstr<building_info>(building->data(), buildings);
+
 	DGameServer.db_insert(
 		"role",
-		"(account_id, role_id, sex, level, role_name)",
-		gx_to_string("('%" I64_FMT "u', '%" I64_FMT "u', %d, %d, '%s')", m_account_id, m_role_id, m_sex, 1, m_role_name.data()).c_str(),
+		"(account_id, role_id, sex, level, role_name, buildings)",
+		gx_to_string("('%" I64_FMT "u', '%" I64_FMT "u', %d, %d, '%s', '%s')", m_account_id, m_role_id, m_sex, 1, m_role_name.data(), building->data()).c_str(),
 		[&](bool status) {
 		if (status) {
 			log_info("save role success! client id %" I64_FMT "u, entity id %" I64_FMT "u", get_client_id(), get_entity_id());
@@ -192,6 +217,13 @@ void account::create_role(TSex_t sex, const dynamic_string& role_name)
 			role_data.level = 1;
 			role_data.sex = m_sex;
 			role_data.role_name = m_role_name;
+			tbl_common_config* common_config = DTblCommonMgr.get(1);
+			for (int i = 0; i < common_config->value.size(); i += 2) {
+				resource_info resource_data;
+				resource_data.resource_type = common_config->value[i];
+				resource_data.resource_num = common_config->value[i+1];
+				role_data.resources.push_back(resource_data);
+			}
 			on_login_success(role_data);
 		}
 		else {
@@ -204,11 +236,11 @@ void account::create_role(TSex_t sex, const dynamic_string& role_name)
 void account::on_login_success(const role_info& role_data)
 {
 	role* p = (role*)DEntityMgr.create_entity("role", get_gate_id(), get_client_id());
-	p->set_account_id(role_data.account_id);
-	p->set_role_id(role_data.role_id);
-	p->set_level(role_data.level);
-	p->set_sex(role_data.sex);
-	p->set_role_name(role_data.role_name);
+	DGameServer.update_client_entity_id(get_client_id(), p->get_entity_id());
+	p->set_role_data(role_data);
+	for (int i = 0; i < role_data.buildings.size(); ++i) {
+		log_info("role building info! build type %d, building index %d", role_data.buildings[i].building_type, role_data.buildings[i].building_index);
+	}
 	p->register_role();
 	destroy();
 }

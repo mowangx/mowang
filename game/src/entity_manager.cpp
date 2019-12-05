@@ -67,7 +67,6 @@ server_entity* entity_manager::create_entity(const std::string& entity_name, TPr
 		info.e = e;
 		info.name = entity_name;
 		m_entities[m_entity_id] = info;
-		m_client_2_entity[client_id] = e->get_entity_id();
 	}
 	else {
 		log_error("create entity failed for new failed! entity name: %s", entity_name.c_str());
@@ -99,16 +98,6 @@ void entity_manager::destroy_entity_core(TEntityID_t entity_id)
 		delete info.e;
 	}
 	m_entities.erase(itr);
-}
-
-TEntityID_t entity_manager::get_entity_id_by_client_id(TSocketIndex_t client_id) const
-{
-	auto itr = m_client_2_entity.find(client_id);
-	if (itr != m_client_2_entity.end()) {
-		return itr->second;
-	}
-
-	return INVALID_ENTITY_ID;
 }
 
 server_entity* entity_manager::get_entity(TEntityID_t entity_id)

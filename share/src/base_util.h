@@ -87,7 +87,7 @@ const TAttrType_t INVALID_ATTR_TYPE = 0;
 typedef sint16 TAttrValue_t;			// 属性值
 const TAttrValue_t INVALID_ATTR_VALUE = 0;
 
-typedef sint8 TLevel_t;					// 等级
+typedef sint16 TLevel_t;				// 等级
 const TLevel_t INVALID_LEVEL = 0;
 
 typedef uint32 TGameTime_t;				// 游戏时间
@@ -134,6 +134,18 @@ const TDbVersion_t INVALID_DB_VERSION = 0;
 
 typedef uint32 TWaitIndex_t;			// etcd索引
 const TWaitIndex_t INVALID_WAIT_INDEX = 0;
+
+typedef uint16 TBuildingType_t;			// 建筑类型
+const TBuildingType_t INVALID_BUILDING_TYPE = 0;
+
+typedef uint16 TBuildingIndex_t;		// 建筑位置
+const TBuildingIndex_t INVALID_BUILDING_INDEX = 0;
+
+typedef uint8 TResourceType_t;			// 资源类型
+const TResourceType_t INVALID_RESOURCE_TYPE = 0;
+
+typedef sint32 TResourceNum_t;			// 资源数量
+const TResourceNum_t INVALID_RESOURCE_NUM = 0;
 
 //根据指针值删除内存
 #ifndef DSafeDelete

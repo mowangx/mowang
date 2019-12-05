@@ -44,15 +44,13 @@ void client_handler::handle_close()
 bool client_handler::handle_transfer_server_by_index(packet_base* packet)
 {
 	TSocketIndex_t socket_index = get_socket_index();
-	TProcessID_t process_id = DGateServer.get_process_id_by_client_id(socket_index);
-	DRpcWrapper.transfer_server(process_id, socket_index, (rpc_by_index_packet*)packet);
+	DRpcWrapper.transfer_server(socket_index, (rpc_by_index_packet*)packet);
 	return true;
 }
 
 bool client_handler::handle_transfer_server_by_name(packet_base* packet)
 {
 	TSocketIndex_t socket_index = get_socket_index();
-	TProcessID_t process_id = DGateServer.get_process_id_by_client_id(socket_index);
-	DRpcWrapper.transfer_server(process_id, socket_index, (rpc_by_name_packet*)packet);
+	DRpcWrapper.transfer_server(socket_index, (rpc_by_name_packet*)packet);
 	return true;
 }

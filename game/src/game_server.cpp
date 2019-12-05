@@ -1,6 +1,8 @@
 
 #include "game_server.h"
-#include "tbl_test.h"
+#include "tbl_common.h"
+#include "tbl_building.h"
+#include "tbl_building_upgrade.h"
 #include "game_packet_handler.h"
 #include "rpc_proxy.h"
 #include "rpc_client.h"
@@ -32,11 +34,21 @@ bool game_server::init(TProcessID_t process_id)
 		return false;
 	}
 
-	//if (!DTblTestMgr.load("../config/server_test.xml")) {
-	//	log_error("load config failed");
-	//	return false;
-	//}
-	//log_info("load config success");
+	if (!DTblCommonMgr.load("../config/common.xml")) {
+		log_error("load common.xml config failed");
+		return false;
+	}
+
+	if (!DTblBuildingMgr.load("../config/building.xml")) {
+		log_error("load building.xml config failed");
+		return false;
+	}
+
+	if (!DTblBuildingUpgradeMgr.load("../config/building_upgrade.xml")) {
+		log_error("load building_upgrade.xml config failed");
+		return false;
+	}
+	log_info("load config success");
 
 	DRegisterServerRpc(this, game_server, register_server, 2);
 	DRegisterServerRpc(this, game_server, on_opt_db_with_status, 3);
@@ -169,6 +181,29 @@ void game_server::on_game_start()
 		create_entity_locally("roll_stub_tag", "roll_stub");
 	}
 	DSequence.init();
+}
+
+TEntityID_t game_server::get_entity_id_by_client_id(TSocketIndex_t client_id) const
+{
+	auto itr = m_client_2_entity.find(client_id);
+	if (itr != m_client_2_entity.end()) {
+		return itr->second;
+	}
+
+	return INVALID_ENTITY_ID;
+}
+
+void game_server::update_client_entity_id(TSocketIndex_t client_id, TEntityID_t entity_id)
+{
+	m_client_2_entity[client_id] = entity_id;
+}
+
+void game_server::remove_client_id(TSocketIndex_t client_id)
+{
+	auto itr = m_client_2_entity.find(client_id);
+	if (itr != m_client_2_entity.end()) {
+		m_client_2_entity.erase(itr);
+	}
 }
 
 void game_server::create_entity_globally(const std::string & entity_name, bool check_repeat)

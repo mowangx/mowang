@@ -152,6 +152,12 @@ rpc_client* rpc_wrapper::get_client_by_process_id(TProcessType_t process_type, T
 	return itr->second;
 }
 
+rpc_client* rpc_wrapper::get_client_by_client_id(TSocketIndex_t client_id) const
+{
+	TProcessID_t process_id = m_service->get_process_id_by_client_id(client_id);
+	return get_client_by_process_id(PROCESS_GAME, process_id);
+}
+
 rpc_client* rpc_wrapper::get_client_by_address(const TIP_t& ip, TPort_t port)
 {
 	rpc_client_wrapper_info* rpc_wrapper = NULL;
